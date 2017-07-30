@@ -1,0 +1,186 @@
+\documentclass[oneside]{book}
+\usepackage{tabu}
+\usepackage{float}
+\usepackage{xcolor}
+\usepackage{colortbl}
+\usepackage{hyperref}
+\usepackage{makeidx}
+\usepackage{tocloft}
+\usepackage[utf8]{inputenc}
+\usepackage{newunicodechar}
+\usepackage{luacode}
+\usepackage{titling}
+\usepackage[inline]{enumitem}
+
+
+\protected\def\pdfinfo {\pdfextension info }
+
+\pdfinfo{
+  /CreationDate (D:20170728090000-07'00')
+  /ModDate (D:20170728090000-07'00')
+  /Author (Lightning | Legitimate Business Syndicate)
+  /Title (The cLEMENCy Computer Architecture)
+  /Subject (computers)
+}
+\edef\pdftrailerid {\pdfvariable trailerid}
+\pdftrailerid{[<6c65676974627320> <6c65676974627320>]}
+\title{cLEMENCy Errata}
+\date{July 2017}
+\author{Lightning\\ Legitimate Business Syndicate}
+
+\newunicodechar{←}{\leftarrow}
+
+\addtolength{\cftsecnumwidth}{10pt}
+
+\begin{document}
+\frontmatter
+\thispagestyle{plain}
+\begin{center}
+  \centering
+      {
+        \LARGE \thetitle
+      }
+      \\[2em]
+      {
+          \Large Legitimate Business Syndicate
+      }
+      \\[1em]
+
+      \begin{itemize*}[label=]
+      \item Deadwood
+      \item Fuzyll
+      \item Gyno
+      \item HJ
+      \item Hoju
+      \item Jetboy
+      \item Jymbolia
+      \item Lightning
+      \item Selir
+      \item Sirgoon
+      \item Thing2
+      \item Vito
+      \end{itemize*}
+\end{center}
+
+      To the extent possible under law, Legitimate Business Syndicate have waived all
+      copyright and related or neighboring rights to ``\thetitle''. This work is
+      published in the United States. For more information about this license, please
+      visit https://creativecommons.org/publicdomain/zero/1.0/
+
+      Compiled from revision
+      \texttt{\input{rev.tex}} on \input{date.tex}.
+
+\newpage
+\mainmatter
+
+\setcounter{chapter}{1}
+\setcounter{section}{1}
+
+\section{Stack}
+
+\textit{The stack pointer change when an interrupt fires or is returned from has
+  changed.}
+
+Due to no specific stack based instructions, there is no expected direction the stack should grow, however during an interrupt the processor will subtract 99 bytes of data from the stack pointer when storing all registers to the stack and the interrupt return will read 99 bytes from the current stack pointer. If an implementation needs the interrupts to add to the stack instead of subtracting then changing the 'Interrupt stack direction flag' bit in the features area of the processor will accomplish this.
+
+\setcounter{chapter}{2}
+
+\setcounter{section}{1}
+
+\section{Clock IO}
+
+\textit{The zero time for the real-time clock has been changed.}
+
+There are 6 bytes per timer with 4 timers maximum. A 0 for the timer delay disables that specific timer. Each timer has a 1 millisecond accuracy.
+
+
+
+
+
+\input{./tables/95411ecb0b59e6c1c5af363cebec8e16a20a3d2ac9465e437447547a38355a51.tex}
+
+\setcounter{section}{10}
+\newpage
+
+\section{Processor Identification}
+
+\textit{The original version of this section mis-stated the stack pointer change
+  when an interrupt fires or is returned from.}
+
+
+The last 128 bytes of memory are used for processor identification and information of supported functionality. Writes to this area are ignored with the exception of the Interrupt Stack Direction Flag.
+
+
+
+
+
+\input{./tables/60eb256242c145e6381f4ef4b46a4d1daab4bcbc549cf0680a812e396297e145.tex}
+
+
+It is recommended to implementors that the processor version contains a Major, Minor, and Revision value, one value per byte entry.
+
+
+The functionality flags has the following information:
+
+
+\input{./tables/2eeb76138ec5431549ee5c9b9029bf858221b317e3e045d320a8a4a6512c0e63.tex}
+
+
+
+The low bit of the interrupt stack direction flag dictates the direction the interrupt writes to the stack. A value of 0, the default, results in the interrupt subtracting 99 bytes from the stack pointer then storing all registers in the 99 byte buffer starting with register 0. A value of 1 results in the interrupt storing and incrementing the stack pointer starting with register 0. The interrupt return behaves in the opposite manner to restore the registers.
+
+\setcounter{chapter}{3}
+\setcounter{section}{-1}
+\newpage
+\section{Interrupts and Exceptions}
+
+\textit{The original version of the introduction to this chapter mis-stated what
+  is pushed to the stack when an interrupt fires or is returned from.}
+
+When any interrupt is fired, all 32 general purpose registers and low 4 bits of the flags register are stored to the current stack before the processor begins executing the specified interrupt routine. Upon returning from an interrupt, all registers and low bits of the flag register are restored from the stack. The Disable Interrupts, DI, and Enable Interrupts, EI, instructions are used to temporarily disable an interrupt. Any interrupt with a value of 0 will not be called and ignored.
+
+
+\setcounter{section}{2}
+
+
+\section{Divide by 0 Exception}
+
+\textit{This interrupt now fires on all floating point exceptions, in addition
+  to division by zero.}
+
+Division with a divisor of 0 will trigger this interrupt. Additionally, all other floating point exceptions will also trigger this interrupt.
+
+\setcounter{chapter}{4}
+\setcounter{section}{46}
+
+\section{IR: Interrupt Return}
+
+\textit{The flags are now pushed to the stack, and the increment amount on the
+  stack pointer has been changed to reflect this.}
+
+\index{IR}
+{
+\setlength{\tabcolsep}{3pt}
+\begin{tabu} spread \linewidth {l r}
+\multicolumn{1}{l}{0} & \multicolumn{1}{r}{17} \\
+\multicolumn{2}{c}{\texttt{101000000001000000}}
+\end{tabu}
+}
+\nopagebreak
+\begin{description}
+\item [Format:] \texttt{IR}
+\item [Purpose:] Return from an interrupt
+\item [Description:] Return from an interrupt routine.
+
+\item [Operation:] \begin{verbatim}
+
+if Stack_Direction_Flag then
+  SP -= 0x63
+R0:R31 ← [SP:SP+0x60]
+FLAGS ← [SP+0x60:SP+0x63]
+if not Stack_Direction_Flag then
+  SP += 0x63\end{verbatim}
+\item [Flags affected:] \textit{Z C O S}
+\end{description}
+
+\end{document}

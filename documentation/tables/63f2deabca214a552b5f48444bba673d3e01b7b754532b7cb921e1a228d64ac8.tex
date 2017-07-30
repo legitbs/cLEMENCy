@@ -1,0 +1,18 @@
+\begin{table}[H]
+\centering
+\caption{Registers}
+{
+\tabulinesep=1mm
+\begin{tabu} to \linewidth { X[-2c]  X[-2c]  X }
+Register Name & Register Number & Notes \\
+\hline
+R0 & 0 & General purpose, parameter 1 and function return value \\
+R1 to R8 & 1 to 8 & General purpose, parameters 2 to 8 \\
+R9 to R28 & 9 to 28 & General purpose, saved between function calls \\
+ST & 29 & Pointer into the current memory location holding the current end of the stack \\
+RA & 30 & Return address register, filled in by the call instruction, used when a return is executed \\
+PC & 31 & Program counter, register is read-only \\
+FL &  & Current flag and interrupt state \\
+\end{tabu}
+}
+\end{table}

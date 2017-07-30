@@ -1,0 +1,185 @@
+-Basic Architecture-
+cLEMENCy is the LEgitbs Middle ENdian Computer architecture developed by Lightning for DEF CON CTF.
+
+Each byte is 9 bits of data, bit 0 is the left most significant bit. Middle-Endian data stores bits 9 to 17, followed by bits 0 to 8, then bits 18 to 27 in memory when handling three bytes. Two bytes of data will have bits 9-17 then bits 0 to 8 written to memory.
+
+Register XXYYZZ &#8594; Memory YYXXZZ
+
+Register XXYY &#8594; Memory YYXX
+
+--Registers--
+cLEMECy has 32 general purpose 27-bit wide registers that serve both floating point and integer math operations along with a separate flag register. The multi-register format allows for a 54-bit value to be used during math operations by using two registers side by side while the starting register can be any register. If an instruction goes past the PC register while accessing multiple registers then access continues to R0. Attempts to write to PC by a load instruction are ignored.
+
+The multi-register format and floating point operations are optional components of the processor, checking the processor features is recommended before attempts are made in using such instructions.
+
+The ST, RA, and PC registers have a special purpose while all other registers are general use. The following table is a recommended register setup for compilers:
+
+Register Name - Register Number - Notes
+R0 - 0 - General purpose, parameter 1 and function return value
+R1 to R8 - 1 to 8 - General purpose, parameters 2 to 8
+R9 to R28 - 9 to 28 - General purpose, saved between function calls
+ST - 29 - Pointer into the current memory location holding the current end of the stack
+RA - 30 - Return address register, filled in by the call instruction, used when a return is executed
+PC - 31 - Program counter, register is read-only
+FL -  - Current flag and interrupt state
+
+The flags register has the following layout:
++
+00000000000000XXXXXXXXXSOCZ
+              ||||||||||||\ Zero bit
+              |||||||||||\ Carry bit
+              ||||||||||\ Overflow bit
+              |||||||||\ Signed bit
+              ||||||||\ Timer1 Interrupt Enabled
+              |||||||\ Timer2 Interrupt Enabled
+              ||||||\ Timer3 Interrupt Enabled
+              |||||\ Timer4 Interrupt Enabled
+              ||||\ Invalid Instruction Exception Enabled
+              |||\ Divide by 0 Exception Enabled
+              ||\ Memory Exception Enabled
+              |\ Data Received Interrupt Enabled
+              \ Data Sent Interrupt Enabled
++
+
+--Stack--
+Due to no specific stack based instructions, there is no expected direction the stack should grow, however during an interrupt the processor will subtract 99 bytes of data from the stack pointer when storing all registers to the stack and the interrupt return will read 99 bytes from the current stack pointer. If an implementation needs the interrupts to add to the stack instead of subtracting then changing the 'Interrupt stack direction flag' bit in the features area of the processor will accomplish this.
+
+--Relative Memory Reference--
+All relative references are from the beginning of the instruction handling the relative reference. A relative branch will adjust PC by the amount in the relative offset without including the branch instruction size. Only if the branch is not taken is PC adjusted by the instruction size.
+
+-Memory layout and IO-
+There are 2 main areas of memory, the RAM area and the DMA mapped areas. Processor execution starts at memory offset 0 and all DMA memory has the high bit of the memory address set. The following table provides the memory mapping for cLEMENCy processors:
+
+Memory Start - Memory End - Information
+0000000 - 3FFFFFF - Main Program Memory
+4000000 - 400001D - Clock IO
+4010000 - 4010FFF - Flag IO
+5000000 - 5001FFF - Data Received
+5002000 - 5002002 - Data Received Size
+5010000 - 5011FFF - Data Sent
+5012000 - 5012002 - Data Sent Size
+6000000 - 67FFFFF - Shared Memory
+6800000 - 6FFFFFF - NVRAM Memory
+7FFFF00 - 7FFFF1B - Interrupt Pointers
+7FFFF80 - 7FFFFFF - Processor Identification and Features
+
+--Memory Protection--
+Memory is broken up into 1024 byte pages. Each page can have 1 of 4 states applied to it.
+
+State - Meaning
+0 - No Access
+1 - Read Only
+2 - Read/Write
+3 - Read/Execute
+
+Attempting to interact with memory that is inconsistent with its current state will result in a memory exception occurring. If the exception is turned off and the attempt is execution then the processor will halt. The memory protection flags are from the processor only allowing for external IO controllers to modify any memory they are associated with even if the memory protection flags are set on their regions to Read Only or No Access.
+
+--Clock IO--
+There are 6 bytes per timer with 4 timers maximum. A 0 for the timer delay disables that specific timer. Each timer has a 1 millisecond accuracy.
+
+Memory Start - Bytes - Details
+4000000 - 3 - Timer 1 Delay
+4000003 - 3 - Number of milliseconds left for Timer 1
+4000006 - 3 - Timer 2 Delay
+4000009 - 3 - Number of milliseconds left for Timer 2
+400000C - 3 - Timer 3 Delay
+400000F - 3 - Number of milliseconds left for Timer 3
+4000012 - 3 - Timer 4 Delay
+4000015 - 3 - Number of milliseconds left for Timer 4
+4000018 - 6 - Number of seconds since Aug. 02, 2013 09:00 PST
+400001E - 3 - Number of processing ticks since processor start
+
+--Flag IO--
+This memory area contains the flag of the current instance of the running firmware. Its default is readable and writable however writes are ignored. The processor enforces a minimum readable setting.
+
+--Data Received--
+When the Data Received interrupt fires, this area has been filled in with network related traffic. No more data can be received until the value stored in the Data Received Size area is set to 0.
+
+--Data Received Size--
+This area ia a 3 byte value storing the size of data received. If this value is non-zero then no more data can be received from the network.
+
+--Data Sent--
+This area is a buffer to write data to that is to be sent over the network. The data is not sent until the Data Sent Size value is specified.
+
+--Data Sent Size--
+This area is a 3 byte value storing the size of data being sent. When a value is written to this memory location the amount of data specified will be sent over the network. Upon completion the value is set to 0 and the Data Sent interrupt is fired to indicate success.
+
+--Shared Memory--
+This area of memory is an optional component that allows a processor to have a shared memory region with other processors on the same bus. If this area is detected on initialization then it will be marked Read/Write. Care must be taken in communicating with other processors as data may be overwritten.
+
+--NVRAM Memory--
+This area of memory is an optional component that allows a processor to have storage between a full power cycle. If this area is detected on initialization then it will be marked Read/Write.
+
+--Interrupt Pointers--
+Each interrupt has 3 bytes to indicate the area of memory to jump to upon the interrupt firing. If the value is 0 then the interrupt is not fired. It is possible for an interrupt to fire while another interrupt is processing so disabling and enabling interrupts is highly recommended to avoid conflicts.
+
+Memory Start - Interrupt
+7FFFF00 - Timer 1
+7FFFF03 - Timer 2
+7FFFF06 - Timer 3
+7FFFF09 - Timer 4
+7FFFF0C - Invalid Instruction
+7FFFF0F - Divide by 0
+7FFFF12 - Memory Exception
+7FFFF15 - Data Received
+7FFFF18 - Data Sent
+
+--Processor Identification--
+The last 128 bytes of memory are used for processor identification and information of supported functionality. Writes to this area are ignored with the exception of the Interrupt Stack Direction Flag.
+
+Memory Start - Bytes - Details
+7FFFF80 - 20 - Processor name
+7FFFFA0 - 3 - Processor version
+7FFFFA3 - 3 - Processor functionality flags
+7FFFFA6 - 4A - For future use
+7FFFFF0 - 1 - Interrupt stack direction flag
+7FFFFF1 - F - For future use
+
+It is recommended to implementors that the processor version contains a Major, Minor, and Revision value, one value per byte entry.
+
+The functionality flags has the following information:
++
+0000000000000000000000000XX
+                        ||\ Processor supports 54-bit math
+                        |\ FPU built into the processor
+                        \ Interrupts are able to flip stack storage direction
++
+
+The low bit of the interrupt stack direction flag dictates the direction the interrupt writes to the stack. A value of 0, the default, results in the interrupt subtracting 99 bytes from the stack pointer then storing all registers in the 99 byte buffer starting with register 0. A value of 1 results in the interrupt storing and incrementing the stack pointer starting with register 0. The interrupt return behaves in the opposite manner to restore the registers.
+
+-Interrupts and Exceptions-
+When any interrupt is fired, all 32 general purpose registers and low 4 bits of the flags register are stored to the current stack before the processor begins executing the specified interrupt routine. Upon returning from an interrupt, all registers and low bits of the flag register are restored from the stack. The Disable Interrupts, DI, and Enable Interrupts, EI, instructions are used to temporarily disable an interrupt. Any interrupt with a value of 0 will not be called and ignored.
+
+--Timer 1 to 4 Interrupts--
+Each timer has an accuracy of 1 millisecond and can be configured through the Clock IO.
+
+--Invalid Instruction Exception--
+When an invalid instruction is detected this interrupt is fired. If this interrupt is disabled with DI, (the "Disable Interrupts" instruction,) or by having this value be 0 then the processor will halt.
+
+--Divide by 0 Exception--
+Division with a divisor of 0 will trigger this interrupt. Additionally, all other floating point exceptions will also trigger this interrupt.
+
+--Memory Exception--
+An attempt to read, write, or execute memory with invalid permission bits will cause this interrupt to trigger.
+
+--Data Received Interrupt--
+When data is received over the network this interrupt is fired.
+
+--Data Sent Interrupt--
+When data is fully sent over the network this interrupt is fired.
+
+--Exceptions--
+Upon an exception occurring, all registers are moved to the stack, R0 is set to the PC location that failed, R1 is set to one of the following IDs indicating the type of exception, and R2 is a value specific to the exception type. If an exception occurs while the interrupt handling the exception is still active then the processor will halt.
+
+Exception - ID - Value Meaning
+Memory Read - 0 - Address that failed to be read
+Memory Write - 1 - Address that failed to be written
+Memory Execute - 2 - Address that failed to execute
+Invalid Instruction - 3 - 0
+Floating Point Error - 4 - 0
+Divide By 0 - 5 - 0
+
+If the exception is disabled or the interrupt has no registered handler then the exception is ignored and the result of the operation that failed is undefined. The only case this is problematic is upon an instruction fault or execution in non-executable memory. If no exception is registered it will cause the CPU to halt due to not advancing the PC which would otherwise cause an infinite fault loop. If multiple faults can occur on the same instruction then only one fault will occur although no guarantee of which fault takes priority.
+
+-Instruction Set-
+Unless specified otherwise, all math and immediate values are unsigned for integer arithmetic while all floating point math is signed. All rX values can reference a general purpose register from 0 to 31. Any time the format rX:rX+Y is seen, the instruction will work on registers rX through and including rX+Y based on the value of Y. If present, the UF field controls if the flags get updated for the instruction.

@@ -1,0 +1,19 @@
+\begin{table}[H]
+\centering
+\caption{Memory Mapping}
+\begin{tabu} spread 0pt{ X[-2c]  X[-2c]  X[l] }
+Memory Start & Memory End & Information \\
+\hline
+\texttt{0000000} & \texttt{3FFFFFF} & Main Program Memory \\
+\texttt{4000000} & \texttt{400001D} & Clock IO \\
+\texttt{4010000} & \texttt{4010FFF} & Flag IO \\
+\texttt{5000000} & \texttt{5001FFF} & Data Received \\
+\texttt{5002000} & \texttt{5002002} & Data Received Size \\
+\texttt{5010000} & \texttt{5011FFF} & Data Sent \\
+\texttt{5012000} & \texttt{5012002} & Data Sent Size \\
+\texttt{6000000} & \texttt{67FFFFF} & Shared Memory \\
+\texttt{6800000} & \texttt{6FFFFFF} & NVRAM Memory \\
+\texttt{7FFFF00} & \texttt{7FFFF1B} & Interrupt Pointers \\
+\texttt{7FFFF80} & \texttt{7FFFFFF} & Processor Identification and Features \\
+\end{tabu}
+\end{table}

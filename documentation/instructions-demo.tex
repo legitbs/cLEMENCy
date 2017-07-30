@@ -1,0 +1,49 @@
+\documentclass{book}
+
+\usepackage{fontspec}
+\usepackage{xunicode}
+%% \setmainfont{Ubuntu}
+%% \setmonofont{Ubuntu Mono}
+
+
+\begin{document}
+%% \tableofcontents
+\chapter{Instruction Set}
+Unless specified otherwise, all math is unsigned for integer arithmetic. All
+floating point math is signed. All \texttt{r\textit{X}} values can reference
+a general purpose
+register from 0 to 31. Anytime the format
+\texttt{r\textit{X}:r\textit{X}+\textit{Y}}
+is seen, the instruction will work on registers
+\texttt{r\textit{X}} through and including \texttt{r\textit{X}+\textit{Y}} based
+on the value of \textit{Y}. The \texttt{UF}
+field controls if the flags get updated for the instruction.
+
+
+\section{AD | Add}
+\begin{tabular}{lcr*{4}{|lcr}|lcr}
+0 & & 6 &
+7 & & 11 &
+12 & & 16 &
+17 & & 21 &
+22 & & 25 &
+& 26 & \\
+\hline
+\multicolumn{3}{c|}{0000000} &
+\multicolumn{3}{c|}{rA} &
+\multicolumn{3}{c|}{rB} &
+\multicolumn{3}{c|}{rC} &
+\multicolumn{3}{c|}{0000} &
+\multicolumn{3}{c}{UF} \\
+
+\end{tabular}
+
+\begin{description}
+\item [Format:] \texttt{AD rA, rB, rC}
+\item [Purpose:] To add two 27-bit integer registers together
+\item [Description:] The 27-bit value in GPR \texttt{rC} is added to the 27-bit
+  value in GPR \texttt{rB}, the result is placed in GPR \texttt{rA}
+\item [Operation:] \(\mathtt{rA} \leftarrow \mathtt{rB} + \mathtt{rC}\)
+\item [Flags affected:] \texttt{Z C O S}
+\end{description}
+\end{document}

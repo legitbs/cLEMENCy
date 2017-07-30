@@ -1,0 +1,46 @@
+\documentclass{book}
+\usepackage{tabu}
+\usepackage{float}
+\usepackage{xcolor}
+\usepackage{colortbl}
+\usepackage{hyperref}
+\usepackage{makeidx}
+\usepackage{tocloft}
+\usepackage[utf8]{inputenc}
+\usepackage{newunicodechar}
+\usepackage{luacode}
+\usepackage{titling}
+\usepackage[inline]{enumitem}
+
+\protected\def\pdfinfo {\pdfextension info }
+
+\pdfinfo{
+  /CreationDate (D:20170728090000-07'00')
+  /ModDate (D:20170728090000-07'00')
+  /Author (Lightning | Legitimate Business Syndicate)
+  /Title (The cLEMENCy Computer Architecture)
+  /Subject (computers)
+}
+\edef\pdftrailerid {\pdfvariable trailerid}
+\pdftrailerid{[<6c65676974627320> <6c65676974627320>]}
+\title{The cLEMENCy Architecture}
+\date{July 2017}
+\author{Lightning\\ Legitimate Business Syndicate}
+
+\newunicodechar{←}{\leftarrow}
+
+\addtolength{\cftsecnumwidth}{10pt}
+
+\begin{document}
+\frontmatter
+\begin{titlepage}
+  \maketitle
+  \end{titlepage}
+\input{colophon.tex}
+\tableofcontents
+\newpage
+\listoftables
+\mainmatter
+\input{chapters.tex}
+\input{instructions.tex}
+\end{document}

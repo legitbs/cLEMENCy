@@ -1,0 +1,2249 @@
+diff -urN neatlibc.orig/clemency/errno.s neatlibc/clemency/errno.s
+--- neatlibc.orig/clemency/errno.s	1969-12-31 19:00:00.000000000 -0500
++++ neatlibc/clemency/errno.s	2016-11-04 14:36:43.923506666 -0400
+@@ -0,0 +1,4 @@
++section .ds
++extrn errno
++errno:
++dt 0
+diff -urN neatlibc.orig/clemency/exit.s neatlibc/clemency/exit.s
+--- neatlibc.orig/clemency/exit.s	1969-12-31 19:00:00.000000000 -0500
++++ neatlibc/clemency/exit.s	2016-11-04 14:38:02.032288028 -0400
+@@ -0,0 +1,3 @@
++extrn _exit
++_exit:
++ht
+diff -urN neatlibc.orig/clemency/file-io.s neatlibc/clemency/file-io.s
+--- neatlibc.orig/clemency/file-io.s	1969-12-31 19:00:00.000000000 -0500
++++ neatlibc/clemency/file-io.s	2016-12-05 21:44:38.578131868 -0500
+@@ -0,0 +1,56 @@
++extrn read_io
++extrn write_io
++
++read_io:
++;r0 - address to read
++;r1 - 1, 2, or 3 bytes to read
++cmi r1, 1
++be read_io_1
++cmi r1, 2
++be read_io_2
++cmi r1, 3
++bg read_io_3
++
++;invalid, return 0
++xr r0, r0, r0
++re
++
++read_io_1:
++lds r0, [r0]
++re
++
++read_io_2:
++ldw r0, [r0]
++re
++
++read_io_3:
++ldt r0, [r0]
++re
++ 
++write_io:
++;r0 - address to write
++;r1 - value to write
++;r2 - 1, 2, or 3 bytes to write
++cmi r2, 1
++be write_io_1
++cmi r2, 2
++be write_io_2
++cmi r2, 3
++bg write_io_3
++
++;invalid, return 0
++xr r0, r0, r0
++re
++
++write_io_1:
++sts r1, [r0]
++re
++
++write_io_2:
++stw r1, [r0]
++re
++
++write_io_3:
++stt r1, [r0]
++re
++
+diff -urN neatlibc.orig/clemency/file.s neatlibc/clemency/file.s
+--- neatlibc.orig/clemency/file.s	1969-12-31 19:00:00.000000000 -0500
++++ neatlibc/clemency/file.s	2016-12-02 22:17:24.418396819 -0500
+@@ -0,0 +1,104 @@
++extrn read
++extrn write
++
++read:
++;will return immediately with any available data
++;r0 - buffer to read into
++;r1 - size of buffers
++mi r2, 0x5000000
++
++read_loop:
++ldt r3, [r2 + 0x2000]
++cmi r3, 0
++bg read_have_data
++
++ml r0, 0
++re
++
++read_have_data:
++;see how much we can read, either we have more than we want
++;and we read a portion, we have what we need, or we don't have enough
++
++;first position r6 to the last location we read incase there is
++;still data to read
++xr r4, r4, r4
++ldt r5, [r4 + read_pos]
++ad r6, r5, r2
++
++;see if we are doing a partial or full read
++cm r1, r3
++bg read_partial
++
++;we have enough to read
++dmt r0, r6, r1
++
++;if there is still data to read then adjust our read position for next time
++sb r3, r3, r1
++or r0, r1, r1
++cmi r3, 0
++bn read_data_left
++
++;make sure read pos and data left is 0
++read_finish_0:
++stt r4, [r4 + read_pos]
++stt r4, [r2 + 0x2000]
++re
++
++read_data_left:
++;fix our position and amount of data left
++ad r1, r1, r5
++stt r1, [r4 + read_pos]
++stt r3, [r2 + 0x2000]
++re
++
++read_partial:
++;we need to read what is in the buffer then go wait again for more data as the buffer doesn't have enough
++
++;transfer data then adjust where to write to and what is left to read
++dmt r0, r6, r3
++ad r0, r0, r3
++sb r1, r1, r3
++or r0, r3, r3
++b read_finish_0
++
++ 
++write:
++;see if we have any data we are waiting on
++or r4, r1, r1
++mi r2, 0x5010000
++
++write_wait_loop:
++ldt r3, [r2 + 0x2000]
++cmi r3, 0
++be write_ready
++
++;wait for buffer to be empty
++wt
++b write_wait_loop
++
++;buffer is empty, transfer up to 8k worth of data
++write_ready:
++ml r3, 0x1fff
++cm r1, r3
++bg write_partial
++
++;we can do a full transfer
++dmt r2, r0, r1
++stt r1, [r2 + 0x2000]
++or r0, r4, r4
++re
++
++write_partial:
++;write a portion of the data then wait for it to go away before writing more
++dmt r2, r0, r3
++ad r0, r0, r3
++stt r3, [r2 + 0x2000]
++sb r1, r1, r3
++b write_wait_loop
++
++section .ds
++read_pos:
++dt 0
++
++write_pos:
++dt 0
+diff -urN neatlibc.orig/clemency/gettimeofday.s neatlibc/clemency/gettimeofday.s
+--- neatlibc.orig/clemency/gettimeofday.s	1969-12-31 19:00:00.000000000 -0500
++++ neatlibc/clemency/gettimeofday.s	2016-11-04 14:40:16.621575930 -0400
+@@ -0,0 +1,4 @@
++extrn gettimeofday
++
++gettimeofday:
++ht
+diff -urN neatlibc.orig/clemency/halt.s neatlibc/clemency/halt.s
+--- neatlibc.orig/clemency/halt.s	1969-12-31 19:00:00.000000000 -0500
++++ neatlibc/clemency/halt.s	2016-12-03 15:06:30.762765738 -0500
+@@ -0,0 +1,4 @@
++extrn halt
++
++halt:
++	ht
+diff -urN neatlibc.orig/clemency/interrupts.s neatlibc/clemency/interrupts.s
+--- neatlibc.orig/clemency/interrupts.s	1969-12-31 19:00:00.000000000 -0500
++++ neatlibc/clemency/interrupts.s	2017-01-07 14:31:34.785642258 -0500
+@@ -0,0 +1,89 @@
++extrn setup_interrupt
++
++setup_interrupt:
++;will setup an interrupt to call the function specified
++;we use an internal handler to allow for proper interrupt return when the function ends
++;this function does not enable or disable interrupts
++;r0 - interrupt number to set, 0 to 8
++;r1 - function to call, if 0 then interrupt handler is removed
++
++cmi r0, 8
++mi r0, 0x7ffffff
++bg setup_interrupt_done
++
++;if r1 is 0 then remove the interrupt
++cmi r1, 0
++be setup_interrupt_remove
++
++;setup the interrupt
++;store our local version
++mui r0, r0, 3
++stt r1, [r0 + int_handler_ptrs]
++
++mi r2, 0x7ffff00
++ad r2, r2, r0
++
++;r2 is the address to write to, get the value to store, 6 byte offset
++mi r1, interrupt_handler0
++mui r0, r0, 2
++ad r1, r1, r0
++stt r1, [r2]
++ml r0, 0
++b setup_interrupt_done
++
++setup_interrupt_remove:
++;wipe out the interrupt value set
++mui r0, r0, 3
++mi r2, 0x7ffff00
++ad r2, r2, r0
++ml r0, 0
++stt r0, [r2]
++
++setup_interrupt_done:
++re
++
++interrupt_handler0:
++ml r0, 0x0
++b handle_interrupt
++
++interrupt_handler1:
++ml r0, 0x3
++b handle_interrupt
++
++interrupt_handler2:
++ml r0, 0x6
++b handle_interrupt
++
++interrupt_handler3:
++ml r0, 0x9
++b handle_interrupt
++
++interrupt_handler4:
++ml r0, 0xc
++b handle_interrupt
++
++interrupt_handler5:
++ml r0, 0xf
++b handle_interrupt
++
++interrupt_handler6:
++ml r0, 0x12
++b handle_interrupt
++
++interrupt_handler7:
++ml r0, 0x15
++b handle_interrupt
++
++interrupt_handler8:
++ml r0, 0x18
++
++handle_interrupt:
++ldt r0, [r0 + int_handler_ptrs]
++cr r0
++ir
++
++section ds
++
++int_handler_ptrs:
++;pointers to the functions to call for an interrupt handler
++dt 0, 0, 0, 0, 0, 0, 0, 0, 0
+diff -urN neatlibc.orig/clemency/memory.s neatlibc/clemency/memory.s
+--- neatlibc.orig/clemency/memory.s	1969-12-31 19:00:00.000000000 -0500
++++ neatlibc/clemency/memory.s	2017-07-04 11:21:04.976068704 -0400
+@@ -0,0 +1,180 @@
++extrn memset
++extrn memcpy
++extrn memtst_back
++extrn memcmp
++extrn mprotect
++
++memset:
++or r3, r0, r0
++
++;r3 - address
++;r1 - char
++;r2 - count
++
++;make r1 all the same character
++rli r4, r1, 9
++or r1, r4, r1
++rli r4, r1, 9
++or r1, r4, r1
++
++memset_loop:
++cmi r2, 3
++bsl memset_lessthan
++
++;write 3 bytes and advance
++stti r1, [r3]
++sbi r2, r2, 3
++b memset_loop
++
++memset_lessthan:
++cmi r2, 1
++bl memset_done
++bg memset_2bytes
++
++memset_1byte:
++sts r1, [r3]
++b memset_done
++
++memset_2bytes:
++stw r1, [r3]
++
++memset_done:
++re
++
++memcpy:
++or r3, r0, r0
++
++;r3 - end address
++;r1 - start address
++;r2 - bytes
++;r4 - buffer
++
++memcpy_loop:
++cmi r2, 3
++bl memcpy_lessthan
++
++;load 3, store 3
++ldti r4, [r1]
++stti r4, [r3]
++
++sbi r2, r2, 3
++b memcpy_loop
++
++memcpy_lessthan:
++cmi r2, 1
++bl memcpy_done
++bg memcpy_2bytes
++
++memcpy_1byte:
++lds r4, [r1]
++sts r4, [r3]
++b memcpy_done
++
++memcpy_2bytes:
++ldw r4, [r1]
++stw r4, [r3]
++
++memcpy_done:
++re
++
++memtst_back:
++ht
++
++memcmp:
++memcmp_loop:
++cmi r2, 3
++bl memcmp_checkbytes
++
++;load 3 bytes from each and compare
++ldti r3, [r0]
++ldti r4, [r1]
++sbi r2, r2, 3
++cm r3, r4
++be memcmp_loop
++
++;no match, see which byte didn't match
++sbi r3, r3, 3
++sbi r4, r4, 3
++adi r2, r2, 3
++
++memcmp_checkbytes:
++cmi r2, 0
++be memcmp_match
++
++ldsi r3, [r0]
++ldsi r4, [r1]
++cm r3, r4
++bl memcmp_neg1
++bg memcmp_pos1
++sbi r2, r2, 1
++b memcmp_checkbytes
++
++memcmp_match:
++xr r0, r0, r0
++re
++
++memcmp_neg1:
++ms r0, 0x1ffff
++re
++
++memcmp_pos1:
++ml r0, 1
++re
++
++mprotect:
++;r0 - address
++;r1 - length
++;r2 - flags
++
++;make sure the address is 1k aligned
++mi r3, 0x3ff
++an r4, r3, r0
++bn mprotect_fail
++
++;make sure length is a 1k multiplier
++an r4, r3, r1
++bn mprotect_fail
++
++;adjust the length to page count
++sri r1, r1, 10
++
++;get the protection set
++cmi r2, 0
++bg mprotect_read
++
++;no flags
++smp r0, r1, 0
++b mprotect_success
++
++mprotect_read:
++cmi r2, 1
++bg mprotect_readwrite
++
++;read flag
++smp r0, r1, 1
++b mprotect_success
++
++mprotect_readwrite:
++cmi r2, 2
++bg mprotect_readexecute
++
++;read/write flag
++smp r0, r1, 2
++b mprotect_success
++
++mprotect_readexecute:
++cmi r2, 3
++bg mprotect_fail
++
++;read/execute flag
++smp r0, r1, 3
++b mprotect_success
++
++mprotect_success:
++xr r0, r0, r0
++re
++
++mprotect_fail:
++;fail
++mi r0, 0x7ffffff
++re
+diff -urN neatlibc.orig/clemency/millisleep.s neatlibc/clemency/millisleep.s
+--- neatlibc.orig/clemency/millisleep.s	1969-12-31 19:00:00.000000000 -0500
++++ neatlibc/clemency/millisleep.s	2017-07-04 14:32:32.745477718 -0400
+@@ -0,0 +1,106 @@
++extrn millisleep
++
++millisleep:
++;because our timers are not accurate enough we have millisleep
++;takes the same parameters as nanosleep(2) however tv_nsec is tv_msec instead
++;and represents a number of milliseconds
++
++;r0 - interrupt mask
++;r1 - remaining time
++;r2 - mem ptr
++;r3/r4 - time left to process
++;r5 - 0
++;r6 - original timer
++;r7 - original delay
++
++;temporary borrow timer 4
++
++;get time to process
++ldt r3, [r0, 2]
++
++;get interrupt mask
++rf r0
++sri r0, r0, 4
++
++;store the original setup, enable timer 4 incase it is off
++%ifndef NEATLIBC_INV
++sttd r0, [st]
++%else
++stti r0, [st]
++%endif
++ori r0, r0, 0x8
++di r0
++
++;get the timer delay and the original interrupt location
++mi r2, 0x4000012
++ldt r7, [r2]
++mi r2, 0x7ffff09
++ldt r6, [r2]
++
++;point timer 4 at our wakeup routine
++mi r5, millisleep_interrupt
++stt r5, [r2]
++
++;setup number of milliseconds to wait, first any odd number of milliseconds then
++;whole seconds
++mi r2, 0x4000012
++stti r4, [r2]
++
++;if no time to sleep then work on the seconds
++cmi r4, 0
++be millisleep_seconds
++
++millisleep_loop:
++;wait for the timer to hit
++ei r0
++wt
++di r0
++
++;grab time left, if not 0 then we didn't trigger
++ldt r4, [r2]
++cmi r4, 0
++bn millisleep_timeleft
++
++;0 time left, check if we have any seconds left
++millisleep_seconds:
++cmi r3, 0
++be millisleep_timeleft
++
++;still have seconds, reset and go again
++sbi r3, r3, 1
++ml r4, 1000
++sbi r2, r2, 3
++stti r4, [r2]
++b millisleep_loop
++
++
++millisleep_timeleft:
++;if we have a return time left then store them
++cmi r1, 0
++be millisleep_finish
++
++stt r3, [r1, 2]
++
++millisleep_finish:
++;reset the original timer4
++mi r2, 0x7ffff09
++stt r6, [r2]
++mi r2, 0x4000012
++stt r7, [r2]
++
++;enable original interrupts
++%ifndef NEATLIBC_INV
++ldti r0, [st]
++%else
++ldtd r0, [st]
++%endif
++ei r0
++xr r0, r0, r0
++re
++
++millisleep_interrupt:
++;mark the time as 0 to disable the timer
++mi r2, 0x4000012
++xr r5, r5, r5
++stt r5, [r2]
++ir
+diff -urN neatlibc.orig/clemency/start.s neatlibc/clemency/start.s
+--- neatlibc.orig/clemency/start.s	1969-12-31 19:00:00.000000000 -0500
++++ neatlibc/clemency/start.s	2016-12-20 14:34:21.361016230 -0500
+@@ -0,0 +1,78 @@
++extrn _start
++
++;setup memory, need a heap, stack, mark code area executable
++;and make sure data area is readable
++
++_start:
++
++;code starts at 0, then data, then bss. Read their sizes and mark accordingly
++ldt r1, [r0 + PAGE_COUNT_CODE, 3]
++
++;set memory for code
++smp r0, r1, 3
++
++;set memory for data
++ad r0, r0, r1
++ml r4, 0x400
++mu r5, r0, r4
++smp r5, r2, 2
++
++;set memory for bss
++ad r0, r0, r2
++mu r5, r0, r4
++smp r5, r3, 2
++
++;setup the heap 1k after our data, full memory minus the stack
++;set r1 to the total number of pages we can have then remove what we have already committed
++;32k work of space already subtracted for the stack with a 1k block between heap and stack
++ad r0, r0, r3
++adi r0, r0, 1
++ml r2, 0xffde
++sb r2, r2, r0
++mu r5, r0, r4
++smp r5, r2, 2
++
++;setup the stack, we will give 32k of stack
++;we put the stack right before the IO area
++mi r0, 0x3ff7c00
++ml r1, 0x20
++smp r0, r1, 2
++mu r1, r1, r4
++%ifdef NEATLIBC_INV
++or st, r0, r0
++%else
++ad st, r0, r1
++%endif
++
++;enable interrupts
++%ifdef NEATLIBC_INV
++mi r0, 0x7FFFFF0
++ml r1, 1
++sts r1, [r0]
++%endif
++
++ml r0, 0x1ff
++ei r0
++
++;init memory
++or r0, r5, r5
++mu r1, r2, r4
++car init_memory
++
++;jump to main
++car main
++ht
++
++extrn PAGE_COUNT_CODE
++extrn PAGE_COUNT_DATA
++extrn PAGE_COUNT_BSS
++
++PAGE_COUNT_CODE:
++dt 0
++
++PAGE_COUNT_DATA:
++dt 0
++
++PAGE_COUNT_BSS:
++dt 0
++
+diff -urN neatlibc.orig/clemency/string.s neatlibc/clemency/string.s
+--- neatlibc.orig/clemency/string.s	1969-12-31 19:00:00.000000000 -0500
++++ neatlibc/clemency/string.s	2017-07-23 23:16:45.923209224 -0400
+@@ -0,0 +1,170 @@
++extrn strlen
++extrn strncmp
++extrn strcpy
++extrn strchr
++extrn strcmp
++
++strlen:
++
++;make a copy of the pointer then keep incrementing until we hit a null byte
++or r1, r0, r0
++xr r2, r2, r2
++
++strlen_loop:
++  ldsi r2, [r1]
++  cmi r2, 0
++  bn strlen_loop
++
++;found a null byte, calculate how many bytes
++sb r0, r1, r0
++sbi r0, r0, 1
++re
++
++
++strncmp:
++strncmp_loop:
++cmi r2, 0
++ble strncmp_0
++
++;load 1 byte from each and compare
++ldsi r3, [r0]
++ldsi r4, [r1]
++
++;if the first string is at the end then check the 2nd
++cmi r3, 0
++be strncmp_str0_end
++
++;if the 2nd end hit then fail
++cmi r4, 0
++be strncmp_pos1
++
++;check for both matching
++sbi r2, r2, 1
++cm r3, r4
++be strncmp_loop
++bl strncmp_neg1
++bg strncmp_pos1
++
++strncmp_str0_end:
++;if r4 is 0 then match and good, otherwise r4 is larger
++cmi r4, 0
++bn strncmp_neg1
++
++strncmp_0:
++xr r0, r0, r0
++re
++
++strncmp_neg1:
++ms r0, 0x1ffff
++re
++
++strncmp_pos1:
++ml r0, 1
++re
++
++strcpy:
++;copy a string from 1 location to another
++
++;get length of r1, r3 and r5 = r0, r4 = r1
++;r6 = RA
++or r3, r0, r0
++or r5, r0, r0
++or r4, r1, r1
++or r0, r1, r1
++or r6, ra, ra
++car strlen
++
++;increment by 1 for the null byte
++adi r0, r0, 1
++
++;now keep copying 3 bytes until we don't have 3 bytes left
++strcpy_loop:
++cmi r0, 3
++bl strcpy_small
++
++;move 3 bytes
++ldti r1, [r4]
++stti r1, [r3]
++
++;adjust by 3 and loop
++sbi r0, r0, 3
++b strcpy_loop
++
++strcpy_small:
++cmi r0, 1
++bl strcpy_finish
++be strcpy_1
++
++strcpy_2:
++;load a word and store it
++ldw r1, [r4]
++stw r1, [r3]
++
++strcpy_1:
++;load a single byte and store it
++lds r1, [r4]
++sts r1, [r3]
++
++strcpy_finish:
++or r0, r5, r5
++or ra, r6, r6
++re
++
++strchr:
++;find a character in the string
++
++;make sure r1 only has a byte set
++zes r1, r1
++
++strchr_loop:
++  ldsi r2, [r0]
++  cmi r2, 0
++  be strchr_end
++  cm r2, r1
++  bn strchr_loop
++
++;return the location, r0 is ahead 1 spot
++sbi r0, r0, 1
++re
++
++strchr_end:
++  xr r0, r0, r0
++  re
++
++strcmp:
++strcmp_loop:
++
++;load 1 byte from each and compare
++ldsi r3, [r0]
++ldsi r4, [r1]
++
++;if the first string is at the end then check the 2nd
++cmi r3, 0
++be strcmp_str0_end
++
++;if the 2nd end hit then fail
++cmi r4, 0
++be strcmp_pos1
++
++;check for both matching
++cm r3, r4
++be strcmp_loop
++bl strcmp_neg1
++bg strcmp_pos1
++
++strcmp_str0_end:
++;if r4 is 0 then match and good, otherwise r4 is larger
++cmi r4, 0
++bn strcmp_neg1
++
++strcmp_0:
++xr r0, r0, r0
++re
++
++strcmp_neg1:
++ms r0, 0x1ffff
++re
++
++strcmp_pos1:
++ml r0, 1
++re
+diff -urN neatlibc.orig/clemency/wait.s neatlibc/clemency/wait.s
+--- neatlibc.orig/clemency/wait.s	1969-12-31 19:00:00.000000000 -0500
++++ neatlibc/clemency/wait.s	2016-12-03 15:06:38.698501337 -0500
+@@ -0,0 +1,5 @@
++extrn wait
++
++wait:
++	wt
++	re
+diff -urN neatlibc.orig/dirent.c neatlibc/dirent.c
+--- neatlibc.orig/dirent.c	2017-07-30 11:20:14.015416424 -0400
++++ neatlibc/dirent.c	2016-11-03 17:11:57.061884996 -0400
+@@ -5,6 +5,8 @@
+ #include <sys/stat.h>
+ #include <unistd.h>
+ 
++#if ARCH != clemency
++
+ struct __dirent_dir {
+ 	int fd;
+ 	int buf_pos;
+@@ -53,3 +55,5 @@
+ 	dir->buf_pos += de->d_reclen;
+ 	return de;
+ }
++
++#endif
+diff -urN neatlibc.orig/.git/config neatlibc/.git/config
+--- neatlibc.orig/.git/config	2017-07-30 11:20:14.003416424 -0400
++++ neatlibc/.git/config	1969-12-31 19:00:00.000000000 -0500
+@@ -1,12 +0,0 @@
+-[core]
+-	repositoryformatversion = 0
+-	filemode = true
+-	bare = false
+-	logallrefupdates = true
+-[remote "origin"]
+-	url = https://github.com/litcave/neatlibc.git
+-	fetch = +refs/heads/*:refs/remotes/origin/*
+-[branch "master"]
+-	remote = origin
+-	merge = refs/heads/master
+-	rebase = true
+diff -urN neatlibc.orig/.git/description neatlibc/.git/description
+--- neatlibc.orig/.git/description	2017-07-30 11:20:12.995416411 -0400
++++ neatlibc/.git/description	1969-12-31 19:00:00.000000000 -0500
+@@ -1 +0,0 @@
+-Unnamed repository; edit this file 'description' to name the repository.
+diff -urN neatlibc.orig/.git/HEAD neatlibc/.git/HEAD
+--- neatlibc.orig/.git/HEAD	2017-07-30 11:20:24.171416562 -0400
++++ neatlibc/.git/HEAD	1969-12-31 19:00:00.000000000 -0500
+@@ -1 +0,0 @@
+-35080019ce9cd3937861b4f1ed242a85d74ff5fd
+diff -urN neatlibc.orig/.git/hooks/applypatch-msg.sample neatlibc/.git/hooks/applypatch-msg.sample
+--- neatlibc.orig/.git/hooks/applypatch-msg.sample	2017-07-30 11:20:12.995416411 -0400
++++ neatlibc/.git/hooks/applypatch-msg.sample	1969-12-31 19:00:00.000000000 -0500
+@@ -1,15 +0,0 @@
+-#!/bin/sh
+-#
+-# An example hook script to check the commit log message taken by
+-# applypatch from an e-mail message.
+-#
+-# The hook should exit with non-zero status after issuing an
+-# appropriate message if it wants to stop the commit.  The hook is
+-# allowed to edit the commit message file.
+-#
+-# To enable this hook, rename this file to "applypatch-msg".
+-
+-. git-sh-setup
+-test -x "$GIT_DIR/hooks/commit-msg" &&
+-	exec "$GIT_DIR/hooks/commit-msg" ${1+"$@"}
+-:
+diff -urN neatlibc.orig/.git/hooks/commit-msg.sample neatlibc/.git/hooks/commit-msg.sample
+--- neatlibc.orig/.git/hooks/commit-msg.sample	2017-07-30 11:20:12.995416411 -0400
++++ neatlibc/.git/hooks/commit-msg.sample	1969-12-31 19:00:00.000000000 -0500
+@@ -1,24 +0,0 @@
+-#!/bin/sh
+-#
+-# An example hook script to check the commit log message.
+-# Called by "git commit" with one argument, the name of the file
+-# that has the commit message.  The hook should exit with non-zero
+-# status after issuing an appropriate message if it wants to stop the
+-# commit.  The hook is allowed to edit the commit message file.
+-#
+-# To enable this hook, rename this file to "commit-msg".
+-
+-# Uncomment the below to add a Signed-off-by line to the message.
+-# Doing this in a hook is a bad idea in general, but the prepare-commit-msg
+-# hook is more suited to it.
+-#
+-# SOB=$(git var GIT_AUTHOR_IDENT | sed -n 's/^\(.*>\).*$/Signed-off-by: \1/p')
+-# grep -qs "^$SOB" "$1" || echo "$SOB" >> "$1"
+-
+-# This example catches duplicate Signed-off-by lines.
+-
+-test "" = "$(grep '^Signed-off-by: ' "$1" |
+-	 sort | uniq -c | sed -e '/^[ 	]*1[ 	]/d')" || {
+-	echo >&2 Duplicate Signed-off-by lines.
+-	exit 1
+-}
+diff -urN neatlibc.orig/.git/hooks/post-update.sample neatlibc/.git/hooks/post-update.sample
+--- neatlibc.orig/.git/hooks/post-update.sample	2017-07-30 11:20:12.995416411 -0400
++++ neatlibc/.git/hooks/post-update.sample	1969-12-31 19:00:00.000000000 -0500
+@@ -1,8 +0,0 @@
+-#!/bin/sh
+-#
+-# An example hook script to prepare a packed repository for use over
+-# dumb transports.
+-#
+-# To enable this hook, rename this file to "post-update".
+-
+-exec git update-server-info
+diff -urN neatlibc.orig/.git/hooks/pre-applypatch.sample neatlibc/.git/hooks/pre-applypatch.sample
+--- neatlibc.orig/.git/hooks/pre-applypatch.sample	2017-07-30 11:20:12.995416411 -0400
++++ neatlibc/.git/hooks/pre-applypatch.sample	1969-12-31 19:00:00.000000000 -0500
+@@ -1,14 +0,0 @@
+-#!/bin/sh
+-#
+-# An example hook script to verify what is about to be committed
+-# by applypatch from an e-mail message.
+-#
+-# The hook should exit with non-zero status after issuing an
+-# appropriate message if it wants to stop the commit.
+-#
+-# To enable this hook, rename this file to "pre-applypatch".
+-
+-. git-sh-setup
+-test -x "$GIT_DIR/hooks/pre-commit" &&
+-	exec "$GIT_DIR/hooks/pre-commit" ${1+"$@"}
+-:
+diff -urN neatlibc.orig/.git/hooks/pre-commit.sample neatlibc/.git/hooks/pre-commit.sample
+--- neatlibc.orig/.git/hooks/pre-commit.sample	2017-07-30 11:20:12.995416411 -0400
++++ neatlibc/.git/hooks/pre-commit.sample	1969-12-31 19:00:00.000000000 -0500
+@@ -1,49 +0,0 @@
+-#!/bin/sh
+-#
+-# An example hook script to verify what is about to be committed.
+-# Called by "git commit" with no arguments.  The hook should
+-# exit with non-zero status after issuing an appropriate message if
+-# it wants to stop the commit.
+-#
+-# To enable this hook, rename this file to "pre-commit".
+-
+-if git rev-parse --verify HEAD >/dev/null 2>&1
+-then
+-	against=HEAD
+-else
+-	# Initial commit: diff against an empty tree object
+-	against=4b825dc642cb6eb9a060e54bf8d69288fbee4904
+-fi
+-
+-# If you want to allow non-ASCII filenames set this variable to true.
+-allownonascii=$(git config --bool hooks.allownonascii)
+-
+-# Redirect output to stderr.
+-exec 1>&2
+-
+-# Cross platform projects tend to avoid non-ASCII filenames; prevent
+-# them from being added to the repository. We exploit the fact that the
+-# printable range starts at the space character and ends with tilde.
+-if [ "$allownonascii" != "true" ] &&
+-	# Note that the use of brackets around a tr range is ok here, (it's
+-	# even required, for portability to Solaris 10's /usr/bin/tr), since
+-	# the square bracket bytes happen to fall in the designated range.
+-	test $(git diff --cached --name-only --diff-filter=A -z $against |
+-	  LC_ALL=C tr -d '[ -~]\0' | wc -c) != 0
+-then
+-	cat <<\EOF
+-Error: Attempt to add a non-ASCII file name.
+-
+-This can cause problems if you want to work with people on other platforms.
+-
+-To be portable it is advisable to rename the file.
+-
+-If you know what you are doing you can disable this check using:
+-
+-  git config hooks.allownonascii true
+-EOF
+-	exit 1
+-fi
+-
+-# If there are whitespace errors, print the offending file names and fail.
+-exec git diff-index --check --cached $against --
+diff -urN neatlibc.orig/.git/hooks/prepare-commit-msg.sample neatlibc/.git/hooks/prepare-commit-msg.sample
+--- neatlibc.orig/.git/hooks/prepare-commit-msg.sample	2017-07-30 11:20:12.995416411 -0400
++++ neatlibc/.git/hooks/prepare-commit-msg.sample	1969-12-31 19:00:00.000000000 -0500
+@@ -1,36 +0,0 @@
+-#!/bin/sh
+-#
+-# An example hook script to prepare the commit log message.
+-# Called by "git commit" with the name of the file that has the
+-# commit message, followed by the description of the commit
+-# message's source.  The hook's purpose is to edit the commit
+-# message file.  If the hook fails with a non-zero status,
+-# the commit is aborted.
+-#
+-# To enable this hook, rename this file to "prepare-commit-msg".
+-
+-# This hook includes three examples.  The first comments out the
+-# "Conflicts:" part of a merge commit.
+-#
+-# The second includes the output of "git diff --name-status -r"
+-# into the message, just before the "git status" output.  It is
+-# commented because it doesn't cope with --amend or with squashed
+-# commits.
+-#
+-# The third example adds a Signed-off-by line to the message, that can
+-# still be edited.  This is rarely a good idea.
+-
+-case "$2,$3" in
+-  merge,)
+-    /usr/bin/perl -i.bak -ne 's/^/# /, s/^# #/#/ if /^Conflicts/ .. /#/; print' "$1" ;;
+-
+-# ,|template,)
+-#   /usr/bin/perl -i.bak -pe '
+-#      print "\n" . `git diff --cached --name-status -r`
+-#	 if /^#/ && $first++ == 0' "$1" ;;
+-
+-  *) ;;
+-esac
+-
+-# SOB=$(git var GIT_AUTHOR_IDENT | sed -n 's/^\(.*>\).*$/Signed-off-by: \1/p')
+-# grep -qs "^$SOB" "$1" || echo "$SOB" >> "$1"
+diff -urN neatlibc.orig/.git/hooks/pre-push.sample neatlibc/.git/hooks/pre-push.sample
+--- neatlibc.orig/.git/hooks/pre-push.sample	2017-07-30 11:20:12.995416411 -0400
++++ neatlibc/.git/hooks/pre-push.sample	1969-12-31 19:00:00.000000000 -0500
+@@ -1,54 +0,0 @@
+-#!/bin/sh
+-
+-# An example hook script to verify what is about to be pushed.  Called by "git
+-# push" after it has checked the remote status, but before anything has been
+-# pushed.  If this script exits with a non-zero status nothing will be pushed.
+-#
+-# This hook is called with the following parameters:
+-#
+-# $1 -- Name of the remote to which the push is being done
+-# $2 -- URL to which the push is being done
+-#
+-# If pushing without using a named remote those arguments will be equal.
+-#
+-# Information about the commits which are being pushed is supplied as lines to
+-# the standard input in the form:
+-#
+-#   <local ref> <local sha1> <remote ref> <remote sha1>
+-#
+-# This sample shows how to prevent push of commits where the log message starts
+-# with "WIP" (work in progress).
+-
+-remote="$1"
+-url="$2"
+-
+-z40=0000000000000000000000000000000000000000
+-
+-IFS=' '
+-while read local_ref local_sha remote_ref remote_sha
+-do
+-	if [ "$local_sha" = $z40 ]
+-	then
+-		# Handle delete
+-		:
+-	else
+-		if [ "$remote_sha" = $z40 ]
+-		then
+-			# New branch, examine all commits
+-			range="$local_sha"
+-		else
+-			# Update to existing branch, examine new commits
+-			range="$remote_sha..$local_sha"
+-		fi
+-
+-		# Check for WIP commit
+-		commit=`git rev-list -n 1 --grep '^WIP' "$range"`
+-		if [ -n "$commit" ]
+-		then
+-			echo "Found WIP commit in $local_ref, not pushing"
+-			exit 1
+-		fi
+-	fi
+-done
+-
+-exit 0
+diff -urN neatlibc.orig/.git/hooks/pre-rebase.sample neatlibc/.git/hooks/pre-rebase.sample
+--- neatlibc.orig/.git/hooks/pre-rebase.sample	2017-07-30 11:20:12.995416411 -0400
++++ neatlibc/.git/hooks/pre-rebase.sample	1969-12-31 19:00:00.000000000 -0500
+@@ -1,169 +0,0 @@
+-#!/bin/sh
+-#
+-# Copyright (c) 2006, 2008 Junio C Hamano
+-#
+-# The "pre-rebase" hook is run just before "git rebase" starts doing
+-# its job, and can prevent the command from running by exiting with
+-# non-zero status.
+-#
+-# The hook is called with the following parameters:
+-#
+-# $1 -- the upstream the series was forked from.
+-# $2 -- the branch being rebased (or empty when rebasing the current branch).
+-#
+-# This sample shows how to prevent topic branches that are already
+-# merged to 'next' branch from getting rebased, because allowing it
+-# would result in rebasing already published history.
+-
+-publish=next
+-basebranch="$1"
+-if test "$#" = 2
+-then
+-	topic="refs/heads/$2"
+-else
+-	topic=`git symbolic-ref HEAD` ||
+-	exit 0 ;# we do not interrupt rebasing detached HEAD
+-fi
+-
+-case "$topic" in
+-refs/heads/??/*)
+-	;;
+-*)
+-	exit 0 ;# we do not interrupt others.
+-	;;
+-esac
+-
+-# Now we are dealing with a topic branch being rebased
+-# on top of master.  Is it OK to rebase it?
+-
+-# Does the topic really exist?
+-git show-ref -q "$topic" || {
+-	echo >&2 "No such branch $topic"
+-	exit 1
+-}
+-
+-# Is topic fully merged to master?
+-not_in_master=`git rev-list --pretty=oneline ^master "$topic"`
+-if test -z "$not_in_master"
+-then
+-	echo >&2 "$topic is fully merged to master; better remove it."
+-	exit 1 ;# we could allow it, but there is no point.
+-fi
+-
+-# Is topic ever merged to next?  If so you should not be rebasing it.
+-only_next_1=`git rev-list ^master "^$topic" ${publish} | sort`
+-only_next_2=`git rev-list ^master           ${publish} | sort`
+-if test "$only_next_1" = "$only_next_2"
+-then
+-	not_in_topic=`git rev-list "^$topic" master`
+-	if test -z "$not_in_topic"
+-	then
+-		echo >&2 "$topic is already up-to-date with master"
+-		exit 1 ;# we could allow it, but there is no point.
+-	else
+-		exit 0
+-	fi
+-else
+-	not_in_next=`git rev-list --pretty=oneline ^${publish} "$topic"`
+-	/usr/bin/perl -e '
+-		my $topic = $ARGV[0];
+-		my $msg = "* $topic has commits already merged to public branch:\n";
+-		my (%not_in_next) = map {
+-			/^([0-9a-f]+) /;
+-			($1 => 1);
+-		} split(/\n/, $ARGV[1]);
+-		for my $elem (map {
+-				/^([0-9a-f]+) (.*)$/;
+-				[$1 => $2];
+-			} split(/\n/, $ARGV[2])) {
+-			if (!exists $not_in_next{$elem->[0]}) {
+-				if ($msg) {
+-					print STDERR $msg;
+-					undef $msg;
+-				}
+-				print STDERR " $elem->[1]\n";
+-			}
+-		}
+-	' "$topic" "$not_in_next" "$not_in_master"
+-	exit 1
+-fi
+-
+-<<\DOC_END
+-
+-This sample hook safeguards topic branches that have been
+-published from being rewound.
+-
+-The workflow assumed here is:
+-
+- * Once a topic branch forks from "master", "master" is never
+-   merged into it again (either directly or indirectly).
+-
+- * Once a topic branch is fully cooked and merged into "master",
+-   it is deleted.  If you need to build on top of it to correct
+-   earlier mistakes, a new topic branch is created by forking at
+-   the tip of the "master".  This is not strictly necessary, but
+-   it makes it easier to keep your history simple.
+-
+- * Whenever you need to test or publish your changes to topic
+-   branches, merge them into "next" branch.
+-
+-The script, being an example, hardcodes the publish branch name
+-to be "next", but it is trivial to make it configurable via
+-$GIT_DIR/config mechanism.
+-
+-With this workflow, you would want to know:
+-
+-(1) ... if a topic branch has ever been merged to "next".  Young
+-    topic branches can have stupid mistakes you would rather
+-    clean up before publishing, and things that have not been
+-    merged into other branches can be easily rebased without
+-    affecting other people.  But once it is published, you would
+-    not want to rewind it.
+-
+-(2) ... if a topic branch has been fully merged to "master".
+-    Then you can delete it.  More importantly, you should not
+-    build on top of it -- other people may already want to
+-    change things related to the topic as patches against your
+-    "master", so if you need further changes, it is better to
+-    fork the topic (perhaps with the same name) afresh from the
+-    tip of "master".
+-
+-Let's look at this example:
+-
+-		   o---o---o---o---o---o---o---o---o---o "next"
+-		  /       /           /           /
+-		 /   a---a---b A     /           /
+-		/   /               /           /
+-	       /   /   c---c---c---c B         /
+-	      /   /   /             \         /
+-	     /   /   /   b---b C     \       /
+-	    /   /   /   /             \     /
+-    ---o---o---o---o---o---o---o---o---o---o---o "master"
+-
+-
+-A, B and C are topic branches.
+-
+- * A has one fix since it was merged up to "next".
+-
+- * B has finished.  It has been fully merged up to "master" and "next",
+-   and is ready to be deleted.
+-
+- * C has not merged to "next" at all.
+-
+-We would want to allow C to be rebased, refuse A, and encourage
+-B to be deleted.
+-
+-To compute (1):
+-
+-	git rev-list ^master ^topic next
+-	git rev-list ^master        next
+-
+-	if these match, topic has not merged in next at all.
+-
+-To compute (2):
+-
+-	git rev-list master..topic
+-
+-	if this is empty, it is fully merged to "master".
+-
+-DOC_END
+diff -urN neatlibc.orig/.git/hooks/update.sample neatlibc/.git/hooks/update.sample
+--- neatlibc.orig/.git/hooks/update.sample	2017-07-30 11:20:12.995416411 -0400
++++ neatlibc/.git/hooks/update.sample	1969-12-31 19:00:00.000000000 -0500
+@@ -1,128 +0,0 @@
+-#!/bin/sh
+-#
+-# An example hook script to blocks unannotated tags from entering.
+-# Called by "git receive-pack" with arguments: refname sha1-old sha1-new
+-#
+-# To enable this hook, rename this file to "update".
+-#
+-# Config
+-# ------
+-# hooks.allowunannotated
+-#   This boolean sets whether unannotated tags will be allowed into the
+-#   repository.  By default they won't be.
+-# hooks.allowdeletetag
+-#   This boolean sets whether deleting tags will be allowed in the
+-#   repository.  By default they won't be.
+-# hooks.allowmodifytag
+-#   This boolean sets whether a tag may be modified after creation. By default
+-#   it won't be.
+-# hooks.allowdeletebranch
+-#   This boolean sets whether deleting branches will be allowed in the
+-#   repository.  By default they won't be.
+-# hooks.denycreatebranch
+-#   This boolean sets whether remotely creating branches will be denied
+-#   in the repository.  By default this is allowed.
+-#
+-
+-# --- Command line
+-refname="$1"
+-oldrev="$2"
+-newrev="$3"
+-
+-# --- Safety check
+-if [ -z "$GIT_DIR" ]; then
+-	echo "Don't run this script from the command line." >&2
+-	echo " (if you want, you could supply GIT_DIR then run" >&2
+-	echo "  $0 <ref> <oldrev> <newrev>)" >&2
+-	exit 1
+-fi
+-
+-if [ -z "$refname" -o -z "$oldrev" -o -z "$newrev" ]; then
+-	echo "usage: $0 <ref> <oldrev> <newrev>" >&2
+-	exit 1
+-fi
+-
+-# --- Config
+-allowunannotated=$(git config --bool hooks.allowunannotated)
+-allowdeletebranch=$(git config --bool hooks.allowdeletebranch)
+-denycreatebranch=$(git config --bool hooks.denycreatebranch)
+-allowdeletetag=$(git config --bool hooks.allowdeletetag)
+-allowmodifytag=$(git config --bool hooks.allowmodifytag)
+-
+-# check for no description
+-projectdesc=$(sed -e '1q' "$GIT_DIR/description")
+-case "$projectdesc" in
+-"Unnamed repository"* | "")
+-	echo "*** Project description file hasn't been set" >&2
+-	exit 1
+-	;;
+-esac
+-
+-# --- Check types
+-# if $newrev is 0000...0000, it's a commit to delete a ref.
+-zero="0000000000000000000000000000000000000000"
+-if [ "$newrev" = "$zero" ]; then
+-	newrev_type=delete
+-else
+-	newrev_type=$(git cat-file -t $newrev)
+-fi
+-
+-case "$refname","$newrev_type" in
+-	refs/tags/*,commit)
+-		# un-annotated tag
+-		short_refname=${refname##refs/tags/}
+-		if [ "$allowunannotated" != "true" ]; then
+-			echo "*** The un-annotated tag, $short_refname, is not allowed in this repository" >&2
+-			echo "*** Use 'git tag [ -a | -s ]' for tags you want to propagate." >&2
+-			exit 1
+-		fi
+-		;;
+-	refs/tags/*,delete)
+-		# delete tag
+-		if [ "$allowdeletetag" != "true" ]; then
+-			echo "*** Deleting a tag is not allowed in this repository" >&2
+-			exit 1
+-		fi
+-		;;
+-	refs/tags/*,tag)
+-		# annotated tag
+-		if [ "$allowmodifytag" != "true" ] && git rev-parse $refname > /dev/null 2>&1
+-		then
+-			echo "*** Tag '$refname' already exists." >&2
+-			echo "*** Modifying a tag is not allowed in this repository." >&2
+-			exit 1
+-		fi
+-		;;
+-	refs/heads/*,commit)
+-		# branch
+-		if [ "$oldrev" = "$zero" -a "$denycreatebranch" = "true" ]; then
+-			echo "*** Creating a branch is not allowed in this repository" >&2
+-			exit 1
+-		fi
+-		;;
+-	refs/heads/*,delete)
+-		# delete branch
+-		if [ "$allowdeletebranch" != "true" ]; then
+-			echo "*** Deleting a branch is not allowed in this repository" >&2
+-			exit 1
+-		fi
+-		;;
+-	refs/remotes/*,commit)
+-		# tracking branch
+-		;;
+-	refs/remotes/*,delete)
+-		# delete tracking branch
+-		if [ "$allowdeletebranch" != "true" ]; then
+-			echo "*** Deleting a tracking branch is not allowed in this repository" >&2
+-			exit 1
+-		fi
+-		;;
+-	*)
+-		# Anything else (is there anything else?)
+-		echo "*** Update hook: unknown type of update to ref $refname of type $newrev_type" >&2
+-		exit 1
+-		;;
+-esac
+-
+-# --- Finished
+-exit 0
+Binary files neatlibc.orig/.git/index and neatlibc/.git/index differ
+diff -urN neatlibc.orig/.git/info/exclude neatlibc/.git/info/exclude
+--- neatlibc.orig/.git/info/exclude	2017-07-30 11:20:12.995416411 -0400
++++ neatlibc/.git/info/exclude	1969-12-31 19:00:00.000000000 -0500
+@@ -1,6 +0,0 @@
+-# git ls-files --others --exclude-from=.git/info/exclude
+-# Lines that start with '#' are comments.
+-# For a project mostly in C, the following would be a good set of
+-# exclude patterns (uncomment them if you want to use them):
+-# *.[oa]
+-# *~
+diff -urN neatlibc.orig/.git/logs/HEAD neatlibc/.git/logs/HEAD
+--- neatlibc.orig/.git/logs/HEAD	2017-07-30 11:20:24.171416562 -0400
++++ neatlibc/.git/logs/HEAD	1969-12-31 19:00:00.000000000 -0500
+@@ -1,2 +0,0 @@
+-0000000000000000000000000000000000000000 524449cb30d48b56b37e5c7580accc1d66c355e4 Lightning <LightningTH@GMail.com> 1501428013 -0400	clone: from https://github.com/litcave/neatlibc.git
+-524449cb30d48b56b37e5c7580accc1d66c355e4 35080019ce9cd3937861b4f1ed242a85d74ff5fd Lightning <LightningTH@GMail.com> 1501428024 -0400	checkout: moving from master to 35080019ce9cd3937861b4f1ed242a85d74ff5fd
+diff -urN neatlibc.orig/.git/logs/refs/heads/master neatlibc/.git/logs/refs/heads/master
+--- neatlibc.orig/.git/logs/refs/heads/master	2017-07-30 11:20:13.991416424 -0400
++++ neatlibc/.git/logs/refs/heads/master	1969-12-31 19:00:00.000000000 -0500
+@@ -1 +0,0 @@
+-0000000000000000000000000000000000000000 524449cb30d48b56b37e5c7580accc1d66c355e4 Lightning <LightningTH@GMail.com> 1501428013 -0400	clone: from https://github.com/litcave/neatlibc.git
+diff -urN neatlibc.orig/.git/logs/refs/remotes/origin/HEAD neatlibc/.git/logs/refs/remotes/origin/HEAD
+--- neatlibc.orig/.git/logs/refs/remotes/origin/HEAD	2017-07-30 11:20:13.991416424 -0400
++++ neatlibc/.git/logs/refs/remotes/origin/HEAD	1969-12-31 19:00:00.000000000 -0500
+@@ -1 +0,0 @@
+-0000000000000000000000000000000000000000 524449cb30d48b56b37e5c7580accc1d66c355e4 Lightning <LightningTH@GMail.com> 1501428013 -0400	clone: from https://github.com/litcave/neatlibc.git
+Binary files neatlibc.orig/.git/objects/pack/pack-84dbd8807412442242d713687b81d49b666c1a24.idx and neatlibc/.git/objects/pack/pack-84dbd8807412442242d713687b81d49b666c1a24.idx differ
+Binary files neatlibc.orig/.git/objects/pack/pack-84dbd8807412442242d713687b81d49b666c1a24.pack and neatlibc/.git/objects/pack/pack-84dbd8807412442242d713687b81d49b666c1a24.pack differ
+diff -urN neatlibc.orig/.git/packed-refs neatlibc/.git/packed-refs
+--- neatlibc.orig/.git/packed-refs	2017-07-30 11:20:13.991416424 -0400
++++ neatlibc/.git/packed-refs	1969-12-31 19:00:00.000000000 -0500
+@@ -1,2 +0,0 @@
+-# pack-refs with: peeled fully-peeled 
+-524449cb30d48b56b37e5c7580accc1d66c355e4 refs/remotes/origin/master
+diff -urN neatlibc.orig/.git/refs/heads/master neatlibc/.git/refs/heads/master
+--- neatlibc.orig/.git/refs/heads/master	2017-07-30 11:20:13.991416424 -0400
++++ neatlibc/.git/refs/heads/master	1969-12-31 19:00:00.000000000 -0500
+@@ -1 +0,0 @@
+-524449cb30d48b56b37e5c7580accc1d66c355e4
+diff -urN neatlibc.orig/.git/refs/remotes/origin/HEAD neatlibc/.git/refs/remotes/origin/HEAD
+--- neatlibc.orig/.git/refs/remotes/origin/HEAD	2017-07-30 11:20:13.991416424 -0400
++++ neatlibc/.git/refs/remotes/origin/HEAD	1969-12-31 19:00:00.000000000 -0500
+@@ -1 +0,0 @@
+-ref: refs/remotes/origin/master
+Binary files neatlibc.orig/libc.a and neatlibc/libc.a differ
+Binary files neatlibc.orig/libc-inv.a and neatlibc/libc-inv.a differ
+diff -urN neatlibc.orig/Makefile neatlibc/Makefile
+--- neatlibc.orig/Makefile	2017-07-30 11:20:24.171416562 -0400
++++ neatlibc/Makefile	2016-12-20 14:47:23.446569864 -0500
+@@ -9,26 +9,42 @@
+ #AS = neatas
+ 
+ # for x86_64 build
+-ARCH = x64
++#ARCH = x64
++#CC = ncc
++#AS = fasm
++
++ARCH = clemency
+ CC = ncc
+-AS = fasm
++CC-INV = ncc-inv
++AS = las.py
+ 
+ CFLAGS = -O2 -I.
+ 
+-all: start.o libc.a
++SHELL := /bin/bash
++export PATH := $(PATH):../../bin
++
++all: libc.a libc-inv.a
+ 
+ %.o: %.s
+-	$(AS) $^ >/dev/null
++	$(AS) $^ -o $@
+ %.o: %.c
+ 	$(CC) -c $(CFLAGS) $^
++%-inv.o: %.s
++	$(AS) $^ -o $@ -DNEATLIBC_INV
++%-inv.o: %.c
++	$(CC-INV) -c $(CFLAGS) -DNEATLIBC_INV -o $@ $^
+ 
+ OBJS1 = $(patsubst %.c,%.o,$(wildcard *.c))
+ OBJS2 = $(patsubst %.s,%.o,$(wildcard $(ARCH)/*.s))
+ 
+-start.o: $(ARCH)/start.o
+-	cp $(ARCH)/start.o .
++OBJS1-INV = $(patsubst %.o,%-inv.o,$(OBJS1))
++OBJS2-INV = $(patsubst %.o,%-inv.o,$(OBJS2))
++
+ libc.a: $(OBJS1) $(OBJS2)
+ 	$(AR) rcs $@ $(OBJS1) $(OBJS2)
+ 
++libc-inv.a: $(OBJS1-INV) $(OBJS2-INV)
++	$(AR) rcs $@ $(OBJS1-INV) $(OBJS2-INV)
++
+ clean:
+-	rm -f *.o *.a x86/*.o arm/*.o x64/*.o
++	rm -f *.o *.a x86/*.o arm/*.o x64/*.o clemency/*.o
+diff -urN neatlibc.orig/malloc.c neatlibc/malloc.c
+--- neatlibc.orig/malloc.c	2017-07-30 11:20:24.171416562 -0400
++++ neatlibc/malloc.c	2017-07-28 22:19:36.509925680 -0400
+@@ -1,68 +1,318 @@
+ #include <stdlib.h>
+-#include <sys/mman.h>
+ 
+-#define PGSIZE		4096
+-#define PGMASK		(PGSIZE - 1)
+-#define MSETMAX		4096
+-#define MSETLEN		(1 << 15)
++typedef struct MemInfoStruct
++{
++	int Size;
++	struct MemInfoStruct *Prev;		//prev block in line
++	struct MemInfoStruct *Next;		//next block in line
++	struct MemInfoStruct *PrevSize;		//previous block of same size
++	struct MemInfoStruct *NextSize;		//next block of same size
++} MemInfoStruct;
+ 
+-struct mset {
+-	int refs;
+-	int size;
+-};
++//first spot is 16 bytes, each spot higher is 2x larger than the last
++//16, 32, 64, 128, 256, 512, 1024, 2048, 4096, 8192
++//last entry is a size/ptr combo
++MemInfoStruct *MemBlocks[11];
+ 
+-static struct mset *pool;
++#define IN_USE(x) (x->Size & 1)
++#define SET_IN_USE(x) x->Size |= 1;
++#define CLEAR_IN_USE(x) x->Size &= 0x7fffffe;
+ 
+-static int mk_pool(void)
++void init_memory(long addr, long size)
+ {
+-	if (pool && !pool->refs) {
+-		pool->size = sizeof(*pool);
+-		return 0;
+-	}
+-	pool = mmap(NULL, MSETLEN, PROT_READ | PROT_WRITE,
+-				MAP_PRIVATE | MAP_ANONYMOUS, -1, 0);
+-	if (pool == MAP_FAILED) {
+-		pool = NULL;
+-		return 1;
+-	}
+-	pool->size = sizeof(*pool);
+-	pool->refs = 0;
+-	return 0;
++	MemInfoStruct *NewBlock;
++	int i;
++
++	//zero out MemBlocks
++	memset(MemBlocks, 0, sizeof(MemBlocks));
++
++	//create the new block and put it in position
++	NewBlock = (MemInfoStruct *)addr;
++	memset(NewBlock, 0, sizeof(MemInfoStruct));
++
++	//if size isn't even then remove a byte to make it even
++	if(size & 1)
++		size--;
++
++	NewBlock->Size = size;
++	MemBlocks[10] = NewBlock;
+ }
+ 
+-void *malloc(long n)
++void *malloc(long size)
+ {
+-	void *m;
+-	if (n >= MSETMAX) {
+-		m = mmap(NULL, n + PGSIZE, PROT_READ | PROT_WRITE,
+-				MAP_PRIVATE | MAP_ANONYMOUS, -1, 0);
+-		if (m == MAP_FAILED)
+-			return NULL;
+-		*(long *) m = n + PGSIZE;	/* store length in the first page */
+-		return m + PGSIZE;
+-	}
+-	if (!pool || MSETLEN - pool->size < n + sizeof(void *))
+-		if (mk_pool())
+-			return NULL;
+-	m = (void *) pool + pool->size;
+-	*(void **) m = pool;			/* the address of the owning mset */
+-	pool->refs++;
+-	pool->size += (n + sizeof(void *) + 7) & ~7;
+-	if (!((pool + pool->size + sizeof(void *)) & PGMASK))
+-		pool->size += sizeof(long);
+-	return m + sizeof(void *);
++	MemInfoStruct *CurBlock;
++	MemInfoStruct *NewBlock;
++	int BlockID;
++	int ExtraBlock;
++	unsigned long n;
++
++
++	//minimum 16 bytes for the block, add in our 9 bytes header to make sure we get a proper sized block
++	size += (sizeof(int) * 3);
++
++	//now make sure n has the low bit available to indicate in use
++	if(size & 1)
++		size++;
++
++	//if there are bits set then increment up a block
++	if(size & 0xf)
++		n = (size >> 4) + 1;
++	else
++		n = size >> 4;
++
++	//find the block we are in
++	BlockID = 0;
++	ExtraBlock = 0;
++	if(n >> 1)
++		ExtraBlock = n & 1;
++	for(n >>= 1; n && (BlockID < 10); BlockID++)
++	{
++		//if bits after us then set the extra block flag
++		if(n >> 1)
++			ExtraBlock |= (n & 1);
++		n >>= 1;
++	}
++
++	//if more than 1 bit is set then bump a block level
++	BlockID += ExtraBlock;
++
++	//if in a bucket and it has an entry then return the first entry
++	if(BlockID < 10)
++	{
++		if(MemBlocks[BlockID])
++		{
++			//we have an entry, grab it, move to the next entry and return it
++			CurBlock = MemBlocks[BlockID];
++			MemBlocks[BlockID] = MemBlocks[BlockID]->NextSize;
++
++			//remove from the free chain, we get the first entry so no previous
++			if(CurBlock->NextSize)
++				CurBlock->NextSize->PrevSize = 0;
++			CurBlock->PrevSize = 0;
++			CurBlock->NextSize = 0;
++			SET_IN_USE(CurBlock);
++			return (void *)((unsigned int)CurBlock + (sizeof(int)*3));	//return pointer past the size and prev/next
++		}
++
++		//failed to find a block, set size to the next rounded size
++		size = (1 << (BlockID + 4));
++	}
++
++	//cycle through the block list looking for one big enough
++	CurBlock = MemBlocks[10];
++	while(CurBlock)
++	{
++		if(CurBlock->Size >= size)
++			break;
++		CurBlock = CurBlock->NextSize;
++	}
++
++	//if no block then return
++	if(!CurBlock)
++		return 0;
++
++	//see if the current block has enough room to be split
++	//if not just return the block itself
++	if(CurBlock->Size <= (size + 16))	//minimum block size is 16 that can be put into a bucket
++	{
++		//remove from memblocks if the first entry
++		if(MemBlocks[10] == CurBlock)
++			MemBlocks[10] = CurBlock->NextSize;
++
++		//remove from the free chain
++		if(CurBlock->PrevSize)
++			CurBlock->PrevSize->NextSize = CurBlock->NextSize;
++		if(CurBlock->NextSize)
++			CurBlock->NextSize->PrevSize = CurBlock->PrevSize;
++		CurBlock->PrevSize = 0;
++		CurBlock->NextSize = 0;
++		SET_IN_USE(CurBlock);
++		return (void *)((unsigned int)CurBlock + (sizeof(int)*3));	//return pointer past the size and prev/next
++	}
++
++	//split the block up and fixup linked lists
++	NewBlock = (MemInfoStruct *)((int)CurBlock + size);
++	NewBlock->Prev = CurBlock;
++	NewBlock->Next = CurBlock->Next;
++	if(NewBlock->Next)
++		NewBlock->Next->Prev = NewBlock;
++	CurBlock->Next = NewBlock;
++
++	//set sizes
++	NewBlock->Size = CurBlock->Size - size;
++	CurBlock->Size = size;
++
++	//fix up sizing linked list, if still in the large bucket then just adjust everything
++	//otherwise we have to find a new bucket
++	if(NewBlock->Size > 8192)
++	{
++		//fixup MemBlocks if need be
++		if(MemBlocks[10] == CurBlock)
++			MemBlocks[10] = NewBlock;
++
++		//just update entries in the big block list
++		NewBlock->PrevSize = CurBlock->PrevSize;
++		if(NewBlock->PrevSize)
++			NewBlock->PrevSize->NextSize = NewBlock;
++		NewBlock->NextSize = CurBlock->NextSize;
++		if(NewBlock->NextSize)
++			NewBlock->NextSize->PrevSize = NewBlock;
++	}
++	else
++	{
++		//fixup MemBlocks if need be
++		if(MemBlocks[10] == CurBlock)
++			MemBlocks[10] = CurBlock->NextSize;
++
++		//remove from our chain
++		if(CurBlock->PrevSize)
++			CurBlock->PrevSize->NextSize = CurBlock->NextSize;
++		if(CurBlock->NextSize)
++			CurBlock->NextSize->PrevSize = CurBlock->PrevSize;
++
++		//find the chain to add to, size should be a block multiple at this point
++		BlockID = 0;
++		n = NewBlock->Size >> 4;
++		for(n >>= 1; n && (BlockID < 10); BlockID++)
++			n >>= 1;
++
++		//we shouldn't be here but just in-case
++		if(BlockID > 10)
++			BlockID = 10;
++
++		//add it
++		NewBlock->PrevSize = 0;
++		NewBlock->NextSize = MemBlocks[BlockID];
++		if(NewBlock->NextSize)
++			NewBlock->NextSize->PrevSize = NewBlock;
++		MemBlocks[BlockID] = NewBlock;
++	}
++
++	//make sure pointers are wiped out
++	CurBlock->PrevSize = 0;
++	CurBlock->NextSize = 0;
++
++	//return CurBlock
++	SET_IN_USE(CurBlock);
++	return (void *)((unsigned int)CurBlock + (sizeof(int)*3));	//return pointer past the size and prev/next
+ }
+ 
+ void free(void *v)
+ {
+-	if (!v)
+-		return;
+-	if (v & PGMASK) {
+-		struct mset *mset = *(void **) (v - sizeof(void *));
+-		mset->refs--;
+-		if (!mset->refs && mset != pool)
+-			munmap(mset, mset->size);
+-	} else {
+-		munmap(v - PGSIZE, *(long *) (v - PGSIZE));
++	MemInfoStruct *CurBlock;
++	MemInfoStruct *TempBlock;
++	int BlockID;
++	int n;
++
++	//move back into our header
++	CurBlock = (MemInfoStruct *)((int)v - (sizeof(int) * 3));
++	CLEAR_IN_USE(CurBlock);
++
++	//clear out prev and next size
++	CurBlock->PrevSize = 0;
++	CurBlock->NextSize = 0;
++
++	//see if we can bring the block ahead of us into our block
++	TempBlock = CurBlock->Next;
++	if(TempBlock && !(IN_USE(TempBlock)))
++	{
++		//we have a next block and not in use, combine
++		CurBlock->Size += TempBlock->Size;
++		CurBlock->Next = TempBlock->Next;
++		if(TempBlock->Next)
++			TempBlock->Next->Prev = CurBlock;
++
++		if(TempBlock->NextSize && (TempBlock->NextSize->Size != TempBlock->Size))
++			dbrk;
++		if(TempBlock->PrevSize && (TempBlock->PrevSize->Size != TempBlock->Size))
++			dbrk;
++
++		//remove from it's free list
++		if(TempBlock->PrevSize)
++			TempBlock->PrevSize->NextSize = TempBlock->NextSize;
++		if(TempBlock->NextSize)
++			TempBlock->NextSize->PrevSize = TempBlock->PrevSize;
++
++		//find the chain it is in and remove it if it is a header entry
++		BlockID = 0;
++		n = TempBlock->Size;
++
++		//find the chain to remove from
++		for(n >>= 5; n && (BlockID < 10); BlockID++)
++			n >>= 1;
++
++		//make sure we don't go too high
++		if(BlockID > 10)
++			BlockID = 10;
++
++		if(MemBlocks[BlockID] == TempBlock)
++			MemBlocks[BlockID] = TempBlock->NextSize;
+ 	}
++
++	//see if we can combine with previous
++	TempBlock = CurBlock->Prev;
++	if(TempBlock && !(IN_USE(TempBlock)))
++	{
++		//we have a previous, adjust it and make it our block
++		//we have a next block and not in use, combine
++		TempBlock->Next = CurBlock->Next;
++		if(CurBlock->Next)
++			CurBlock->Next->Prev = TempBlock;
++
++		//find the chain it is in and remove it if it is a header entry
++		BlockID = 0;
++		n = TempBlock->Size;
++
++		//find the chain to remove from
++		for(n >>= 5; n && (BlockID < 10); BlockID++)
++			n >>= 1;
++
++		//if more than 1 bit is set then bump a block level
++		//BlockID += ExtraBlock;
++
++		if(TempBlock->NextSize && (TempBlock->NextSize->Size != TempBlock->Size))
++			dbrk;
++		if(TempBlock->PrevSize && (TempBlock->PrevSize->Size != TempBlock->Size))
++			dbrk;
++
++		//update size after finding the original list the previous block is in
++		TempBlock->Size += CurBlock->Size;
++
++		//remove from it's free list if not a large block
++		if(BlockID > 10)
++			BlockID = 10;
++
++		if(TempBlock->PrevSize)
++			TempBlock->PrevSize->NextSize = TempBlock->NextSize;
++		if(TempBlock->NextSize)
++			TempBlock->NextSize->PrevSize = TempBlock->PrevSize;
++
++		if(MemBlocks[BlockID] == TempBlock)
++			MemBlocks[BlockID] = TempBlock->NextSize;
++
++		//need to insert the previous block back into the lists so make it current
++		CurBlock = TempBlock;
++	}
++
++	//find the chain to add to
++	BlockID = 0;
++	n = CurBlock->Size >> 5;
++	for(; n && (BlockID < 10); BlockID++)
++		n >>= 1;
++
++	//if more than 1 bit is set then bump a block level
++	if(BlockID > 10)
++		BlockID = 10;
++
++	//add it
++	CurBlock->PrevSize = 0;
++	CurBlock->NextSize = MemBlocks[BlockID];
++	if(CurBlock->NextSize)
++		CurBlock->NextSize->PrevSize = CurBlock;
++	MemBlocks[BlockID] = CurBlock;
++
++	if(CurBlock->NextSize && (CurBlock->NextSize->Size != CurBlock->Size) && (BlockID != 10))
++		dbrk;
++
++	return;
+ }
+diff -urN neatlibc.orig/mkstemp.c neatlibc/mkstemp.c
+--- neatlibc.orig/mkstemp.c	2017-07-30 11:20:14.015416424 -0400
++++ neatlibc/mkstemp.c	2016-11-03 22:24:07.338836982 -0400
+@@ -2,6 +2,8 @@
+ #include <string.h>
+ #include <unistd.h>
+ 
++#if ARCH != clemency
++
+ static int tmpid;
+ static char *digs = "0123456789abcdef";
+ 
+@@ -24,3 +26,5 @@
+ 	unlink(t);
+ 	return fd;
+ }
++
++#endif
+diff -urN neatlibc.orig/rand.c neatlibc/rand.c
+--- neatlibc.orig/rand.c	2017-07-30 11:20:14.015416424 -0400
++++ neatlibc/rand.c	2016-11-21 21:25:48.700355236 -0500
+@@ -9,6 +9,6 @@
+ 
+ int rand(void)
+ {
+-	r = r * 1103515245 + 12345;
+-	return r & 0x7fffffff;
++	r = r * 103515245 + 12345;
++	return r & 0x7ffffff;
+ }
+diff -urN neatlibc.orig/scanf.c neatlibc/scanf.c
+--- neatlibc.orig/scanf.c	2017-07-30 11:20:14.015416424 -0400
++++ neatlibc/scanf.c	2017-07-28 02:27:10.537736745 -0400
+@@ -13,7 +13,7 @@
+ 		return i;
+ 	}
+ 	while (fp->fd >= 0 && fp->icur == fp->ilen) {
+-		int nr = read(fp->fd, fp->ibuf, fp->isize);
++		int nr = read(fp->ibuf, fp->isize);
+ 		if (nr <= 0)
+ 			break;
+ 		fp->ilen = nr;
+diff -urN neatlibc.orig/stdarg.c neatlibc/stdarg.c
+--- neatlibc.orig/stdarg.c	2017-07-30 11:20:14.015416424 -0400
++++ neatlibc/stdarg.c	2016-12-13 20:41:55.260005836 -0500
+@@ -1,6 +1,10 @@
+ #include <stdarg.h>
+ 
++#if ARCH != clemency
+ #define ALIGN(x, a)	(((x) + (a) - 1) & ~((a) - 1))
++#else
++#define ALIGN(x, a)	(((x) + ((a) - 1)) / (a) * (a))
++#endif
+ 
+ void *__va_arg(void **ap, int size)
+ {
+diff -urN neatlibc.orig/stdio.c neatlibc/stdio.c
+--- neatlibc.orig/stdio.c	2017-07-30 11:20:14.015416424 -0400
++++ neatlibc/stdio.c	2017-07-27 00:21:30.790580516 -0400
+@@ -10,13 +10,15 @@
+ #define BUFSZ		1024
+ 
+ static char _ibuf[BUFSZ], _obuf[BUFSZ], _ebuf[BUFSZ];
+-static FILE _stdin = {0, EOF, _ibuf, NULL, BUFSZ, 0};
+-static FILE _stdout = {1, EOF, NULL, _obuf, 0, BUFSZ};
+-static FILE _stderr = {2, EOF, NULL, _ebuf, 0, 1};
++static FILE _stdin = {0, EOF, _ibuf, NULL, BUFSZ, 0, 0, 0, 0, 0, 0, 0, _IOLBF, _ibuf};
++static FILE _stdout = {1, EOF, NULL, _obuf, 0, BUFSZ, 0, 0, 0, 0, 0, 0, _IOLBF, _obuf};
++static FILE _stderr = {2, EOF, NULL, _ebuf, 0, BUFSZ, 0, 0, 0, 0, 0, 0, _IOLBF, _ebuf};
+ FILE *stdin = &_stdin;
+ FILE *stdout = &_stdout;
+ FILE *stderr = &_stderr;
+ 
++#if ARCH != clemency
++
+ FILE *fopen(char *path, char *mode)
+ {
+ 	FILE *fp;
+@@ -61,23 +63,43 @@
+ 	return ret;
+ }
+ 
++#endif
++
+ int fflush(FILE *fp)
+ {
+ 	if (fp->fd < 0)
+ 		return 0;
+-	if (write(fp->fd, fp->obuf, fp->olen) != fp->olen)
++	if (write(fp->obuf, fp->olen) != fp->olen)
+ 		return EOF;
+ 	fp->olen = 0;
+ 	return 0;
+ }
+ 
++static int setvbuf(FILE *fp, char *buf, int mode, int size)
++{
++	//if buffer provided then use it otherwise use default
++	if(buf)
++	{
++		fp->obuf = buf;
++		fp->osize = size;
++	}
++
++	fp->mode = mode;
++	if((fp->mode == _IONBF) && (fp->osize == 0))
++		fp->osize = 1;
++
++	//reset our length
++	fp->olen = 0;
++	return 0;
++}
++
+ static int oc(FILE *fp, int c)
+ {
+ 	if (fp->olen < fp->osize) {
+ 		fp->obuf[fp->olen++] = c;
+ 		fp->ostat++;
+ 	}
+-	if (c == '\n' || fp->olen == fp->osize)
++	if (((fp->mode == _IOLBF) && (c == '\n')) || (fp->olen == fp->osize) || (fp->mode == _IONBF))
+ 		fflush(fp);
+ 	return c;
+ }
+@@ -113,12 +135,21 @@
+ 		neg = 1;
+ 		n = -n;
+ 	}
++#if ARCH == clemency
++	if (bytes == 1)
++		n &= 0x000001ff;
++	if (bytes == 2)
++		n &= 0x0003ffff;
++	if (bytes == 3)
++		n &= 0x07ffffff;
++#else
+ 	if (bytes == 1)
+ 		n &= 0x000000ff;
+ 	if (bytes == 2)
+ 		n &= 0x0000ffff;
+ 	if (bytes == 4)
+ 		n &= 0xffffffff;
++#endif
+ 	d = digits(n, base);
+ 	for (i = 0; i < d; i++) {
+ 		s[d - i - 1] = digs[n % base];
+@@ -183,6 +214,15 @@
+ 		case 's':
+ 			ostr(fp, va_arg(ap, char *), wid);
+ 			break;
++		case 'n':
++                        if (bytes == sizeof(char)) {
++                                *va_arg(ap, char *) = fp->ostat - beg;
++                        } else if (bytes == sizeof(short)) {
++                                *va_arg(ap, short *) = fp->ostat - beg;
++                        } else {
++                                *va_arg(ap, int *) = fp->ostat - beg;
++                        }
++                        break;
+ 		case '\0':
+ 			s--;
+ 			break;
+@@ -217,6 +257,24 @@
+ 	return vsnprintf(dst, 1 << 20, fmt, ap);
+ }
+ 
++int putc(int s)
++{
++	oc(stdout, s);
++	return 1;
++}
++
++int puts(char *s)
++{
++	int count = 0;
++	while(s[0])
++	{
++		oc(stdout, s[0]);
++		s++;
++		count++;
++	}
++	return count;
++}
++
+ int printf(char *fmt, ...)
+ {
+ 	va_list ap;
+diff -urN neatlibc.orig/stdio.h neatlibc/stdio.h
+--- neatlibc.orig/stdio.h	2017-07-30 11:20:14.015416424 -0400
++++ neatlibc/stdio.h	2017-07-27 00:15:13.928914574 -0400
+@@ -12,6 +12,8 @@
+ 	int iown, oown;		/* free the buffer when finished */
+ 	int icur;		/* current position in ibuf */
+ 	int ostat;
++	int mode;
++	char *default_obuf;
+ } FILE;
+ 
+ extern FILE *stdin;
+@@ -23,6 +25,8 @@
+ int fflush(FILE *fp);
+ void setbuf(FILE *fp, char *buf);
+ 
++int puts(char *s);
++int putc(char s);
+ int printf(char *fmt, ...);
+ int fprintf(FILE *fp, char *fmt, ...);
+ int sprintf(char *dst, char *fmt, ...);
+@@ -43,3 +47,9 @@
+ int ungetc(int c, FILE *fp);
+ 
+ void perror(char *s);
++
++int setvbuf(FILE *fp, char *buf, int mode, int size);
++
++#define _IOFBF 0	//fully buffered
++#define _IOLBF 1	//line buffered
++#define _IONBF 2	//no buffering
+diff -urN neatlibc.orig/stdlib.c neatlibc/stdlib.c
+--- neatlibc.orig/stdlib.c	2017-07-30 11:20:14.015416424 -0400
++++ neatlibc/stdlib.c	2016-11-04 14:31:15.196329979 -0400
+@@ -18,6 +18,7 @@
+ 	return n >= 0 ? n : -n;
+ }
+ 
++#if ARCH != clemency
+ char *getenv(char *name)
+ {
+ 	char **p = environ;
+@@ -45,6 +46,8 @@
+ 	return ret;
+ }
+ 
++#endif
++
+ static void (*atexit_func[ATEXIT_MAX])(void);
+ static int atexit_cnt;
+ 
+@@ -68,3 +71,4 @@
+ 	__neatlibc_exit();
+ 	_exit(status);
+ }
++
+diff -urN neatlibc.orig/stdlib.h neatlibc/stdlib.h
+--- neatlibc.orig/stdlib.h	2017-07-30 11:20:24.171416562 -0400
++++ neatlibc/stdlib.h	2017-06-04 12:26:38.485511611 -0400
+@@ -1,9 +1,16 @@
+ #include <stddef.h>
+ 
+-#define RAND_MAX		0x7fffffff
++#define RAND_MAX		0x7ffffff
+ 
++void init_memory(long addr, long size);
+ void *malloc(long n);
+ void free(void *m);
++int mprotect(void *ptr, int length, int flags);
++
++#define MPROTECT_NONE           0
++#define MPROTECT_READ           1
++#define MPROTECT_READWRITE      2
++#define MPROTECT_READEXECUTE    3
+ 
+ int atoi(char *s);
+ long atol(char *s);
+diff -urN neatlibc.orig/termios.c neatlibc/termios.c
+--- neatlibc.orig/termios.c	2017-07-30 11:20:14.015416424 -0400
++++ neatlibc/termios.c	2016-11-03 22:24:29.187048011 -0400
+@@ -2,6 +2,8 @@
+ #include <termios.h>
+ #include <sys/ioctl.h>
+ 
++#if ARCH != clemency
++
+ int tcgetattr(int fd, struct termios *term)
+ {
+ 	return ioctl(fd, TCGETS, term);
+@@ -32,3 +34,5 @@
+ 	t->c_cc[VMIN] = 1;
+ 	t->c_cc[VTIME] = 0;
+ }
++
++#endif
+diff -urN neatlibc.orig/time.h neatlibc/time.h
+--- neatlibc.orig/time.h	2017-07-30 11:20:14.015416424 -0400
++++ neatlibc/time.h	2016-11-07 21:27:34.491367037 -0500
+@@ -5,7 +5,11 @@
+ 
+ struct timespec {
+ 	long tv_sec;
++#if ARCH != clemency
+ 	long tv_nsec;
++#else
++	long tv_msec;
++#endif
+ };
+ 
+ int nanosleep(struct timespec *req, struct timespec *rem);
+diff -urN neatlibc.orig/unistd.c neatlibc/unistd.c
+--- neatlibc.orig/unistd.c	2017-07-30 11:20:14.015416424 -0400
++++ neatlibc/unistd.c	2016-11-07 21:25:35.277452638 -0500
+@@ -9,11 +9,17 @@
+ {
+ 	struct timespec req = {n, 0};
+ 	struct timespec rem;
++#if ARCH != clemency
+ 	if (nanosleep(&req, &rem))
++#else
++	if (millisleep(&req, &rem))
++#endif
+ 		return rem.tv_sec;
+ 	return 0;
+ }
+ 
++#if ARCH != clemency
++
+ #define EXECARGS	(1 << 7)
+ 
+ int execle(char *path, ...)
+@@ -75,3 +81,5 @@
+ 	while (1)
+ 		;
+ }
++
++#endif
+diff -urN neatlibc.orig/unistd.h neatlibc/unistd.h
+--- neatlibc.orig/unistd.h	2017-07-30 11:20:14.015416424 -0400
++++ neatlibc/unistd.h	2016-12-29 17:25:38.525958622 -0500
+@@ -12,8 +12,8 @@
+ extern char **environ;
+ 
+ int close(int fd);
+-long write(int fd, void *buf, long n);
+-long read(int fd, void *buf, long n);
++long write(void *buf, long n);
++long read(void *buf, long n);
+ 
+ /* lseek() whence */
+ #define SEEK_SET	0
+@@ -43,3 +43,7 @@
+ #define STDIN_FILENO	0
+ #define STDOUT_FILENO	1
+ #define STDERR_FILENO	2
++
++void halt();
++int setup_interrupt(int InterruptNum, void *Function);
++

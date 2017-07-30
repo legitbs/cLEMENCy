@@ -1,0 +1,22 @@
+{
+  \tabulinesep = 2pt
+  \begin{tabu} to \linewidth { X[-2c]  X[-1c]  X[2.8l]  X[2l] }
+cc & Value & Description & Flag State Checked \\
+\hline
+\texttt{n} & \texttt{0000} & Not Equal / Not Zero & Z == 0 \\
+\texttt{e} & \texttt{0001} & Equal / Zero & Z == 1 \\
+\texttt{l} & \texttt{0010} & Less Than & C == 1 AND Z == 0 \\
+\texttt{le} & \texttt{0011} & Less Than or Equal & C == 1 OR Z == 1 \\
+\texttt{g} & \texttt{0100} & Greater Than & C == 0 AND Z == 0 \\
+\texttt{ge} & \texttt{0101} & Greater Than or Equal & C == 0 OR Z == 1 \\
+\texttt{no} & \texttt{0110} & Not Overflow & O == 0 \\
+\texttt{o} & \texttt{0111} & Overflow & O == 1 \\
+\texttt{ns} & \texttt{1000} & Not Signed & S == 0 \\
+\texttt{s} & \texttt{1001} & Signed & S == 1 \\
+\texttt{sl} & \texttt{1010} & Signed Less Than & S != O \\
+\texttt{sle} & \texttt{1011} & Signed Less Than or Equal & S != O OR Z == 1 \\
+\texttt{sg} & \texttt{1100} & Signed Greater Than & S == O AND Z == 0 \\
+\texttt{sge} & \texttt{1101} & Signed Greater Than or Equal & S == O \\
+ & 1111 & Always &  \\
+\end{tabu}
+}

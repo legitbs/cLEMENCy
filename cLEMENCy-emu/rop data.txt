@@ -1,0 +1,34 @@
+The following locations are rop gadgets embedded into the nfo area
+Each rop will move the specified register to ST then IR
+
+Don't forget there is also the rop-search.py in the LAS folder to per byte disassemble firmwares. Can tie the results to grep to search for combinations
+
+51005c7 - r00
+5100337 - r01
+510053f - r02
+51006a7 - r03
+510068f - r04
+5100727 - r05
+5100427 - r06
+51004af - r07
+5100607 - r08
+5100377 - r09
+5100157 - r10
+5100577 - r11
+5100647 - r12
+51006df - r13
+51003df - r14
+510065f - r15
+51006f7 - r16
+5100457 - r17
+51003c7 - r18
+510040f - r19
+510058f - r20
+51004d7 - r21
+51005df - r22
+510019f - r23
+5100497 - r24
+510031f - r25
+510046f - r26
+510061f - r27
+510038f - r28

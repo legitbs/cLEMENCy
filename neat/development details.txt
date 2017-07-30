@@ -1,0 +1,57 @@
+cLEMENCy LibC notes
+
+This is a modified version of NeatLibC. There is no system(), exec*(), nor file operations like open, close, etc.
+
+All structures elements are aligned to 3 bytes.
+
+There is a flaw if you have a void* variable then try to use it as an array, void is size 1. Changing this in ncc causes odd behaviour so just use int* or similar.
+
+Using "dbrk;" in C code will insert a debug breakpoint into the code. Note, it is not a function so no () is expected. If the interpretter sees this in debug mode it will cause it to halt on the next instruction otherwise an invalid instruction error is thrown.
+
+long read(void *buf, long n);
+Read takes 2 arguments, a buffer to put data into and the maximum length of data to read. It gets this data from the network IO receive buffer. It returns the number of bytes read which can be 0 indicating no data currently exists to read in the network buffer.
+
+
+long write(void *buf, long n);
+Writes takes 2 argumnets, a buffer to write to the network send IO area and the length of data to send. It will lock sending multiple packets of data until the length is achieved. It returns the length of data sent.
+
+
+int read_io(int address, int n);
+Created to simplify reading IO. Read a value from the specified address. N is 1, 2, or 3 bytes of data to read
+
+
+void write_io(int address, int val, int n);
+Created to simplify writing IO. Write a value to the specified address. N is 1, 2, or 3 bytes of data to write
+
+
+void wait();
+Wait for an interrupt to occur
+
+
+void halt();
+Halt the processor
+
+int setup_interrupt(int InterruptNum, void *Function);
+Setup or remove an interrupt handler for an interrupt, 0 to 8. This is a simple wrapper function that handles doing a proper interrupt return. It does not enable or disable interrupts when making changes.
+
+int mprotect(void *ptr, int length, int flags);
+Set the memory protections for an area of memory. Pointer must be rounded to a page size, length must be a multiple of a page size, flags is 0 to 3 for the type of flags. MPROTECT_NONE, MPROTECT_READ, MPROTECT_READWRITE, MPROTECT_READEXECUTE are valid for flags.
+
+When the firmware is loaded, the first thing it does is sets memory protections for the code and data areas of the program, as upon start only the first 1k is marked read/execute, then allocates a chunk of stack, 32K for emulated although this may strink for physical, and dedicates the rest of memory to the heap. The heap and stack are isolated from everything by a 1k page that has no flags set. An initial memory manager entry is created for malloc()/free() to use.
+
+Heap Memory Manager
+Due to NeatLibC's reliance on mmap/munmap for memory allocation I had to rewrite the allocator. The allocator is simple.
+
+Upon a request for a memory block the allocator picks 1 of 10 buckets that double in size from the previous with the smallest size being 16 bytes. The 11th bucket contains anything larger than 8192 bytes.
+
+If an entry exists in the slot then that entry is removed, with the following entry taking it's position as the head of the bucket for it's size, and returned after setting a flag indicating it is in use. If no entry is found then the entries in the 11th bucket are walked looking for an entry big enough that can be split up, first part of the split being returned while the rest is put back into the appropriate bucket. This means that a 16 byte entry could actually be 31 bytes as it would be less than the 32 byte line for the next bucket up.
+
+Upon free'ing a piece of memory, the free chain is checked to see if we can combine with the block before or after us. If so we remove the block being combined with from it's bucket and combine. We then place the block into the beginning of the proper bucket.
+
+If you need more details then bug Lightning or just go read malloc.c
+
+the IR instruction has been modified, see html docs for latest, basics, extra value at the end for flags
+
+See the rop data.txt file in the emulator folder for locations of rop gadgets that move a register value to stack and then call IR
+
+

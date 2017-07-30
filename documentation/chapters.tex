@@ -1,0 +1,263 @@
+\chapter{Basic Architecture}
+
+cLEMENCy is the LEgitbs Middle ENdian Computer architecture developed by Lightning for DEF CON CTF.
+
+
+
+
+Each byte is 9 bits of data, bit 0 is the left most significant bit. Middle-Endian data stores bits 9 to 17, followed by bits 0 to 8, then bits 18 to 27 in memory when handling three bytes. Two bytes of data will have bits 9-17 then bits 0 to 8 written to memory.
+
+
+
+
+Register XXYYZZ → Memory YYXXZZ
+
+
+
+
+Register XXYY → Memory YYXX
+
+
+
+
+\section{Registers}
+
+cLEMECy has 32 general purpose 27-bit wide registers that serve both floating point and integer math operations along with a separate flag register. The multi-register format allows for a 54-bit value to be used during math operations by using two registers side by side while the starting register can be any register. If an instruction goes past the PC register while accessing multiple registers then access continues to R0. Attempts to write to PC by a load instruction are ignored.
+
+
+
+
+The multi-register format and floating point operations are optional components of the processor, checking the processor features is recommended before attempts are made in using such instructions.
+
+
+
+
+The ST, RA, and PC registers have a special purpose while all other registers are general use. The following table is a recommended register setup for compilers:
+
+
+
+
+
+\input{./tables/63f2deabca214a552b5f48444bba673d3e01b7b754532b7cb921e1a228d64ac8.tex}
+
+
+The flags register has the following layout:
+
+
+\input{./tables/e73a426bc73fbed959d54a7b75da3bbc4038beca27835130ac4e02da79e70ca4.tex}
+
+
+
+\section{Stack}
+
+Due to no specific stack based instructions, there is no expected direction the stack should grow, however during an interrupt the processor will subtract 99 bytes of data from the stack pointer when storing all registers to the stack and the interrupt return will read 99 bytes from the current stack pointer. If an implementation needs the interrupts to add to the stack instead of subtracting then changing the 'Interrupt stack direction flag' bit in the features area of the processor will accomplish this.
+
+
+
+
+\section{Relative Memory Reference}
+
+All relative references are from the beginning of the instruction handling the relative reference. A relative branch will adjust PC by the amount in the relative offset without including the branch instruction size. Only if the branch is not taken is PC adjusted by the instruction size.
+
+
+
+
+\chapter{Memory layout and IO}
+
+There are 2 main areas of memory, the RAM area and the DMA mapped areas. Processor execution starts at memory offset 0 and all DMA memory has the high bit of the memory address set. The following table provides the memory mapping for cLEMENCy processors:
+
+
+
+
+
+\input{./tables/32843a9cdebae7ada0d8c24857dc2fca12212a1a7c5cbe3b4d9463e3f2d6de89.tex}
+
+
+\section{Memory Protection}
+
+Memory is broken up into 1024 byte pages. Each page can have 1 of 4 states applied to it.
+
+
+
+
+
+\input{./tables/3b2d5d26fa41a648521fc75020fcb6ead66e3c96244f55449666549879f3c2c6.tex}
+
+
+Attempting to interact with memory that is inconsistent with its current state will result in a memory exception occurring. If the exception is turned off and the attempt is execution then the processor will halt. The memory protection flags are from the processor only allowing for external IO controllers to modify any memory they are associated with even if the memory protection flags are set on their regions to Read Only or No Access.
+
+
+
+
+\section{Clock IO}
+
+There are 6 bytes per timer with 4 timers maximum. A 0 for the timer delay disables that specific timer. Each timer has a 1 millisecond accuracy.
+
+
+
+
+
+\input{./tables/95411ecb0b59e6c1c5af363cebec8e16a20a3d2ac9465e437447547a38355a51.tex}
+
+
+\section{Flag IO}
+
+This memory area contains the flag of the current instance of the running firmware. Its default is readable and writable however writes are ignored. The processor enforces a minimum readable setting.
+
+
+
+
+\section{Data Received}
+
+When the Data Received interrupt fires, this area has been filled in with network related traffic. No more data can be received until the value stored in the Data Received Size area is set to 0.
+
+
+
+
+\section{Data Received Size}
+
+This area ia a 3 byte value storing the size of data received. If this value is non-zero then no more data can be received from the network.
+
+
+
+
+\section{Data Sent}
+
+This area is a buffer to write data to that is to be sent over the network. The data is not sent until the Data Sent Size value is specified.
+
+
+
+
+\section{Data Sent Size}
+
+This area is a 3 byte value storing the size of data being sent. When a value is written to this memory location the amount of data specified will be sent over the network. Upon completion the value is set to 0 and the Data Sent interrupt is fired to indicate success.
+
+
+
+
+\section{Shared Memory}
+
+This area of memory is an optional component that allows a processor to have a shared memory region with other processors on the same bus. If this area is detected on initialization then it will be marked Read/Write. Care must be taken in communicating with other processors as data may be overwritten.
+
+
+
+
+\section{NVRAM Memory}
+
+This area of memory is an optional component that allows a processor to have storage between a full power cycle. If this area is detected on initialization then it will be marked Read/Write.
+
+
+
+
+\section{Interrupt Pointers}
+
+Each interrupt has 3 bytes to indicate the area of memory to jump to upon the interrupt firing. If the value is 0 then the interrupt is not fired. It is possible for an interrupt to fire while another interrupt is processing so disabling and enabling interrupts is highly recommended to avoid conflicts.
+
+
+
+
+
+\input{./tables/f74776a3b85dd2a9da65fca6f6d9e0ad794dcb4a7471dcd349b0843db4767c3a.tex}
+
+
+\section{Processor Identification}
+
+The last 128 bytes of memory are used for processor identification and information of supported functionality. Writes to this area are ignored with the exception of the Interrupt Stack Direction Flag.
+
+
+
+
+
+\input{./tables/60eb256242c145e6381f4ef4b46a4d1daab4bcbc549cf0680a812e396297e145.tex}
+
+
+It is recommended to implementors that the processor version contains a Major, Minor, and Revision value, one value per byte entry.
+
+
+
+
+The functionality flags has the following information:
+
+
+\input{./tables/2eeb76138ec5431549ee5c9b9029bf858221b317e3e045d320a8a4a6512c0e63.tex}
+
+
+
+The low bit of the interrupt stack direction flag dictates the direction the interrupt writes to the stack. A value of 0, the default, results in the interrupt subtracting 99 bytes from the stack pointer then storing all registers in the 99 byte buffer starting with register 0. A value of 1 results in the interrupt storing and incrementing the stack pointer starting with register 0. The interrupt return behaves in the opposite manner to restore the registers.
+
+
+
+
+\chapter{Interrupts and Exceptions}
+
+When any interrupt is fired, all 32 general purpose registers and low 4 bits of the flags register are stored to the current stack before the processor begins executing the specified interrupt routine. Upon returning from an interrupt, all registers and low bits of the flag register are restored from the stack. The Disable Interrupts, DI, and Enable Interrupts, EI, instructions are used to temporarily disable an interrupt. Any interrupt with a value of 0 will not be called and ignored.
+
+
+
+
+\section{Timer 1 to 4 Interrupts}
+
+Each timer has an accuracy of 1 millisecond and can be configured through the Clock IO.
+
+
+
+
+\section{Invalid Instruction Exception}
+
+When an invalid instruction is detected this interrupt is fired. If this interrupt is disabled with DI, (the "Disable Interrupts" instruction,) or by having this value be 0 then the processor will halt.
+
+
+
+
+\section{Divide by 0 Exception}
+
+Division with a divisor of 0 will trigger this interrupt. Additionally, all other floating point exceptions will also trigger this interrupt.
+
+
+
+
+\section{Memory Exception}
+
+An attempt to read, write, or execute memory with invalid permission bits will cause this interrupt to trigger.
+
+
+
+
+\section{Data Received Interrupt}
+
+When data is received over the network this interrupt is fired.
+
+
+
+
+\section{Data Sent Interrupt}
+
+When data is fully sent over the network this interrupt is fired.
+
+
+
+
+\section{Exceptions}
+
+Upon an exception occurring, all registers are moved to the stack, R0 is set to the PC location that failed, R1 is set to one of the following IDs indicating the type of exception, and R2 is a value specific to the exception type. If an exception occurs while the interrupt handling the exception is still active then the processor will halt.
+
+
+
+
+
+\input{./tables/38822dc90e50852113d78c4a69812b1e9da8b7c4fa82d5bcc1f480beb4d67ea9.tex}
+
+
+If the exception is disabled or the interrupt has no registered handler then the exception is ignored and the result of the operation that failed is undefined. The only case this is problematic is upon an instruction fault or execution in non-executable memory. If no exception is registered it will cause the CPU to halt due to not advancing the PC which would otherwise cause an infinite fault loop. If multiple faults can occur on the same instruction then only one fault will occur although no guarantee of which fault takes priority.
+
+
+
+
+\chapter{Instruction Set}
+
+Unless specified otherwise, all math and immediate values are unsigned for integer arithmetic while all floating point math is signed. All rX values can reference a general purpose register from 0 to 31. Any time the format rX:rX+Y is seen, the instruction will work on registers rX through and including rX+Y based on the value of Y. If present, the UF field controls if the flags get updated for the instruction.
+
+
+
+
+

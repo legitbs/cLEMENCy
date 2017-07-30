@@ -1,0 +1,5 @@
+Below are the specific versions of neat* used
+
+https://github.com/litcave/neatld.git commit 75d5b1fca23c43268f158bea93b8594fbc5bcf4f
+https://github.com/litcave/neatcc.git commit 3b04b7f9afcda20ee7864724da4dd462229c17e9
+https://github.com/litcave/neatlibc.git commit 35080019ce9cd3937861b4f1ed242a85d74ff5fd

@@ -1,0 +1,2590 @@
+diff -urN neatcc.orig/arm.c neatcc/arm.c
+--- neatcc.orig/arm.c	2017-07-30 11:18:43.027415194 -0400
++++ neatcc/arm.c	2016-12-06 22:35:45.834037456 -0500
+@@ -27,7 +27,12 @@
+ int tmpregs[] = {4, 5, 6, 7, 8, 9, 3, 2, 1, 0};
+ int argregs[] = {0, 1, 2, 3};
+ 
+-static struct mem cs;		/* generated code */
++static struct mem cs;
++
++void i_init()
++{
++	mem_init(&cs, 1);
++}
+ 
+ /* code generation functions */
+ static char *ointbuf(long n, int l)
+@@ -516,7 +521,7 @@
+ 	oi4(BL(14, 1, off));
+ }
+ 
+-int i_imm(long lim, long n)
++int i_imm(long op, long lim, long n)
+ {
+ 	return add_decimm(add_encimm(n)) == n;
+ }
+@@ -603,7 +608,7 @@
+ 	long bt = O_T(op);
+ 	if (op & O_ADD) {
+ 		if (op & O_NUM) {
+-			if (i_imm(0, r2))
++			if (i_imm(op, 0, r2))
+ 				i_add_imm(op, rd, r1, r2);
+ 			else
+ 				i_add_anyimm(rd, r1, r2);
+diff -urN neatcc.orig/clemency.c neatcc/clemency.c
+--- neatcc.orig/clemency.c	1969-12-31 19:00:00.000000000 -0500
++++ neatcc/clemency.c	2017-06-14 19:23:14.029618347 -0400
+@@ -0,0 +1,947 @@
++#include "ncc.h"
++#include "clem-instructions.h"
++#include <stdio.h>
++
++int tmpregs[] = {8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 0, 1, 2, 3, 4, 5, 6, 7};
++int argregs[] = {0, 1, 2, 3, 4, 5, 6, 7};
++
++#define output_format_0(op, subop, subop2) output_2_bytes(((op) << 13) | ((subop) << 11) | ((subop2) << 6))
++#define output_format_1(op, m, f, rA, rB, rC, Signed) output_3_bytes(((op) << 22) | ((m) << 21) | ((f) << 20) | ((rA) << 15) | ((rB) << 10) | ((rC) << 5) | ((Signed) << 2) | 1)
++#define output_format_2(op, m, d, rA, rB, Imm) output_3_bytes(((op) << 22) | ((m) << 21) | ((d) << 20) | ((rA) << 15) | ((rB) << 10) | (((Imm) & 0x7F) << 3) | 1)
++#define output_format_3(op, subop, rA, rB, RegCount, AdjustRb, Offset) output_6_bytes(((unsigned long long)(op) << 49) | ((unsigned long long)(subop) << 47) | ((unsigned long long)(rA) << 42) | ((unsigned long long)(rB) << 37) | ((unsigned long long)(RegCount) << 32) | ((unsigned long long)(AdjustRb) << 30) | ((unsigned long long)((Offset) & 0x7FFFFFF) << 3))
++#define output_format_4(op, subop, m, f, rA, rB, subop2) output_3_bytes(((op) << 22) | ((subop) << 20) | ((m) << 19) | ((f) << 18) | ((rA) << 13) | ((rB) << 8) | ((subop2) << 6) | 1)
++#define output_format_5(op, m, f, rA, rB) output_2_bytes(((op) << 13) | ((m) << 12) | ((f) << 11) | ((rA) << 5) | ((rB) << 0))
++#define output_format_6(op, iscall, cond, offset) output_3_bytes(((op) << 22) | ((iscall) << 21) | ((cond) << 17) | ((unsigned int)(offset) & 0x1ffff))
++#define output_format_7(op, subop, offset) output_4_bytes(((unsigned long long)(op) << 31) | ((unsigned long long)(subop) << 29) | ((unsigned long long)(offset) & 0x7ffffff))
++#define output_format_8(op, rA, Imm) output_3_bytes(((op) << 22) | ((rA) << 17) | ((Imm) & 0x1FFFF))
++#define output_format_8_direct(op, rA, Imm, buffer) output_3_bytes_direct(((op) << 22) | ((rA) << 17) | ((Imm) & 0x1FFFF), (buffer))
++#define output_format_9(op, callval, cond, reg) output_2_bytes(((op) << 13) | ((callval) << 12) | ((cond) << 8) | ((reg) << 3))
++#define output_format_11(op, m, f, rA, Imm) output_3_bytes(((op) << 22) | ((m) << 21) | ((f) << 20) | (1 << 19) | ((rA) << 14) | ((Imm) & 0x3FFF))
++#define output_format_13(op, subop, subop2, rA, rB) output_3_bytes(((op) << 22) | ((subop) << 20) | ((subop2) << 15) | ((rA) << 10) | ((rB) << 5))
++#define output_format_14(op, m, d, rA, rB, rC) output_3_bytes(((op) << 22) | ((m) << 21) | ((d) << 20) | ((rA) << 15) | ((rB) << 10) | ((rC) << 5) | 1)
++#define output_format_14_0(op, m, d, rA, rB, rC) output_3_bytes(((op) << 22) | ((m) << 21) | ((d) << 20) | ((rA) << 15) | ((rB) << 10) | ((rC) << 5) | 0)
++#define output_format_15(op, m, f, rA, rB, Imm, Signed) output_3_bytes(((op) << 22) | ((m) << 21) | ((f) << 20) | ((rA) << 15) | ((rB) << 10) | (((Imm) & 0x7F) << 3) | ((Signed) << 2) | (3))
++
++#define mathop(op, rd, r1, r2, s)	output_format_1(op, 0, 0, rd, r1, r2, (s) & 1)
++#define mathopimm(op, rd, r1, imm, s)	output_format_15(op, 0, 0, rd, r1, imm, (s) & 1)
++#define mathop_single(op, subop, rd, r1) output_format_4(op, 3, 0, 0, rd, r1, subop)
++
++#define output_dbrk() output_2_bytes(0x3ffff)
++
++static struct mem cs;
++static int func_call;
++
++#define oi(val, size) mem_putc(&cs, (val & 0x1ff))
++
++void i_init(void)
++{
++	mem_init(&cs, 2);
++}
++
++static long opos(void)
++{
++	return mem_len(&cs);
++}
++
++//#define output_2_bytes(bytes) do{printf("output_2_bytes: %x line %d\n", (bytes), __LINE__); _output_2_bytes(bytes);} while(0)
++void output_2_bytes(unsigned int bytes)
++{
++	//input: A B
++	//output: B A
++	oi(bytes & 0x1ff, 1);
++	oi((bytes >> 9) & 0x1ff, 1);
++}
++
++void output_3_bytes(unsigned int bytes)
++{
++	//input: A B C
++	//output: B A C
++
++	oi((bytes >> 9) & 0x1ff, 1);
++	oi((bytes >> 18) & 0x1ff, 1);
++	oi(bytes & 0x1ff, 1);
++}
++
++//#define output_4_bytes(bytes) do{printf("output_4_bytes: %llx line %d\n", (bytes), __LINE__); _output_4_bytes(bytes);} while(0)
++void output_4_bytes(unsigned long long bytes)
++{
++	//input: A B C D
++	//output: B A C D
++	oi((bytes >> 18) & 0x1ff, 1);
++	oi((bytes >> 27) & 0x1ff, 1);
++	oi((bytes >> 9) & 0x1ff, 1);
++	oi(bytes & 0x1ff, 1);
++}
++
++//#define output_6_bytes(bytes) do{printf("output_6_bytes: %llx line %d\n", (bytes), __LINE__); _output_6_bytes(bytes);} while(0)
++void output_6_bytes(unsigned long long bytes)
++{
++	output_3_bytes(bytes >> 27);
++	output_3_bytes(bytes & 0x7ffffff);
++}
++
++void output_jmp(long pos, unsigned long long bytes, long len)
++{
++	//take the bytes provided and or them directly into the cs buffer
++	unsigned short *s = cs.s;
++	unsigned long long OrigVal;
++
++	if(len == 3)
++	{
++		bytes &= 0x1ffff;
++		OrigVal = ((unsigned long long)s[pos] << 9) | ((unsigned long long)s[pos + 1] << 18) | (unsigned long long)s[pos + 2];
++		OrigVal &= ~0x1ffff;
++	}
++	else if(len == 4)
++	{
++		bytes &= 0x7ffffff;
++		OrigVal = ((unsigned long long)s[pos] << 18) | ((unsigned long long)s[pos + 1] << 27) | ((unsigned long long)s[pos + 2] << 9) | (unsigned long long)s[pos + 3];
++		OrigVal &= ~0x7ffffff;
++	}
++	else if(len == 7)
++	{
++		//skip the first 3 due to bcc
++		bytes &= 0x7ffffff;
++		OrigVal = ((unsigned long long)s[pos + 3] << 18) | ((unsigned long long)s[pos + 4] << 27) | ((unsigned long long)s[pos + 5] << 9) | (unsigned long long)s[pos + 6];
++		OrigVal &= ~0x7ffffff;
++		bytes -= 3;	//ignore the first 3 bytes
++	}
++	else
++	{
++		printf("output_jmp invalid length %d\n", len);
++		return;
++	}
++
++	//we have two options, updating BRR or updating Bcc. Good thing is both have offset at the end
++	OrigVal |= bytes;
++
++	//write it back out
++	if(len == 3)
++	{
++		s[pos + 0] = (OrigVal >> 9) & 0x1ff;
++		s[pos + 1] = (OrigVal >> 18) & 0x1ff;
++		s[pos + 2] = (OrigVal >> 0) & 0x1ff;
++	}
++	else if(len == 4)
++	{
++		s[pos + 0] = (OrigVal >> 18) & 0x1ff;
++		s[pos + 1] = (OrigVal >> 27) & 0x1ff;
++		s[pos + 2] = (OrigVal >> 9) & 0x1ff;
++		s[pos + 3] = (OrigVal >> 0) & 0x1ff;
++	}
++	else if(len == 7)
++	{
++		s[pos + 3] = (OrigVal >> 18) & 0x1ff;
++		s[pos + 4] = (OrigVal >> 27) & 0x1ff;
++		s[pos + 5] = (OrigVal >> 9) & 0x1ff;
++		s[pos + 6] = (OrigVal >> 0) & 0x1ff;
++	}
++}
++
++static long *rel_sym;		/* relocation symbols */
++static long *rel_flg;		/* relocation flags */
++static long *rel_off;		/* relocation offsets */
++static long rel_n, rel_sz;	/* relocation count */
++
++static long lab_sz;		/* label count */
++static long *lab_loc;		/* label offsets in cs */
++static long jmp_n, jmp_sz;	/* jump count */
++static long *jmp_off;		/* jump offsets */
++static long *jmp_dst;		/* jump destinations */
++static long *jmp_op;		/* jump opcode */
++static long *jmp_r1;		/* jmp r1 value */
++static long *jmp_size;		/* jmp size */
++
++static long jmp_ret;		/* the position of the last return jmp */
++
++static void lab_add(long id)
++{
++	while (id >= lab_sz) {
++		int lab_n = lab_sz;
++		lab_sz = MAX(128, lab_sz * 2);
++		lab_loc = mextend(lab_loc, lab_n, lab_sz, sizeof(*lab_loc));
++	}
++	lab_loc[id] = opos();
++}
++
++static void jmp_add(long op, long off, long dst, long r1)
++{
++	if (jmp_n == jmp_sz) {
++		jmp_sz = MAX(128, jmp_sz * 2);
++		jmp_off = mextend(jmp_off, jmp_n, jmp_sz, sizeof(*jmp_off));
++		jmp_dst = mextend(jmp_dst, jmp_n, jmp_sz, sizeof(*jmp_dst));
++		jmp_op = mextend(jmp_op, jmp_n, jmp_sz, sizeof(*jmp_op));
++		jmp_r1 = mextend(jmp_r1, jmp_n, jmp_sz, sizeof(*jmp_r1));
++		jmp_size = mextend(jmp_size, jmp_n, jmp_sz, sizeof(*jmp_size));
++	}
++	jmp_off[jmp_n] = off;
++	jmp_dst[jmp_n] = dst;
++	jmp_op[jmp_n] = op;
++	jmp_r1[jmp_n] = r1;
++	jmp_size[jmp_n] = opos() - off;
++	jmp_n++;
++}
++
++void i_label(long id)
++{
++	lab_add(id + 1);
++}
++
++static void i_rel(long sym, long flg, long off)
++{
++	if (rel_n == rel_sz) {
++		rel_sz = MAX(128, rel_sz * 2);
++		rel_sym = mextend(rel_sym, rel_n, rel_sz, sizeof(*rel_sym));
++		rel_flg = mextend(rel_flg, rel_n, rel_sz, sizeof(*rel_flg));
++		rel_off = mextend(rel_off, rel_n, rel_sz, sizeof(*rel_off));
++	}
++	rel_sym[rel_n] = sym;
++	rel_flg[rel_n] = flg;
++	rel_off[rel_n] = off;
++	rel_n++;
++}
++
++void i_sym(int rd, int sym, int off)
++{
++	i_rel(sym, OUT_CS | OUT_RL32, opos());
++	output_format_8(CLEM_ML, rd, off & 0x3ff);
++	output_format_8(CLEM_MH, rd, (off >> 10) & 0x1FFFF);
++}
++
++void i_load(long op, long rd, long rn, long off, int bt)
++{
++	char Loads[] = {CLEM_LDS_SUB, CLEM_LDW_SUB, CLEM_LDT_SUB};
++	output_format_3(CLEM_LDS, Loads[T_SZ(bt) - 1], rd, rn, 0, 0, off);
++	if(bt & T_MSIGN)
++	{
++		//sign extend as needed
++		if(T_SZ(bt) == 1)
++			output_format_13(CLEM_SES, CLEM_SES_SUB, CLEM_SES_SUB2, rd, rd);
++		else if(T_SZ(bt) == 2)
++			output_format_13(CLEM_SEW, CLEM_SEW_SUB, CLEM_SEW_SUB2, rd, rd);
++	}
++}
++
++void i_save(long op, long rd, long rn, long off, int bt)
++{
++	char Saves[] = {CLEM_STS_SUB, CLEM_STW_SUB, CLEM_STT_SUB};
++	output_format_3(CLEM_STS, Saves[T_SZ(bt) - 1], rd, rn, 0, 0, off);
++}
++
++void i_num(int rd, long n)
++{
++	if(n >= 0 && n <= 0x1FFFF)		//unsigned <= 0x1FFFF
++		output_format_8(CLEM_ML, rd, n & 0x1FFFF);
++	else if((-n) > 0 && ((-n) <= 0x1FFFF))	//signed <= 0x1FFFF
++		output_format_8(CLEM_MS, rd, n & 0x1FFFF);
++	else
++	{
++		output_format_8(CLEM_ML, rd, n & 0x3FF);
++		output_format_8(CLEM_MH, rd, (n >> 10) & 0x1FFFF);
++	}
++}
++
++void i_add(long op, long rd, long r1, long r2)
++{
++	int Signed;
++	Signed = O_T(op) & T_MSIGN ? 1 : 0;
++
++	switch(O_C(op) & 0xfffff)
++	{
++		case O_ADD:
++			mathop(CLEM_AD, rd, r1, r2, 0);
++			break;
++		case O_SUB:
++			mathop(CLEM_SB, rd, r1, r2, 0);
++			break;
++		case O_AND:
++			mathop(CLEM_AN, rd, r1, r2, 0);
++			break;
++		case O_OR:
++			mathop(CLEM_OR, rd, r1, r2, 0);
++			break;
++		case O_XOR:
++			mathop(CLEM_XR, rd, r1, r2, 0);
++			break;
++		case O_MUL:
++			mathop(CLEM_MU, rd, r1, r2, Signed);
++			break;
++		case O_DIV:
++			mathop(CLEM_DV, rd, r1, r2, Signed);
++			break;
++		case O_MOD:
++			mathop(CLEM_MD, rd, r1, r2, Signed);
++			break;
++	};
++}
++
++void i_add_imm(long op, long rd, long r1, long r2)
++{
++	int Signed;
++	Signed = O_T(op) & T_MSIGN ? 1 : 0;
++
++	//the core code doesn't always validate that the value passed in r2 will fit
++	//so do some checks, if they fail then move the value to the temp register and
++	//call the non numeric version
++	if(i_imm(op, 7, r2) == 0)
++	{
++		i_num(REG_TEMP, r2);
++		i_add(op, rd, r1, REG_TEMP);
++		return;
++	}
++
++	//7 bits
++	r2 &= 0x7f;
++
++	switch(O_C(op) & 0xfffff)
++	{
++		case O_ADD:
++			mathopimm(CLEM_ADI, rd, r1, r2, 0);
++			break;
++		case O_SUB:
++			mathopimm(CLEM_SBI, rd, r1, r2, 0);
++			break;
++		case O_AND:
++			mathopimm(CLEM_ANI, rd, r1, r2, 0);
++			break;
++		case O_OR:
++			mathopimm(CLEM_ORI, rd, r1, r2, 0);
++			break;
++		case O_XOR:
++			mathopimm(CLEM_XRI, rd, r1, r2, 0);
++			break;
++		case O_MUL:
++			mathopimm(CLEM_MUI, rd, r1, r2, Signed);
++			break;
++		case O_DIV:
++			mathopimm(CLEM_DVI, rd, r1, r2, Signed);
++			break;
++		case O_MOD:
++			mathopimm(CLEM_MDI, rd, r1, r2, Signed);
++			break;
++	};
++}
++
++void i_shl(long op, long rd, long r1, long r2)
++{
++	int Signed;
++	Signed = O_T(op) & T_MSIGN ? 1 : 0;
++
++	switch(O_C(op) & 0xfffff)
++	{
++		case O_SHL:
++			output_format_14(CLEM_SL, 0, 0, rd, r1, r2);
++			break;
++		case O_SHR:
++			if(Signed)
++				output_format_14(CLEM_SA, 0, 1, rd, r1, r2);
++			else
++				output_format_14(CLEM_SR, 0, 1, rd, r1, r2);
++			break;
++	};
++}
++
++void i_shl_imm(long op, long rd, long r1, long r2)
++{
++	int Signed;
++	Signed = O_T(op) & T_MSIGN ? 1 : 0;
++
++	switch(O_C(op) & 0xfffff)
++	{
++		case O_SHL:
++			output_format_2(CLEM_SLI, 0, 0, rd, r1, r2);
++			break;
++		case O_SHR:
++			if(Signed)
++				output_format_2(CLEM_SAI, 0, 1, rd, r1, r2);
++			else
++				output_format_2(CLEM_SRI, 0, 1, rd, r1, r2);
++			break;
++	};
++}
++
++void i_cmp(long op, long r1, long r2)
++{
++	output_format_5(CLEM_CM, 0, 0, r1, r2);
++}
++
++void i_cmp_imm(long op, long r1, long r2)
++{
++	output_format_11(CLEM_CMI, 0, 0, r1, r2);
++}
++
++int i_imm(long op, long lim, long imm)
++{
++	int Signed;
++	Signed = O_T(op) & T_MSIGN ? 1 : 0;
++
++	if(Signed)
++	{
++		long max = (1 << (lim - 1)) - 1;
++		return imm <= max && imm + 1 >= -max;
++	}
++	else
++	{
++		unsigned long max = (1 << lim) - 1;
++		return (unsigned long)imm <= max;
++	}
++}
++
++void i_call(long sym, int off)
++{
++	i_rel(sym, OUT_CS | OUT_RLREL, opos());
++	output_format_7(CLEM_CAR, CLEM_CAR_SUB, off);
++}
++
++void i_call_reg(int rd)
++{
++	output_format_9(CLEM_CR, 1, 15, rd);
++}
++
++void i_memset(int rd, int rs, int rn)
++{
++	output_format_3(CLEM_STS, CLEM_STS_SUB, rs, rd, 0, 1, 0);
++	mathopimm(CLEM_SBI, rn, rn, 1, 0);
++	output_format_6(CLEM_B, 0, CLEM_BN_COND, -9);
++}
++
++long i_jmp(long op, long nb, long r1)
++{
++	int Signed;
++	long pos;
++	int newconds[] = {1, 0, 5, 4, 3, 2, 7, 6, 9, 8, 13, 12, 11, 10, 14, 15};
++	int cmp_cond;
++
++	if (op & O_JMP)
++	{
++		pos = opos();
++		if(nb == 4)
++			output_format_7(CLEM_BRR, CLEM_BRR_SUB, nb);
++		else
++			output_format_6(CLEM_B, 0, 15, nb);
++
++		//if our flag is set indicating that this is the first time then add a jump
++		return pos;
++	}
++
++	if (op & O_JCC)
++	{
++		Signed = O_T(op) & T_MSIGN ? 1 : 0;
++
++		//figure out which comparision to do, keep in mind these are opposite as
++		//we need the branch to be ignored when the condition is true
++		char Conditions[] = {5, 2, 0, 1, 4, 3, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15};
++		if(Signed)
++		{
++			Conditions[0] = 13;
++			Conditions[1] = 10;
++			Conditions[4] = 12;
++			Conditions[5] = 11;
++		}
++		cmp_cond = Conditions[op & 0x0f];
++	}
++	else
++	{
++		//no compare done, just branch base on current flags as it's going to be zero or not zero
++		cmp_cond = (op == O_JZ) ? 0 : 1;
++	}
++
++	//add the branch based on compare then a larger branch for the actual offset
++	//as we don't know how far we will need to branch
++	pos = opos();
++	if(nb == 3)
++	{
++		//we need to flip the condition as the original design was to branch on false to skip
++		//the brr instruction
++		cmp_cond = newconds[cmp_cond & 0xf];
++		output_format_6(CLEM_B, 0, cmp_cond, nb);	//branch over the BRR
++	}
++	else
++	{
++		output_format_6(CLEM_B, 0, cmp_cond, 7);	//branch over the BRR
++		output_format_7(CLEM_BRR, CLEM_BRR_SUB, nb);
++	}
++
++	//if our flag is set indicating that this is the first time then add a jump
++	return pos;
++}
++
++/* introduce shorter jumps, if possible */
++static void i_shortjumps(int *nb)
++{
++	long off = 0;	/* current code offset */
++	long dif = 0;	/* the difference after changing jump instructions */
++	int rel = 0;	/* current relocation */
++	int lab = 1;	/* current label */
++	long c_len = mem_len(&cs);
++	short *c = mem_get(&cs);
++	int i;
++	int *orig_nb;
++
++	orig_nb = malloc(sizeof(int) * jmp_n);
++	memcpy(orig_nb, nb, sizeof(int) * jmp_n);
++
++	//update all lengths for what can fit
++	for (i = 0; i < jmp_n; i++)
++		nb[i] = abs(lab_loc[jmp_dst[i]] - jmp_off[i]) <= 0xffff ? 3 : nb[i];
++
++	//for each jump location, update relative offsets and label locations
++	//then shift all data to remove the extra space
++	for (i = 0; i < jmp_n; i++) {
++		long cur = jmp_off[i];
++		while (rel < rel_n && rel_off[rel] <= cur)
++			rel_off[rel++] += dif;
++		while (lab < lab_sz && lab_loc[lab] <= cur)
++			lab_loc[lab++] += dif;
++		mem_put2(&cs, c + off, cur - off);
++		jmp_off[i] = i_jmp(jmp_op[i], nb[i], jmp_r1[i]);
++		off = cur + orig_nb[i];
++		dif = mem_len(&cs) - off;
++	}
++	free(orig_nb);
++
++	//update all relocations and labels after the last jump entry
++	while (rel < rel_n)
++		rel_off[rel++] += dif;
++	while (lab < lab_sz)
++		lab_loc[lab++] += dif;
++	lab_loc[0] += dif;
++
++	//adjust all data as needed
++	mem_put2(&cs, c + off, c_len - off);
++	free(c);
++}
++
++void i_code(char **c, long *c_len, long **rsym, long **rflg, long **roff, long *rcnt)
++{
++	int *nb;	/* number of bytes necessary for jump displacements */
++	int i;
++	/* more compact jmp instructions */
++	nb = malloc(jmp_n * sizeof(nb[0]));
++	for (i = 0; i < jmp_n; i++)
++		nb[i] = jmp_size[i];
++	i_shortjumps(nb);
++	for (i = 0; i < jmp_n; i++)	/* filling jmp destinations */
++	{
++		output_jmp(jmp_off[i], lab_loc[jmp_dst[i]] -
++				jmp_off[i], nb[i]);
++	}
++	free(nb);
++	*c_len = mem_len(&cs);
++	*c = mem_get(&cs);
++	*rsym = rel_sym;
++	*rflg = rel_flg;
++	*roff = rel_off;
++	*rcnt = rel_n;
++	rel_sym = 0;
++	rel_flg = 0;
++	rel_off = 0;
++	rel_n = 0;
++	rel_sz = 0;
++	jmp_n = 0;
++}
++
++void i_wrap(int argc, long sargs, long spsub, int initfp, long sregs, long sregs_pos)
++{
++	long body_n;
++	void *body;
++	long diff;		/* prologue length */
++	int i;
++	int HighestReg = 0;
++	int HighestArgReg = 0;
++	int FPLoaded = 0;
++	int StoreDir;
++	int LoadDir;
++	int StackFirstAdjust, StackFirstAdjustImm;
++	int StackEndAdjustImm;
++
++	//find the highest arg register
++	while((1 << HighestArgReg) <= sargs)
++		HighestArgReg++;
++	HighestArgReg--;
++
++	//find the highest register to save
++	while((1 << HighestReg) < sregs)
++		HighestReg++;
++
++	//see if we need to load FP seperate
++	if((HighestReg == (REG_FP - 1)) && initfp)
++	{
++		HighestReg++;
++		FPLoaded = 1;
++	}
++
++	/* removing the last jmp to the epilogue */
++	if (jmp_ret + 4 == opos()) {
++		mem_cut(&cs, jmp_ret);
++		jmp_n--;
++	}
++	lab_add(0);				/* the return label */
++	body_n = mem_len(&cs);
++	body = mem_get(&cs);
++
++	//stack format for stack down
++	//<saved high regs> | <stack area> | FP | ST | RA | <saved param regs>
++	//FP points to spot immediately before FP
++
++	//stack format for stack up
++	//<stack area> | FP | ST | RA | <saved param regs> | <saved high regs>
++#ifndef NEATCC_INV
++	/* generating function prologue */
++	if(sargs)
++		output_format_3(CLEM_STT, CLEM_STT_SUB, 0, REG_SP, HighestArgReg, 2, 0);
++
++	if (initfp) {
++		output_format_3(CLEM_STT, CLEM_STT_SUB, REG_FP, REG_SP, 2, 2, 0);	//save off FP, stack, RA
++		output_format_1(CLEM_OR, 0, 0, REG_FP, REG_SP, REG_SP, 0);	//FP = SP
++	}
++
++	if (spsub) {
++		//align to 3 bytes
++		if(spsub % 3)
++			spsub += (3 - (spsub % 3));
++
++		if(spsub < 0x7f)
++			mathopimm(CLEM_SBI, REG_SP, REG_SP, spsub, 0);	// SP -= spsub
++		else if(spsub < 0xffff)
++		{
++			output_format_8(CLEM_ML, REG_TEMP, spsub);
++			mathop(CLEM_SB, REG_SP, REG_SP, REG_TEMP, 0);	// SP -= spsub
++		}
++		else
++		{
++			output_format_8(CLEM_ML, REG_TEMP, spsub & 0x3ff);
++			output_format_8(CLEM_MH, REG_TEMP, (spsub >> 10) & 0x1FFFF);
++			mathop(CLEM_SB, REG_SP, REG_SP, REG_TEMP, 0);	// SP -= spsub
++		}
++	}
++
++	if (sregs)		// saving registers
++		output_format_3(CLEM_STT, CLEM_STT_SUB, REG_FIRST_SAVED, REG_SP, HighestReg - REG_FIRST_SAVED, 2, 0);
++#else
++	if (spsub) {
++		//align to 3 bytes
++		if(spsub % 3)
++			spsub += (3 - (spsub % 3));
++
++		if(spsub < 0x7f)
++			mathopimm(CLEM_ADI, REG_SP, REG_SP, spsub, 0);	// SP += spsub
++		else if(spsub < 0xffff)
++		{
++			output_format_8(CLEM_ML, REG_TEMP, spsub);
++			mathop(CLEM_AD, REG_SP, REG_SP, REG_TEMP, 0);	// SP += spsub
++		}
++		else
++		{
++			output_format_8(CLEM_ML, REG_TEMP, spsub & 0x3ff);
++			output_format_8(CLEM_MH, REG_TEMP, (spsub >> 10) & 0x1FFFF);
++			mathop(CLEM_AD, REG_SP, REG_SP, REG_TEMP, 0);	// SP += spsub
++		}
++	}
++
++	if (initfp) {
++		output_format_3(CLEM_STT, CLEM_STT_SUB, REG_FP, REG_SP, 2, 1, 0);	//save off FP, stack, RA
++		mathopimm(CLEM_SBI, REG_FP, REG_SP, (3*3), 0);	//FP = SP - 9
++	}
++
++	/* generating function prologue */
++	if(sargs)
++		output_format_3(CLEM_STT, CLEM_STT_SUB, 0, REG_SP, HighestArgReg, 1, 0);
++
++	if (sregs)		// saving registers
++		output_format_3(CLEM_STT, CLEM_STT_SUB, REG_FIRST_SAVED, REG_SP, HighestReg - REG_FIRST_SAVED, 1, 0);
++#endif
++
++	diff = mem_len(&cs);
++	mem_put2(&cs, body, body_n);
++	free(body);
++
++#ifndef NEATCC_INV
++	/* generating function epilogue */
++	if (sregs)		/* restoring saved registers */
++		output_format_3(CLEM_LDT, CLEM_LDT_SUB, REG_FIRST_SAVED, REG_SP, HighestReg - REG_FIRST_SAVED, 1, 0);
++
++	if (initfp && !FPLoaded)
++		output_format_3(CLEM_LDT, CLEM_LDT_SUB, REG_FP, REG_FP, 2, 0, 0);	/* load FP, ST, RA */
++
++	/* shift stack by the number of arguments pushed */
++	if(sargs)
++		mathopimm(CLEM_ADI, REG_SP, REG_SP, (HighestArgReg+1) * 3, 0);	/* SP += (HighestArgReg * 3) */
++#else
++	/* generating function epilogue */
++	if (sregs)		/* restoring saved registers */
++		output_format_3(CLEM_LDT, CLEM_LDT_SUB, REG_FIRST_SAVED, REG_SP, HighestReg - REG_FIRST_SAVED, 2, 0);
++
++	if (initfp && !FPLoaded)
++		output_format_3(CLEM_LDT, CLEM_LDT_SUB, REG_FP, REG_FP, 2, 0, 0);	/* load FP, ST, RA */
++
++	//adjust the stack backwards to the proper spot
++	if (spsub) {
++		//align to 3 bytes
++		if(spsub % 3)
++			spsub += (3 - (spsub % 3));
++
++		if(spsub < 0x7f)
++			mathopimm(CLEM_SBI, REG_SP, REG_SP, spsub, 0);	// SP -= spsub
++		else if(spsub < 0xffff)
++		{
++			output_format_8(CLEM_ML, REG_TEMP, spsub);
++			mathop(CLEM_SB, REG_SP, REG_SP, REG_TEMP, 0);	// SP -= spsub
++		}
++		else
++		{
++			output_format_8(CLEM_ML, REG_TEMP, spsub & 0x3ff);
++			output_format_8(CLEM_MH, REG_TEMP, (spsub >> 10) & 0x1FFFF);
++			mathop(CLEM_SB, REG_SP, REG_SP, REG_TEMP, 0);	// SP -= spsub
++		}
++	}
++#endif
++
++	output_format_0(CLEM_RE, CLEM_RE_SUB, CLEM_RE_SUB);	/* ret */
++
++	/* adjusting code offsets */
++	for (i = 0; i < rel_n; i++)
++		rel_off[i] += diff;
++	for (i = 0; i < jmp_n; i++)
++		jmp_off[i] += diff;
++	for (i = 0; i < lab_sz; i++)
++		lab_loc[i] += diff;
++}
++
++void i_done(void)
++{
++	free(jmp_off);
++	free(jmp_dst);
++	free(jmp_op);
++	free(jmp_size);
++	free(lab_loc);
++}
++
++long i_reg(long op, long *rd, long *r1, long *r2, long *r3, long *tmp)
++{
++	long oc = O_C(op);
++	*rd = 0;
++	*r1 = 0;
++	*r2 = 0;
++	*r3 = 0;
++	*tmp = 0;
++
++	//when we have O_NUM or O_SYM then specify the number of bits usable for a numeric value
++	if (oc & O_MOV) {
++		*rd = R_TMPS;
++		*r1 = oc & (O_NUM | O_SYM) ? 27 : R_TMPS;
++		return 0;
++	}
++	if (oc & O_CMP) {
++		*rd = R_TMPS;
++		*r1 = R_TMPS;
++		*r2 = oc & (O_NUM | O_SYM) ? 13 : R_TMPS;
++		return 0;
++	}
++	if (oc & O_BOP) {
++		*rd = R_TMPS;
++		*r1 = R_TMPS;
++		*r2 = oc & (O_NUM | O_SYM) ? 7 : R_TMPS;
++		return 0;
++	}
++	if (oc & O_UOP) {
++		*rd = R_TMPS;
++		*r1 = op & O_NUM ? 0 : R_TMPS;
++		return 0;
++	}
++	if (oc == O_MSET ) {
++		//force certain registers to be used so that they can be modified without worry
++		*r1 = 1 << 9;
++		*r2 = R_TMPS & ~((1 << 9) | (1 << 11));
++		*r3 = 1 << 11;
++		*tmp = (1 << 9) | (1 << 11) | (R_TMPS & ~R_PERM);
++		return 0;
++	}
++	if (oc == O_MCPY) {
++		*r1 = R_TMPS;
++		*r2 = R_TMPS;
++		*r3 = R_TMPS;
++		return 0;
++	}
++	if (oc == O_RET) {
++		*r1 = (1 << REG_RET);
++		return 0;
++	}
++	if (oc & O_CALL) {
++		*rd = (1 << REG_RET);
++		*r1 = oc & O_SYM ? 27 : R_TMPS;
++		*tmp = R_TMPS & ~R_PERM;
++		return 0;
++	}
++	if (oc & O_LD) {
++		*rd = R_TMPS;
++		*r1 = R_TMPS;
++		*r2 = oc & O_NUM ? 27 : R_TMPS;
++		return 0;
++	}
++	if (oc & O_ST) {
++		*r1 = R_TMPS;
++		*r2 = R_TMPS;
++		*r3 = oc & O_NUM ? 27 : R_TMPS;
++		return 0;
++	}
++	if (oc & O_JZ) {
++		*r1 = R_TMPS;
++		return 0;
++	}
++	if (oc & O_JCC) {
++		*r1 = R_TMPS;
++		*r2 = oc & O_NUM ? 17 : R_TMPS;
++		return 0;
++	}
++	if ((oc == O_JMP) || (oc == O_DBRK))
++		return 0;
++	return 1;
++}
++
++void i_set(long op, long rd)
++{
++	//this conditions are opposite so we skip the set when false
++	char Conditions[] = {5, 2, 0, 1, 4, 3, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15};
++	int cmp_cond;
++	if(O_T(op) & T_MSIGN)
++	{
++		Conditions[0] = 13;
++		Conditions[1] = 10;
++		Conditions[4] = 12;
++		Conditions[5] = 11;
++	}
++	cmp_cond = Conditions[op & 0x0f];
++
++	output_format_8(CLEM_ML, rd, 0);
++	output_format_6(CLEM_B, 0, cmp_cond, 6);	//branch over the ML to 1
++	output_format_8(CLEM_ML, rd, 1);
++}
++
++long i_ins(long op, long rd, long r1, long r2, long r3)
++{
++	long oc = O_C(op);
++	long bt = O_T(op);
++	if ((oc & O_ADD) || (oc & O_MUL))
++	{
++		if (oc & O_NUM) {
++			i_add_imm(op, rd, r1, r2);
++		} else {
++			i_add(op, rd, r1, r2);
++		}
++		return 0;
++	}
++	else if(oc & O_SHL)
++	{
++		if(oc & O_NUM) {
++			i_shl_imm(op, rd, r1, r2 & 0x3f);
++		} else {
++			i_shl(op, rd, r1, r2);
++		}
++		return 0;
++	}
++	else if(oc & O_CMP)
++	{
++		if(oc & O_NUM) {
++			i_cmp_imm(op, r1, r2);
++		} else {
++			i_cmp(op, r1, r2);
++		}
++		i_set(op, rd);
++		return 0;
++	}
++	if (oc & O_UOP)
++	{
++		if (oc == O_NEG)
++			mathop_single(CLEM_NG, CLEM_NG_SUB2, rd, r1);
++		if (oc == O_NOT)
++			mathop_single(CLEM_BF,  CLEM_BF_SUB2, rd, r1);
++		if (oc == O_LNOT)
++			mathop_single(CLEM_NT, CLEM_NT_SUB2, rd, r1);
++		return 0;
++	}
++	if (oc == O_CALL)
++	{
++		func_call = 1;
++		i_call_reg(r1);
++		return 0;
++	}
++	if (oc == (O_CALL | O_SYM))
++	{
++		func_call = 1;
++		i_call(r1, r2);
++		return 0;
++	}
++	if (oc == (O_MOV | O_SYM))
++	{
++		i_sym(rd, r1, r2);
++		return 0;
++	}
++	if (oc == (O_MOV | O_NUM))
++	{
++		i_num(rd, r1);
++		return 0;
++	}
++	if (oc == O_MOV)
++	{
++		//don't do it if we are using the same register
++		if(rd == r1)
++			return 0;
++		output_format_1(CLEM_OR, 0, 0, rd, r1, r1, 0);
++		return 0;
++	}
++	if (oc == O_MSET)
++	{
++		i_memset(r1, r2, r3);
++		return 0;
++	}
++	if (oc == O_MCPY)
++	{
++		output_format_14_0(CLEM_DMT, 0, 0, r1, r2, r3);	//direct memory transfer
++		return 0;
++	}
++	if (oc == (O_LD | O_NUM))
++	{
++		i_load(op, rd, r1, r2, bt);
++		return 0;
++	}
++	if (oc == (O_ST | O_NUM))
++	{
++		i_save(op, r1, r2, r3, bt);
++		return 0;
++	}
++	if (oc == O_RET)
++	{
++		jmp_ret = opos();
++		jmp_add(O_JMP, i_jmp(O_JMP, 4, r1), 0, r1);
++		return 0;
++	}
++	if (oc & O_JMP)
++	{
++		jmp_add(O_JMP, i_jmp(O_JMP, 4, r1), r3 + 1, r1);
++		return 0;
++	}
++	if (oc & O_JXX)
++	{
++		//if jump zero then it only gives us 1 register
++		if (op & O_JZ)
++		{
++			mathop(CLEM_AN, r1, r1, r1, 0);
++		}
++		else
++		{
++			if (op & O_NUM)
++				i_cmp_imm(op, r1, r2);
++			else
++				i_cmp(op, r1, r2);
++		}
++		jmp_add(op, i_jmp(op, 7, r1), r3 + 1, r1);
++		return 0;
++	}
++	if(oc & O_DBRK)
++	{
++		output_dbrk();
++	}
++
++	return 1;
++}
+diff -urN neatcc.orig/clemency.h neatcc/clemency.h
+--- neatcc.orig/clemency.h	1969-12-31 19:00:00.000000000 -0500
++++ neatcc/clemency.h	2016-12-29 14:06:28.024687592 -0500
+@@ -0,0 +1,25 @@
++/* architecture-dependent header for cLEMENCy */
++#define LONGSZ		3	/* word size */
++#define I_ARCH		"__clemency__"
++
++#define N_REGS		32		/* number of registers */
++#define N_TMPS		26		/* number of tmp registers */
++#define N_ARGS		8		/* number of arg registers */
++#define R_TMPS		0x07ffffff	/* mask of tmp registers */
++#define R_ARGS		0x000000ff	/* mask of arg registers */
++#define R_PERM		0x07ffff00	/* mask of callee-saved registers */
++
++/* special registers */
++#define REG_FIRST_SAVED	8	/* first saved register */
++#define REG_TEMP	27	/* temporary register when needed, not saved, etc */
++#define REG_FP		28	/* frame pointer register */
++#define REG_SP		29	/* stack pointer register */
++#define REG_RA		30	/* return address register */
++#define REG_RET		0	/* register we return values in */
++
++/* stack positions */
++#define I_ARG0		(-9)	/* offset of the first argument from FP */
++#define I_LOC0		0	/* offset of the first local from FP */
++
++/* special registers */
++
+diff -urN neatcc.orig/clem-instructions.h neatcc/clem-instructions.h
+--- neatcc.orig/clem-instructions.h	1969-12-31 19:00:00.000000000 -0500
++++ neatcc/clem-instructions.h	2017-07-27 14:42:22.499398494 -0400
+@@ -0,0 +1,241 @@
++#define CLEM_AD		0x00
++#define CLEM_ADI		0x00
++#define CLEM_SB		0x01
++#define CLEM_SBI		0x01
++#define CLEM_MU		0x02
++#define CLEM_MUI		0x02
++#define CLEM_DV		0x03
++#define CLEM_DVI		0x03
++#define CLEM_MD		0x04
++#define CLEM_MDI		0x04
++#define CLEM_AN		0x05
++#define CLEM_ANI		0x05
++#define CLEM_OR		0x06
++#define CLEM_ORI		0x06
++#define CLEM_XR		0x07
++#define CLEM_XRI		0x07
++#define CLEM_ADC		0x08
++#define CLEM_ADCI		0x08
++#define CLEM_SBC		0x09
++#define CLEM_SBCI		0x09
++#define CLEM_SL		0x0a
++#define CLEM_SR		0x0a
++#define CLEM_SA		0x0b
++#define CLEM_RL		0x0c
++#define CLEM_RR		0x0c
++#define CLEM_DMT		0x0d
++#define CLEM_SLI		0x0e
++#define CLEM_SRI		0x0e
++#define CLEM_SAI		0x0f
++#define CLEM_RLI		0x10
++#define CLEM_RRI		0x10
++#define CLEM_MH		0x11
++#define CLEM_ML		0x12
++#define CLEM_MS		0x13
++#define CLEM_RE		0x14
++#define CLEM_RE_SUB	0x00
++#define CLEM_RE_SUB2	0x00
++#define CLEM_IR		0x14
++#define CLEM_IR_SUB	0x00
++#define CLEM_IR_SUB2	0x01
++#define CLEM_WT		0x14
++#define CLEM_WT_SUB	0x00
++#define CLEM_WT_SUB2	0x02
++#define CLEM_HT		0x14
++#define CLEM_HT_SUB	0x00
++#define CLEM_HT_SUB2	0x03
++#define CLEM_EI		0x14
++#define CLEM_EI_SUB	0x00
++#define CLEM_EI_SUB2	0x04
++#define CLEM_DI		0x14
++#define CLEM_DI_SUB	0x00
++#define CLEM_DI_SUB2	0x05
++#define CLEM_SES		0x14
++#define CLEM_SES_SUB	0x00
++#define CLEM_SES_SUB2	0x07
++#define CLEM_SEW		0x14
++#define CLEM_SEW_SUB	0x00
++#define CLEM_SEW_SUB2	0x08
++#define CLEM_ZES		0x14
++#define CLEM_ZES_SUB	0x00
++#define CLEM_ZES_SUB2	0x09
++#define CLEM_ZEW		0x14
++#define CLEM_ZEW_SUB	0x00
++#define CLEM_ZEW_SUB2	0x0a
++#define CLEM_SF		0x14
++#define CLEM_SF_SUB	0x00
++#define CLEM_SF_SUB2	0x0b
++#define CLEM_RF		0x14
++#define CLEM_RF_SUB	0x00
++#define CLEM_RF_SUB2	0x0c
++#define CLEM_FTI		0x14
++#define CLEM_FTI_SUB	0x01
++#define CLEM_FTI_SUB2	0x01
++#define CLEM_ITF		0x14
++#define CLEM_ITF_SUB	0x01
++#define CLEM_ITF_SUB2	0x00
++#define CLEM_SMP		0x14
++#define CLEM_SMP_SUB	0x02
++#define CLEM_SMP_SUB2	0x01
++#define CLEM_RMP		0x14
++#define CLEM_RMP_SUB	0x02
++#define CLEM_RMP_SUB2	0x00
++#define CLEM_NG		0x14
++#define CLEM_NG_SUB	0x03
++#define CLEM_NG_SUB2	0x00
++#define CLEM_NT		0x14
++#define CLEM_NT_SUB	0x03
++#define CLEM_NT_SUB2	0x01
++#define CLEM_BF		0x14
++#define CLEM_BF_SUB	0x03
++#define CLEM_BF_SUB2	0x02
++#define CLEM_RND		0x14
++#define CLEM_RND_SUB	0x03
++#define CLEM_RND_SUB2	0x03
++#define CLEM_LDS		0x15
++#define CLEM_LDS_SUB		0x00
++#define CLEM_LDW		0x15
++#define CLEM_LDW_SUB		0x01
++#define CLEM_LDT		0x15
++#define CLEM_LDT_SUB		0x02
++#define CLEM_STS		0x16
++#define CLEM_STS_SUB		0x00
++#define CLEM_STW		0x16
++#define CLEM_STW_SUB		0x01
++#define CLEM_STT		0x16
++#define CLEM_STT_SUB		0x02
++#define CLEM_CM		0x17
++#define CLEM_CMI		0x17
++#define BRANCH_COND_NOT_EQUAL	0
++#define BRANCH_COND_EQUAL	1
++#define BRANCH_COND_LESS_THAN	2
++#define BRANCH_COND_LESS_THAN_OR_EQUAL	3
++#define BRANCH_COND_GREATER_THAN	4
++#define BRANCH_COND_GREATER_THAN_OR_EQUAL	5
++#define BRANCH_COND_NOT_OVERFLOW	6
++#define BRANCH_COND_OVERFLOW	7
++#define BRANCH_COND_NOT_SIGNED	8
++#define BRANCH_COND_SIGNED	9
++#define BRANCH_COND_SIGNED_LESS_THAN	10
++#define BRANCH_COND_SIGNED_LESS_THAN_OR_EQUAL	11
++#define BRANCH_COND_SIGNED_GREATER_THAN	12
++#define BRANCH_COND_SIGNED_GREATER_THAN_OR_EQUAL	13
++#define BRANCH_COND_ALWAYS	15
++#define CLEM_B		0x18
++#define CLEM_BN_COND		0x00
++#define CLEM_BE_COND		0x01
++#define CLEM_BL_COND		0x02
++#define CLEM_BLE_COND		0x03
++#define CLEM_BG_COND		0x04
++#define CLEM_BGE_COND		0x05
++#define CLEM_BNO_COND		0x06
++#define CLEM_BO_COND		0x07
++#define CLEM_BNS_COND		0x08
++#define CLEM_BS_COND		0x09
++#define CLEM_BSL_COND		0x0a
++#define CLEM_BSLE_COND		0x0b
++#define CLEM_BSG_COND		0x0c
++#define CLEM_BSGE_COND		0x0d
++#define CLEM_B_COND		0x0f
++#define BRANCH_COND_NOT_EQUAL	0
++#define BRANCH_COND_EQUAL	1
++#define BRANCH_COND_LESS_THAN	2
++#define BRANCH_COND_LESS_THAN_OR_EQUAL	3
++#define BRANCH_COND_GREATER_THAN	4
++#define BRANCH_COND_GREATER_THAN_OR_EQUAL	5
++#define BRANCH_COND_NOT_OVERFLOW	6
++#define BRANCH_COND_OVERFLOW	7
++#define BRANCH_COND_NOT_SIGNED	8
++#define BRANCH_COND_SIGNED	9
++#define BRANCH_COND_SIGNED_LESS_THAN	10
++#define BRANCH_COND_SIGNED_LESS_THAN_OR_EQUAL	11
++#define BRANCH_COND_SIGNED_GREATER_THAN	12
++#define BRANCH_COND_SIGNED_GREATER_THAN_OR_EQUAL	13
++#define BRANCH_COND_ALWAYS	15
++#define CLEM_BR		0x19
++#define CLEM_BRN_COND		0x00
++#define CLEM_BRE_COND		0x01
++#define CLEM_BRL_COND		0x02
++#define CLEM_BRLE_COND		0x03
++#define CLEM_BRG_COND		0x04
++#define CLEM_BRGE_COND		0x05
++#define CLEM_BRNO_COND		0x06
++#define CLEM_BRO_COND		0x07
++#define CLEM_BRNS_COND		0x08
++#define CLEM_BRS_COND		0x09
++#define CLEM_BRSL_COND		0x0a
++#define CLEM_BRSLE_COND		0x0b
++#define CLEM_BRSG_COND		0x0c
++#define CLEM_BRSGE_COND		0x0d
++#define CLEM_BR_COND		0x0f
++#define BRANCH_COND_NOT_EQUAL	0
++#define BRANCH_COND_EQUAL	1
++#define BRANCH_COND_LESS_THAN	2
++#define BRANCH_COND_LESS_THAN_OR_EQUAL	3
++#define BRANCH_COND_GREATER_THAN	4
++#define BRANCH_COND_GREATER_THAN_OR_EQUAL	5
++#define BRANCH_COND_NOT_OVERFLOW	6
++#define BRANCH_COND_OVERFLOW	7
++#define BRANCH_COND_NOT_SIGNED	8
++#define BRANCH_COND_SIGNED	9
++#define BRANCH_COND_SIGNED_LESS_THAN	10
++#define BRANCH_COND_SIGNED_LESS_THAN_OR_EQUAL	11
++#define BRANCH_COND_SIGNED_GREATER_THAN	12
++#define BRANCH_COND_SIGNED_GREATER_THAN_OR_EQUAL	13
++#define BRANCH_COND_ALWAYS	15
++#define CLEM_C		0x1a
++#define CLEM_CN_COND		0x00
++#define CLEM_CE_COND		0x01
++#define CLEM_CL_COND		0x02
++#define CLEM_CLE_COND		0x03
++#define CLEM_CG_COND		0x04
++#define CLEM_CGE_COND		0x05
++#define CLEM_CNO_COND		0x06
++#define CLEM_CO_COND		0x07
++#define CLEM_CNS_COND		0x08
++#define CLEM_CS_COND		0x09
++#define CLEM_CSL_COND		0x0a
++#define CLEM_CSLE_COND		0x0b
++#define CLEM_CSG_COND		0x0c
++#define CLEM_CSGE_COND		0x0d
++#define CLEM_C_COND		0x0f
++#define BRANCH_COND_NOT_EQUAL	0
++#define BRANCH_COND_EQUAL	1
++#define BRANCH_COND_LESS_THAN	2
++#define BRANCH_COND_LESS_THAN_OR_EQUAL	3
++#define BRANCH_COND_GREATER_THAN	4
++#define BRANCH_COND_GREATER_THAN_OR_EQUAL	5
++#define BRANCH_COND_NOT_OVERFLOW	6
++#define BRANCH_COND_OVERFLOW	7
++#define BRANCH_COND_NOT_SIGNED	8
++#define BRANCH_COND_SIGNED	9
++#define BRANCH_COND_SIGNED_LESS_THAN	10
++#define BRANCH_COND_SIGNED_LESS_THAN_OR_EQUAL	11
++#define BRANCH_COND_SIGNED_GREATER_THAN	12
++#define BRANCH_COND_SIGNED_GREATER_THAN_OR_EQUAL	13
++#define BRANCH_COND_ALWAYS	15
++#define CLEM_CR		0x1b
++#define CLEM_CRN_COND		0x00
++#define CLEM_CRE_COND		0x01
++#define CLEM_CRL_COND		0x02
++#define CLEM_CRLE_COND		0x03
++#define CLEM_CRG_COND		0x04
++#define CLEM_CRGE_COND		0x05
++#define CLEM_CRNO_COND		0x06
++#define CLEM_CRO_COND		0x07
++#define CLEM_CRNS_COND		0x08
++#define CLEM_CRS_COND		0x09
++#define CLEM_CRSL_COND		0x0a
++#define CLEM_CRSLE_COND		0x0b
++#define CLEM_CRSG_COND		0x0c
++#define CLEM_CRSGE_COND		0x0d
++#define CLEM_CR_COND		0x0f
++#define CLEM_BRR		0x1c
++#define CLEM_BRR_SUB		0x00
++#define CLEM_BRA		0x1c
++#define CLEM_BRA_SUB		0x01
++#define CLEM_CAR		0x1c
++#define CLEM_CAR_SUB		0x02
++#define CLEM_CAA		0x1c
++#define CLEM_CAA_SUB		0x03
++#define CLEM_DBRK		0x1F
+diff -urN neatcc.orig/gen.c neatcc/gen.c
+--- neatcc.orig/gen.c	2017-07-30 11:18:43.031415194 -0400
++++ neatcc/gen.c	2017-05-31 21:51:42.114509860 -0400
+@@ -27,12 +27,51 @@
+ static int func_maxargs;	/* the maximum number of arguments on the stack */
+ static long *ic_bbeg;		/* whether each instruction begins a basic block */
+ 
++static char *func_name;		/* name of the current function */
++static int func_global;		/* if the function is global */
++static int func_cs_start;	/* where in cs the function starts */
++
+ static long ra_vmap[N_REGS];	/* register to intermediate value assignments */
+ static long ra_lmap[N_REGS];	/* register to local assignments */
+ static long *ra_gmask;		/* the mask of good registers for each value */
+ static long ra_live[NTMPS];	/* live values */
+ static int ra_vmax;		/* the number of values stored on the stack */
+ 
++void gen_init()
++{
++#ifdef NEATCC_CLEMENCY
++	mem_init(&cs, 2);
++	mem_init(&ds, 2);
++#else
++	mem_init(&cs, 1);
++	mem_init(&ds, 1);
++#endif
++
++	bsslen = 0;
++	ic = 0;
++	ic_n = 0;
++	ic_i = 0;
++	ic_luse = 0;
++	loc_off = 0;
++	loc_n = 0;
++	loc_sz = 0;
++	loc_pos = 0;
++	loc_mem = 0;
++	ds_off = 0;
++	ds_n = 0;
++	ds_sz = 0;
++	func_argc = 0;
++	func_varg = 0;
++	func_regs = 0;
++	func_maxargs = 0;
++	ic_bbeg = 0;
++	memset(&ra_vmap, 0, sizeof(ra_vmap));
++	memset(&ra_lmap, 0, sizeof(ra_lmap));
++	ra_gmask = 0;
++	memset(&ra_live, 0, sizeof(ra_live));
++	ra_vmax = 0;
++}
++
+ static long loc_add(long pos)
+ {
+ 	if (loc_n >= loc_sz) {
+@@ -64,6 +103,12 @@
+ 	bsslen += ALIGN(size, OUT_ALIGNMENT);
+ }
+ 
++void o_csnew(char *name, long size, int global)
++{
++	out_def(name, OUT_CS | (global ? OUT_GLOB : 0), mem_len(&cs), size);
++	mem_putz(&cs, ALIGN(size, OUT_ALIGNMENT));
++}
++
+ long o_dsnew(char *name, long size, int global)
+ {
+ 	int idx;
+@@ -98,8 +143,32 @@
+ {
+ 	long sym_off = dat_off(name) + off;
+ 	long num, roff, rsym;
++	unsigned short tempval[3];
++
+ 	if (!o_popnum(&num)) {
++#ifdef NEATCC_CLEMENCY
++		switch(T_SZ(bt))
++		{
++			case 1:
++				tempval[0] = num & 0x1ff;
++				break;
++			case 2:
++				tempval[0] = num & 0x1ff;
++				tempval[1] = (num >> 9) & 0x1ff;
++				break;
++			case 3:
++				tempval[0] = (num >> 9) & 0x1ff;
++				tempval[1] = (num >> 18) & 0x1ff;
++				tempval[2] = num & 0x1ff;
++				break;
++			default:
++				printf("No case for number size %d\n", T_SZ(bt));
++				return;
++		};
++		mem_cpy2(&ds, sym_off, tempval, T_SZ(bt));
++#else
+ 		mem_cpy(&ds, sym_off, &num, T_SZ(bt));
++#endif
+ 		return;
+ 	}
+ 	if (!o_popsym(&rsym, &roff)) {
+@@ -162,6 +231,7 @@
+ static long ra_regget(long iv, long gmask, long amask, long bmask)
+ {
+ 	long lmask, vmask;
++
+ 	gmask &= ~bmask & amask;
+ 	amask &= ~bmask;
+ 	if (ra_vreg(iv) >= 0 && (1 << ra_vreg(iv)) & (gmask | amask))
+@@ -176,7 +246,7 @@
+ 		return ra_regscn(gmask);
+ 	if (ra_regscn(amask) >= 0)
+ 		return ra_regscn(amask);
+-	die("neatcc: cannot allocate an acceptable register\n");
++	die("neatcc: cannot allocate an acceptable register, iv: %x gmask: %x amask: %x bmask: %x\n", iv, gmask, amask, bmask);
+ 	return 0;
+ }
+ 
+@@ -229,6 +299,7 @@
+ 		for (i = 0; i < LEN(ra_lmap); i++)
+ 			if (reg_rmap(ic_i, i) >= 0 && ra_lmap[i] != reg_rmap(ic_i, i))
+ 				all |= (1 << i);
++
+ 	/* allocating registers for the operands */
+ 	if (n >= 2) {
+ 		*r2 = ra_regget(c->a2, m2, m2, all);
+@@ -612,6 +683,8 @@
+ 			i_ins(op, 0, r1, r2, r3);
+ 		if (oc == O_MCPY)
+ 			i_ins(op, 0, r1, r2, r3);
++		if (oc == O_DBRK)
++			i_ins(op, 0, 0, 0, 0);
+ 		/* saving back the output register */
+ 		if (oc & O_OUT && ic_luse[i] > i)
+ 			ra_vsave(ic_i, rd);
+@@ -639,10 +712,14 @@
+ 	func_argc = argc;
+ 	func_varg = varg;
+ 	func_regs = 0;
++	func_name = name;
++	func_global = global;
++	func_cs_start = mem_len(&cs);
++
+ 	ic_reset();
+ 	for (i = 0; i < argc; i++)
+ 		loc_add(I_ARG0 + -i * ULNG);
+-	out_def(name, (global ? OUT_GLOB : 0) | OUT_CS, mem_len(&cs), 0);
++	//out_def(name, (global ? OUT_GLOB : 0) | OUT_CS, mem_len(&cs), 0);
+ }
+ 
+ void o_code(char *name, char *c, long c_len)
+@@ -705,6 +782,8 @@
+ 	free(ic);
+ 	reg_done();
+ 	ic_reset();
++
++	out_def(func_name, (func_global ? OUT_GLOB : 0) | OUT_CS, func_cs_start, mem_len(&cs) - func_cs_start);
+ }
+ 
+ void o_write(int fd)
+diff -urN neatcc.orig/.git/config neatcc/.git/config
+--- neatcc.orig/.git/config	2017-07-30 11:18:43.023415194 -0400
++++ neatcc/.git/config	1969-12-31 19:00:00.000000000 -0500
+@@ -1,12 +0,0 @@
+-[core]
+-	repositoryformatversion = 0
+-	filemode = true
+-	bare = false
+-	logallrefupdates = true
+-[remote "origin"]
+-	url = https://github.com/litcave/neatcc.git
+-	fetch = +refs/heads/*:refs/remotes/origin/*
+-[branch "master"]
+-	remote = origin
+-	merge = refs/heads/master
+-	rebase = true
+diff -urN neatcc.orig/.git/description neatcc/.git/description
+--- neatcc.orig/.git/description	2017-07-30 11:18:41.995415180 -0400
++++ neatcc/.git/description	1969-12-31 19:00:00.000000000 -0500
+@@ -1 +0,0 @@
+-Unnamed repository; edit this file 'description' to name the repository.
+diff -urN neatcc.orig/.git/HEAD neatcc/.git/HEAD
+--- neatcc.orig/.git/HEAD	2017-07-30 11:18:52.599415324 -0400
++++ neatcc/.git/HEAD	1969-12-31 19:00:00.000000000 -0500
+@@ -1 +0,0 @@
+-3b04b7f9afcda20ee7864724da4dd462229c17e9
+diff -urN neatcc.orig/.git/hooks/applypatch-msg.sample neatcc/.git/hooks/applypatch-msg.sample
+--- neatcc.orig/.git/hooks/applypatch-msg.sample	2017-07-30 11:18:41.995415180 -0400
++++ neatcc/.git/hooks/applypatch-msg.sample	1969-12-31 19:00:00.000000000 -0500
+@@ -1,15 +0,0 @@
+-#!/bin/sh
+-#
+-# An example hook script to check the commit log message taken by
+-# applypatch from an e-mail message.
+-#
+-# The hook should exit with non-zero status after issuing an
+-# appropriate message if it wants to stop the commit.  The hook is
+-# allowed to edit the commit message file.
+-#
+-# To enable this hook, rename this file to "applypatch-msg".
+-
+-. git-sh-setup
+-test -x "$GIT_DIR/hooks/commit-msg" &&
+-	exec "$GIT_DIR/hooks/commit-msg" ${1+"$@"}
+-:
+diff -urN neatcc.orig/.git/hooks/commit-msg.sample neatcc/.git/hooks/commit-msg.sample
+--- neatcc.orig/.git/hooks/commit-msg.sample	2017-07-30 11:18:41.995415180 -0400
++++ neatcc/.git/hooks/commit-msg.sample	1969-12-31 19:00:00.000000000 -0500
+@@ -1,24 +0,0 @@
+-#!/bin/sh
+-#
+-# An example hook script to check the commit log message.
+-# Called by "git commit" with one argument, the name of the file
+-# that has the commit message.  The hook should exit with non-zero
+-# status after issuing an appropriate message if it wants to stop the
+-# commit.  The hook is allowed to edit the commit message file.
+-#
+-# To enable this hook, rename this file to "commit-msg".
+-
+-# Uncomment the below to add a Signed-off-by line to the message.
+-# Doing this in a hook is a bad idea in general, but the prepare-commit-msg
+-# hook is more suited to it.
+-#
+-# SOB=$(git var GIT_AUTHOR_IDENT | sed -n 's/^\(.*>\).*$/Signed-off-by: \1/p')
+-# grep -qs "^$SOB" "$1" || echo "$SOB" >> "$1"
+-
+-# This example catches duplicate Signed-off-by lines.
+-
+-test "" = "$(grep '^Signed-off-by: ' "$1" |
+-	 sort | uniq -c | sed -e '/^[ 	]*1[ 	]/d')" || {
+-	echo >&2 Duplicate Signed-off-by lines.
+-	exit 1
+-}
+diff -urN neatcc.orig/.git/hooks/post-update.sample neatcc/.git/hooks/post-update.sample
+--- neatcc.orig/.git/hooks/post-update.sample	2017-07-30 11:18:41.995415180 -0400
++++ neatcc/.git/hooks/post-update.sample	1969-12-31 19:00:00.000000000 -0500
+@@ -1,8 +0,0 @@
+-#!/bin/sh
+-#
+-# An example hook script to prepare a packed repository for use over
+-# dumb transports.
+-#
+-# To enable this hook, rename this file to "post-update".
+-
+-exec git update-server-info
+diff -urN neatcc.orig/.git/hooks/pre-applypatch.sample neatcc/.git/hooks/pre-applypatch.sample
+--- neatcc.orig/.git/hooks/pre-applypatch.sample	2017-07-30 11:18:41.995415180 -0400
++++ neatcc/.git/hooks/pre-applypatch.sample	1969-12-31 19:00:00.000000000 -0500
+@@ -1,14 +0,0 @@
+-#!/bin/sh
+-#
+-# An example hook script to verify what is about to be committed
+-# by applypatch from an e-mail message.
+-#
+-# The hook should exit with non-zero status after issuing an
+-# appropriate message if it wants to stop the commit.
+-#
+-# To enable this hook, rename this file to "pre-applypatch".
+-
+-. git-sh-setup
+-test -x "$GIT_DIR/hooks/pre-commit" &&
+-	exec "$GIT_DIR/hooks/pre-commit" ${1+"$@"}
+-:
+diff -urN neatcc.orig/.git/hooks/pre-commit.sample neatcc/.git/hooks/pre-commit.sample
+--- neatcc.orig/.git/hooks/pre-commit.sample	2017-07-30 11:18:41.995415180 -0400
++++ neatcc/.git/hooks/pre-commit.sample	1969-12-31 19:00:00.000000000 -0500
+@@ -1,49 +0,0 @@
+-#!/bin/sh
+-#
+-# An example hook script to verify what is about to be committed.
+-# Called by "git commit" with no arguments.  The hook should
+-# exit with non-zero status after issuing an appropriate message if
+-# it wants to stop the commit.
+-#
+-# To enable this hook, rename this file to "pre-commit".
+-
+-if git rev-parse --verify HEAD >/dev/null 2>&1
+-then
+-	against=HEAD
+-else
+-	# Initial commit: diff against an empty tree object
+-	against=4b825dc642cb6eb9a060e54bf8d69288fbee4904
+-fi
+-
+-# If you want to allow non-ASCII filenames set this variable to true.
+-allownonascii=$(git config --bool hooks.allownonascii)
+-
+-# Redirect output to stderr.
+-exec 1>&2
+-
+-# Cross platform projects tend to avoid non-ASCII filenames; prevent
+-# them from being added to the repository. We exploit the fact that the
+-# printable range starts at the space character and ends with tilde.
+-if [ "$allownonascii" != "true" ] &&
+-	# Note that the use of brackets around a tr range is ok here, (it's
+-	# even required, for portability to Solaris 10's /usr/bin/tr), since
+-	# the square bracket bytes happen to fall in the designated range.
+-	test $(git diff --cached --name-only --diff-filter=A -z $against |
+-	  LC_ALL=C tr -d '[ -~]\0' | wc -c) != 0
+-then
+-	cat <<\EOF
+-Error: Attempt to add a non-ASCII file name.
+-
+-This can cause problems if you want to work with people on other platforms.
+-
+-To be portable it is advisable to rename the file.
+-
+-If you know what you are doing you can disable this check using:
+-
+-  git config hooks.allownonascii true
+-EOF
+-	exit 1
+-fi
+-
+-# If there are whitespace errors, print the offending file names and fail.
+-exec git diff-index --check --cached $against --
+diff -urN neatcc.orig/.git/hooks/prepare-commit-msg.sample neatcc/.git/hooks/prepare-commit-msg.sample
+--- neatcc.orig/.git/hooks/prepare-commit-msg.sample	2017-07-30 11:18:41.995415180 -0400
++++ neatcc/.git/hooks/prepare-commit-msg.sample	1969-12-31 19:00:00.000000000 -0500
+@@ -1,36 +0,0 @@
+-#!/bin/sh
+-#
+-# An example hook script to prepare the commit log message.
+-# Called by "git commit" with the name of the file that has the
+-# commit message, followed by the description of the commit
+-# message's source.  The hook's purpose is to edit the commit
+-# message file.  If the hook fails with a non-zero status,
+-# the commit is aborted.
+-#
+-# To enable this hook, rename this file to "prepare-commit-msg".
+-
+-# This hook includes three examples.  The first comments out the
+-# "Conflicts:" part of a merge commit.
+-#
+-# The second includes the output of "git diff --name-status -r"
+-# into the message, just before the "git status" output.  It is
+-# commented because it doesn't cope with --amend or with squashed
+-# commits.
+-#
+-# The third example adds a Signed-off-by line to the message, that can
+-# still be edited.  This is rarely a good idea.
+-
+-case "$2,$3" in
+-  merge,)
+-    /usr/bin/perl -i.bak -ne 's/^/# /, s/^# #/#/ if /^Conflicts/ .. /#/; print' "$1" ;;
+-
+-# ,|template,)
+-#   /usr/bin/perl -i.bak -pe '
+-#      print "\n" . `git diff --cached --name-status -r`
+-#	 if /^#/ && $first++ == 0' "$1" ;;
+-
+-  *) ;;
+-esac
+-
+-# SOB=$(git var GIT_AUTHOR_IDENT | sed -n 's/^\(.*>\).*$/Signed-off-by: \1/p')
+-# grep -qs "^$SOB" "$1" || echo "$SOB" >> "$1"
+diff -urN neatcc.orig/.git/hooks/pre-push.sample neatcc/.git/hooks/pre-push.sample
+--- neatcc.orig/.git/hooks/pre-push.sample	2017-07-30 11:18:41.995415180 -0400
++++ neatcc/.git/hooks/pre-push.sample	1969-12-31 19:00:00.000000000 -0500
+@@ -1,54 +0,0 @@
+-#!/bin/sh
+-
+-# An example hook script to verify what is about to be pushed.  Called by "git
+-# push" after it has checked the remote status, but before anything has been
+-# pushed.  If this script exits with a non-zero status nothing will be pushed.
+-#
+-# This hook is called with the following parameters:
+-#
+-# $1 -- Name of the remote to which the push is being done
+-# $2 -- URL to which the push is being done
+-#
+-# If pushing without using a named remote those arguments will be equal.
+-#
+-# Information about the commits which are being pushed is supplied as lines to
+-# the standard input in the form:
+-#
+-#   <local ref> <local sha1> <remote ref> <remote sha1>
+-#
+-# This sample shows how to prevent push of commits where the log message starts
+-# with "WIP" (work in progress).
+-
+-remote="$1"
+-url="$2"
+-
+-z40=0000000000000000000000000000000000000000
+-
+-IFS=' '
+-while read local_ref local_sha remote_ref remote_sha
+-do
+-	if [ "$local_sha" = $z40 ]
+-	then
+-		# Handle delete
+-		:
+-	else
+-		if [ "$remote_sha" = $z40 ]
+-		then
+-			# New branch, examine all commits
+-			range="$local_sha"
+-		else
+-			# Update to existing branch, examine new commits
+-			range="$remote_sha..$local_sha"
+-		fi
+-
+-		# Check for WIP commit
+-		commit=`git rev-list -n 1 --grep '^WIP' "$range"`
+-		if [ -n "$commit" ]
+-		then
+-			echo "Found WIP commit in $local_ref, not pushing"
+-			exit 1
+-		fi
+-	fi
+-done
+-
+-exit 0
+diff -urN neatcc.orig/.git/hooks/pre-rebase.sample neatcc/.git/hooks/pre-rebase.sample
+--- neatcc.orig/.git/hooks/pre-rebase.sample	2017-07-30 11:18:41.995415180 -0400
++++ neatcc/.git/hooks/pre-rebase.sample	1969-12-31 19:00:00.000000000 -0500
+@@ -1,169 +0,0 @@
+-#!/bin/sh
+-#
+-# Copyright (c) 2006, 2008 Junio C Hamano
+-#
+-# The "pre-rebase" hook is run just before "git rebase" starts doing
+-# its job, and can prevent the command from running by exiting with
+-# non-zero status.
+-#
+-# The hook is called with the following parameters:
+-#
+-# $1 -- the upstream the series was forked from.
+-# $2 -- the branch being rebased (or empty when rebasing the current branch).
+-#
+-# This sample shows how to prevent topic branches that are already
+-# merged to 'next' branch from getting rebased, because allowing it
+-# would result in rebasing already published history.
+-
+-publish=next
+-basebranch="$1"
+-if test "$#" = 2
+-then
+-	topic="refs/heads/$2"
+-else
+-	topic=`git symbolic-ref HEAD` ||
+-	exit 0 ;# we do not interrupt rebasing detached HEAD
+-fi
+-
+-case "$topic" in
+-refs/heads/??/*)
+-	;;
+-*)
+-	exit 0 ;# we do not interrupt others.
+-	;;
+-esac
+-
+-# Now we are dealing with a topic branch being rebased
+-# on top of master.  Is it OK to rebase it?
+-
+-# Does the topic really exist?
+-git show-ref -q "$topic" || {
+-	echo >&2 "No such branch $topic"
+-	exit 1
+-}
+-
+-# Is topic fully merged to master?
+-not_in_master=`git rev-list --pretty=oneline ^master "$topic"`
+-if test -z "$not_in_master"
+-then
+-	echo >&2 "$topic is fully merged to master; better remove it."
+-	exit 1 ;# we could allow it, but there is no point.
+-fi
+-
+-# Is topic ever merged to next?  If so you should not be rebasing it.
+-only_next_1=`git rev-list ^master "^$topic" ${publish} | sort`
+-only_next_2=`git rev-list ^master           ${publish} | sort`
+-if test "$only_next_1" = "$only_next_2"
+-then
+-	not_in_topic=`git rev-list "^$topic" master`
+-	if test -z "$not_in_topic"
+-	then
+-		echo >&2 "$topic is already up-to-date with master"
+-		exit 1 ;# we could allow it, but there is no point.
+-	else
+-		exit 0
+-	fi
+-else
+-	not_in_next=`git rev-list --pretty=oneline ^${publish} "$topic"`
+-	/usr/bin/perl -e '
+-		my $topic = $ARGV[0];
+-		my $msg = "* $topic has commits already merged to public branch:\n";
+-		my (%not_in_next) = map {
+-			/^([0-9a-f]+) /;
+-			($1 => 1);
+-		} split(/\n/, $ARGV[1]);
+-		for my $elem (map {
+-				/^([0-9a-f]+) (.*)$/;
+-				[$1 => $2];
+-			} split(/\n/, $ARGV[2])) {
+-			if (!exists $not_in_next{$elem->[0]}) {
+-				if ($msg) {
+-					print STDERR $msg;
+-					undef $msg;
+-				}
+-				print STDERR " $elem->[1]\n";
+-			}
+-		}
+-	' "$topic" "$not_in_next" "$not_in_master"
+-	exit 1
+-fi
+-
+-<<\DOC_END
+-
+-This sample hook safeguards topic branches that have been
+-published from being rewound.
+-
+-The workflow assumed here is:
+-
+- * Once a topic branch forks from "master", "master" is never
+-   merged into it again (either directly or indirectly).
+-
+- * Once a topic branch is fully cooked and merged into "master",
+-   it is deleted.  If you need to build on top of it to correct
+-   earlier mistakes, a new topic branch is created by forking at
+-   the tip of the "master".  This is not strictly necessary, but
+-   it makes it easier to keep your history simple.
+-
+- * Whenever you need to test or publish your changes to topic
+-   branches, merge them into "next" branch.
+-
+-The script, being an example, hardcodes the publish branch name
+-to be "next", but it is trivial to make it configurable via
+-$GIT_DIR/config mechanism.
+-
+-With this workflow, you would want to know:
+-
+-(1) ... if a topic branch has ever been merged to "next".  Young
+-    topic branches can have stupid mistakes you would rather
+-    clean up before publishing, and things that have not been
+-    merged into other branches can be easily rebased without
+-    affecting other people.  But once it is published, you would
+-    not want to rewind it.
+-
+-(2) ... if a topic branch has been fully merged to "master".
+-    Then you can delete it.  More importantly, you should not
+-    build on top of it -- other people may already want to
+-    change things related to the topic as patches against your
+-    "master", so if you need further changes, it is better to
+-    fork the topic (perhaps with the same name) afresh from the
+-    tip of "master".
+-
+-Let's look at this example:
+-
+-		   o---o---o---o---o---o---o---o---o---o "next"
+-		  /       /           /           /
+-		 /   a---a---b A     /           /
+-		/   /               /           /
+-	       /   /   c---c---c---c B         /
+-	      /   /   /             \         /
+-	     /   /   /   b---b C     \       /
+-	    /   /   /   /             \     /
+-    ---o---o---o---o---o---o---o---o---o---o---o "master"
+-
+-
+-A, B and C are topic branches.
+-
+- * A has one fix since it was merged up to "next".
+-
+- * B has finished.  It has been fully merged up to "master" and "next",
+-   and is ready to be deleted.
+-
+- * C has not merged to "next" at all.
+-
+-We would want to allow C to be rebased, refuse A, and encourage
+-B to be deleted.
+-
+-To compute (1):
+-
+-	git rev-list ^master ^topic next
+-	git rev-list ^master        next
+-
+-	if these match, topic has not merged in next at all.
+-
+-To compute (2):
+-
+-	git rev-list master..topic
+-
+-	if this is empty, it is fully merged to "master".
+-
+-DOC_END
+diff -urN neatcc.orig/.git/hooks/update.sample neatcc/.git/hooks/update.sample
+--- neatcc.orig/.git/hooks/update.sample	2017-07-30 11:18:41.995415180 -0400
++++ neatcc/.git/hooks/update.sample	1969-12-31 19:00:00.000000000 -0500
+@@ -1,128 +0,0 @@
+-#!/bin/sh
+-#
+-# An example hook script to blocks unannotated tags from entering.
+-# Called by "git receive-pack" with arguments: refname sha1-old sha1-new
+-#
+-# To enable this hook, rename this file to "update".
+-#
+-# Config
+-# ------
+-# hooks.allowunannotated
+-#   This boolean sets whether unannotated tags will be allowed into the
+-#   repository.  By default they won't be.
+-# hooks.allowdeletetag
+-#   This boolean sets whether deleting tags will be allowed in the
+-#   repository.  By default they won't be.
+-# hooks.allowmodifytag
+-#   This boolean sets whether a tag may be modified after creation. By default
+-#   it won't be.
+-# hooks.allowdeletebranch
+-#   This boolean sets whether deleting branches will be allowed in the
+-#   repository.  By default they won't be.
+-# hooks.denycreatebranch
+-#   This boolean sets whether remotely creating branches will be denied
+-#   in the repository.  By default this is allowed.
+-#
+-
+-# --- Command line
+-refname="$1"
+-oldrev="$2"
+-newrev="$3"
+-
+-# --- Safety check
+-if [ -z "$GIT_DIR" ]; then
+-	echo "Don't run this script from the command line." >&2
+-	echo " (if you want, you could supply GIT_DIR then run" >&2
+-	echo "  $0 <ref> <oldrev> <newrev>)" >&2
+-	exit 1
+-fi
+-
+-if [ -z "$refname" -o -z "$oldrev" -o -z "$newrev" ]; then
+-	echo "usage: $0 <ref> <oldrev> <newrev>" >&2
+-	exit 1
+-fi
+-
+-# --- Config
+-allowunannotated=$(git config --bool hooks.allowunannotated)
+-allowdeletebranch=$(git config --bool hooks.allowdeletebranch)
+-denycreatebranch=$(git config --bool hooks.denycreatebranch)
+-allowdeletetag=$(git config --bool hooks.allowdeletetag)
+-allowmodifytag=$(git config --bool hooks.allowmodifytag)
+-
+-# check for no description
+-projectdesc=$(sed -e '1q' "$GIT_DIR/description")
+-case "$projectdesc" in
+-"Unnamed repository"* | "")
+-	echo "*** Project description file hasn't been set" >&2
+-	exit 1
+-	;;
+-esac
+-
+-# --- Check types
+-# if $newrev is 0000...0000, it's a commit to delete a ref.
+-zero="0000000000000000000000000000000000000000"
+-if [ "$newrev" = "$zero" ]; then
+-	newrev_type=delete
+-else
+-	newrev_type=$(git cat-file -t $newrev)
+-fi
+-
+-case "$refname","$newrev_type" in
+-	refs/tags/*,commit)
+-		# un-annotated tag
+-		short_refname=${refname##refs/tags/}
+-		if [ "$allowunannotated" != "true" ]; then
+-			echo "*** The un-annotated tag, $short_refname, is not allowed in this repository" >&2
+-			echo "*** Use 'git tag [ -a | -s ]' for tags you want to propagate." >&2
+-			exit 1
+-		fi
+-		;;
+-	refs/tags/*,delete)
+-		# delete tag
+-		if [ "$allowdeletetag" != "true" ]; then
+-			echo "*** Deleting a tag is not allowed in this repository" >&2
+-			exit 1
+-		fi
+-		;;
+-	refs/tags/*,tag)
+-		# annotated tag
+-		if [ "$allowmodifytag" != "true" ] && git rev-parse $refname > /dev/null 2>&1
+-		then
+-			echo "*** Tag '$refname' already exists." >&2
+-			echo "*** Modifying a tag is not allowed in this repository." >&2
+-			exit 1
+-		fi
+-		;;
+-	refs/heads/*,commit)
+-		# branch
+-		if [ "$oldrev" = "$zero" -a "$denycreatebranch" = "true" ]; then
+-			echo "*** Creating a branch is not allowed in this repository" >&2
+-			exit 1
+-		fi
+-		;;
+-	refs/heads/*,delete)
+-		# delete branch
+-		if [ "$allowdeletebranch" != "true" ]; then
+-			echo "*** Deleting a branch is not allowed in this repository" >&2
+-			exit 1
+-		fi
+-		;;
+-	refs/remotes/*,commit)
+-		# tracking branch
+-		;;
+-	refs/remotes/*,delete)
+-		# delete tracking branch
+-		if [ "$allowdeletebranch" != "true" ]; then
+-			echo "*** Deleting a tracking branch is not allowed in this repository" >&2
+-			exit 1
+-		fi
+-		;;
+-	*)
+-		# Anything else (is there anything else?)
+-		echo "*** Update hook: unknown type of update to ref $refname of type $newrev_type" >&2
+-		exit 1
+-		;;
+-esac
+-
+-# --- Finished
+-exit 0
+Binary files neatcc.orig/.git/index and neatcc/.git/index differ
+diff -urN neatcc.orig/.git/info/exclude neatcc/.git/info/exclude
+--- neatcc.orig/.git/info/exclude	2017-07-30 11:18:41.995415180 -0400
++++ neatcc/.git/info/exclude	1969-12-31 19:00:00.000000000 -0500
+@@ -1,6 +0,0 @@
+-# git ls-files --others --exclude-from=.git/info/exclude
+-# Lines that start with '#' are comments.
+-# For a project mostly in C, the following would be a good set of
+-# exclude patterns (uncomment them if you want to use them):
+-# *.[oa]
+-# *~
+diff -urN neatcc.orig/.git/logs/HEAD neatcc/.git/logs/HEAD
+--- neatcc.orig/.git/logs/HEAD	2017-07-30 11:18:52.599415324 -0400
++++ neatcc/.git/logs/HEAD	1969-12-31 19:00:00.000000000 -0500
+@@ -1,2 +0,0 @@
+-0000000000000000000000000000000000000000 3b04b7f9afcda20ee7864724da4dd462229c17e9 Lightning <LightningTH@GMail.com> 1501427923 -0400	clone: from https://github.com/litcave/neatcc.git
+-3b04b7f9afcda20ee7864724da4dd462229c17e9 3b04b7f9afcda20ee7864724da4dd462229c17e9 Lightning <LightningTH@GMail.com> 1501427932 -0400	checkout: moving from master to 3b04b7f9afcda20ee7864724da4dd462229c17e9
+diff -urN neatcc.orig/.git/logs/refs/heads/master neatcc/.git/logs/refs/heads/master
+--- neatcc.orig/.git/logs/refs/heads/master	2017-07-30 11:18:43.023415194 -0400
++++ neatcc/.git/logs/refs/heads/master	1969-12-31 19:00:00.000000000 -0500
+@@ -1 +0,0 @@
+-0000000000000000000000000000000000000000 3b04b7f9afcda20ee7864724da4dd462229c17e9 Lightning <LightningTH@GMail.com> 1501427923 -0400	clone: from https://github.com/litcave/neatcc.git
+diff -urN neatcc.orig/.git/logs/refs/remotes/origin/HEAD neatcc/.git/logs/refs/remotes/origin/HEAD
+--- neatcc.orig/.git/logs/refs/remotes/origin/HEAD	2017-07-30 11:18:43.023415194 -0400
++++ neatcc/.git/logs/refs/remotes/origin/HEAD	1969-12-31 19:00:00.000000000 -0500
+@@ -1 +0,0 @@
+-0000000000000000000000000000000000000000 3b04b7f9afcda20ee7864724da4dd462229c17e9 Lightning <LightningTH@GMail.com> 1501427923 -0400	clone: from https://github.com/litcave/neatcc.git
+Binary files neatcc.orig/.git/objects/pack/pack-fc0f0c4033e9deae1bed1f89aa508be64521dc8c.idx and neatcc/.git/objects/pack/pack-fc0f0c4033e9deae1bed1f89aa508be64521dc8c.idx differ
+Binary files neatcc.orig/.git/objects/pack/pack-fc0f0c4033e9deae1bed1f89aa508be64521dc8c.pack and neatcc/.git/objects/pack/pack-fc0f0c4033e9deae1bed1f89aa508be64521dc8c.pack differ
+diff -urN neatcc.orig/.git/packed-refs neatcc/.git/packed-refs
+--- neatcc.orig/.git/packed-refs	2017-07-30 11:18:43.023415194 -0400
++++ neatcc/.git/packed-refs	1969-12-31 19:00:00.000000000 -0500
+@@ -1,4 +0,0 @@
+-# pack-refs with: peeled fully-peeled 
+-3b04b7f9afcda20ee7864724da4dd462229c17e9 refs/remotes/origin/master
+-1d8f8228573ff1394f5744de48632c25498caee4 refs/remotes/origin/noic
+-4bd780b67a8447de9ef8f0a7a15bf72802b168b8 refs/remotes/origin/old_ic
+diff -urN neatcc.orig/.git/refs/heads/master neatcc/.git/refs/heads/master
+--- neatcc.orig/.git/refs/heads/master	2017-07-30 11:18:43.023415194 -0400
++++ neatcc/.git/refs/heads/master	1969-12-31 19:00:00.000000000 -0500
+@@ -1 +0,0 @@
+-3b04b7f9afcda20ee7864724da4dd462229c17e9
+diff -urN neatcc.orig/.git/refs/remotes/origin/HEAD neatcc/.git/refs/remotes/origin/HEAD
+--- neatcc.orig/.git/refs/remotes/origin/HEAD	2017-07-30 11:18:43.023415194 -0400
++++ neatcc/.git/refs/remotes/origin/HEAD	1969-12-31 19:00:00.000000000 -0500
+@@ -1 +0,0 @@
+-ref: refs/remotes/origin/master
+diff -urN neatcc.orig/int.c neatcc/int.c
+--- neatcc.orig/int.c	2017-07-30 11:18:43.031415194 -0400
++++ neatcc/int.c	2017-04-10 22:47:37.428031819 -0400
+@@ -211,6 +211,11 @@
+ 	ic_put(O_MSET, r0, r1, r2);
+ }
+ 
++void o_dbrk(void)
++{
++	ic_put(O_DBRK, 0, 0, 0);
++}
++
+ void o_call(int argc, int ret)
+ {
+ 	struct ic *c;
+@@ -504,6 +509,7 @@
+ 		return ((o & O_NUM) != 0);
+ 	if (o & O_ST)
+ 		return 1 + ((o & O_NUM) != 0);
++
+ 	return 0;
+ }
+ 
+@@ -685,7 +691,7 @@
+ 	long m[5];
+ 	if (i_reg(op | O_NUM, m + 0, m + 1, m + 2, m + 3, m + 4))
+ 		return 0;
+-	return i_imm(m[arg], n);
++	return i_imm(op | O_NUM, m[arg], n);
+ }
+ 
+ /* optimise loading and storing locals */
+diff -urN neatcc.orig/Makefile neatcc/Makefile
+--- neatcc.orig/Makefile	2017-07-30 11:18:43.027415194 -0400
++++ neatcc/Makefile	2017-01-10 11:31:26.607351226 -0500
+@@ -1,16 +1,25 @@
+ # output architecture: x64, x86, arm
+-OUT = x64
++OUT = clemency
+ 
+ CC = cc
+-CFLAGS = -Wall -O2 -DNEATCC_`echo $(OUT) | tr xarm XARM`
++CFLAGS = -g -Wall -O2 -DNEATCC_`echo $(OUT) | tr xarmcleny XARMCLENY`
+ LDFLAGS =
+ 
++INVDIR = inverted
+ OBJS = ncc.o tok.o out.o cpp.o gen.o int.o reg.o mem.o $(OUT).o
++OBJS-INV = $(patsubst %.o,%-inv.o,$(OBJS))
+ 
+-all: ncc
++all: ncc ncc-inv
+ %.o: %.c ncc.h
+ 	$(CC) -c $(CFLAGS) $<
++
++%-inv.o: %.c ncc.h
++	$(CC) -c $(CFLAGS) -DNEATCC_INV $< -o $@
++
+ ncc: $(OBJS)
+ 	$(CC) -o $@ $(OBJS) $(LDFLAGS)
++
++ncc-inv: $(OBJS-INV)
++	$(CC) -o $@ $(OBJS-INV) $(LDFLAGS)
+ clean:
+-	rm -f *.o ncc
++	rm -f *.o ncc ncc-inv
+diff -urN neatcc.orig/mem.c neatcc/mem.c
+--- neatcc.orig/mem.c	2017-07-30 11:18:43.031415194 -0400
++++ neatcc/mem.c	2016-12-09 23:39:13.583081860 -0500
+@@ -8,17 +8,14 @@
+ 
+ static void mem_extend(struct mem *mem)
+ {
+-	char *s = mem->s;
+ 	mem->sz = mem->sz ? mem->sz + mem->sz : MEMSZ;
+-	mem->s = malloc(mem->sz);
+-	if (mem->n)
+-		memcpy(mem->s, s, mem->n);
+-	free(s);
++	mem->s = realloc(mem->s, mem->sz * mem->datasize);
+ }
+ 
+-void mem_init(struct mem *mem)
++void mem_init(struct mem *mem, int datasize)
+ {
+ 	memset(mem, 0, sizeof(*mem));
++	mem->datasize = datasize;
+ }
+ 
+ void mem_done(struct mem *mem)
+@@ -34,29 +31,95 @@
+ 
+ void mem_cpy(struct mem *mem, long off, void *buf, long len)
+ {
+-	while (mem->n + off + len + 1 >= mem->sz)
++	int i;
++	char *chardata;
++	unsigned short *worddata;
++
++	while (off + len + 1 >= mem->sz)
+ 		mem_extend(mem);
+-	memcpy(mem->s + off, buf, len);
++
++	if(mem->datasize == 1)
++	{
++		chardata = (char *)mem->s;
++		for(i = 0; i < len; i++)
++			chardata[off + i] = ((char *)buf)[i];
++	}
++	else
++	{
++		worddata = (unsigned short *)mem->s;
++		for(i = 0; i < len; i++)
++			worddata[off + i] = ((unsigned char *)buf)[i];
++	}
+ }
+ 
+ void mem_put(struct mem *mem, void *buf, long len)
+ {
+-	mem_cpy(mem, mem->n, buf, len);
++	//copy buffer to buffer as they are the same type
++	//instead of only 8 bits per entry
++	//we do not modify mem_cpy as it is used for other data
++	//where we need to do char to short for cLEMENCy
++	while (mem->n + len + 1 >= mem->sz)
++		mem_extend(mem);
++
++	memcpy((char *)mem->s + (mem->n * mem->datasize), buf, len * mem->datasize);
+ 	mem->n += len;
+ }
+ 
++#ifdef NEATCC_CLEMENCY
++void mem_cpy2(struct mem *mem, long off, void *buf, long len)
++{
++	int i;
++	char *chardata;
++	unsigned short *worddata;
++
++	//this expects a short* buffer
++	while (off + len + 1 >= mem->sz)
++		mem_extend(mem);
++
++	worddata = (unsigned short *)mem->s;
++	for(i = 0; i < len; i++)
++		worddata[off + i] = ((unsigned short *)buf)[i];
++}
++
++void mem_put2(struct mem *mem, void *buf, long len)
++{
++	//copy buffer to buffer as they are the same type
++	//instead of only 8 bits per entry
++	while (mem->n + len + 1 >= mem->sz)
++		mem_extend(mem);
++
++	memcpy((char *)mem->s + (mem->n * mem->datasize), buf, len * mem->datasize);
++	mem->n += len;
++}
++#endif
++
+ void mem_putc(struct mem *mem, int c)
+ {
++	char *chardata;
++	short *worddata;
++
+ 	if (mem->n + 2 >= mem->sz)
+ 		mem_extend(mem);
+-	mem->s[mem->n++] = c;
++
++	if(mem->datasize == 1)
++	{
++		chardata = (char *)mem->s;
++		chardata[mem->n] = c & 0xff;
++	}
++	else
++	{
++		worddata = (short *)mem->s;
++		worddata[mem->n] = c & 0x1ff;
++	}
++
++	mem->n++;
+ }
+ 
+ void mem_putz(struct mem *mem, long sz)
+ {
+ 	while (mem->n + sz + 1 >= mem->sz)
+ 		mem_extend(mem);
+-	memset(mem->s + mem->n, 0, sz);
++	memset(&((char *)mem->s)[mem->n * mem->datasize], 0, sz * mem->datasize);
+ 	mem->n += sz;
+ }
+ 
+@@ -65,7 +128,7 @@
+ {
+ 	if (!mem->s)
+ 		return "";
+-	mem->s[mem->n] = '\0';
++	((char *)mem->s)[mem->n * mem->datasize] = 0;
+ 	return mem->s;
+ }
+ 
+@@ -80,6 +143,6 @@
+ 	if (!mem->s)
+ 		mem_extend(mem);
+ 	ret = mem->s;
+-	mem_init(mem);
++	mem_init(mem, mem->datasize);
+ 	return ret;
+ }
+Binary files neatcc.orig/ncc and neatcc/ncc differ
+diff -urN neatcc.orig/ncc.c neatcc/ncc.c
+--- neatcc.orig/ncc.c	2017-07-30 11:18:43.031415194 -0400
++++ neatcc/ncc.c	2017-04-13 21:47:50.275081709 -0400
+@@ -41,7 +41,6 @@
+ #include <sys/types.h>
+ #include "ncc.h"
+ 
+-#define ALIGN(x, a)		(((x) + (a) - 1) & ~((a) - 1))
+ #define MIN(a, b)		((a) < (b) ? (a) : (b))
+ #define MAX(a, b)		((a) < (b) ? (b) : (a))
+ 
+@@ -1273,6 +1272,10 @@
+ 	if (!(flags & F_EXTERN) && (!(t->flags & T_FUNC) || t->ptr)) {
+ 		if (tok_comes("="))
+ 			name->addr = o_dsnew(elfname, sz, F_GLOBAL(flags));
++#ifdef NEATCC_CLEMENCY
++		else if(strncmp(elfname, "PAGE_COUNT_", 11) == 0)
++			o_csnew(elfname, sz, F_GLOBAL(flags));
++#endif
+ 		else
+ 			o_bsnew(elfname, sz, F_GLOBAL(flags));
+ 	}
+@@ -1589,6 +1592,11 @@
+ 		tok_req(";");
+ 		return;
+ 	}
++	if(!tok_jmp("dbrk")) {
++		o_dbrk();
++		tok_req(";");
++		return;
++	}
+ 	readestmt();
+ 	/* labels */
+ 	if (!tok_jmp(":")) {
+@@ -1662,9 +1670,12 @@
+ 
+ int main(int argc, char *argv[])
+ {
+-	char obj[128] = "";
++	char obj[256] = "";
+ 	int ofd;
+ 	int i;
++	gen_init();
++	tok_init();
++	i_init();
+ 	compat_macros();
+ 	for (i = 1; i < argc && argv[i][0] == '-'; i++) {
+ 		if (argv[i][1] == 'I')
+@@ -1713,6 +1724,7 @@
+ 	free(structs);
+ 	free(arrays);
+ 	tok_done();
++	printf("opening %s\n", obj);
+ 	ofd = open(obj, O_WRONLY | O_TRUNC | O_CREAT, 0600);
+ 	o_write(ofd);
+ 	close(ofd);
+diff -urN neatcc.orig/ncc.h neatcc/ncc.h
+--- neatcc.orig/ncc.h	2017-07-30 11:18:43.031415194 -0400
++++ neatcc/ncc.h	2017-04-10 22:15:51.965274131 -0400
+@@ -24,7 +24,11 @@
+ #define NLOCS		1024		/* number of header search paths */
+ 
+ #define LEN(a)		(sizeof(a) / sizeof((a)[0]))
++#ifndef NEATCC_CLEMENCY
+ #define ALIGN(x, a)	(((x) + (a) - 1) & ~((a) - 1))
++#else
++#define ALIGN(x, a)	(((x) + ((a) - 1)) / (a) * (a))
++#endif
+ #define MIN(a, b)	((a) < (b) ? (a) : (b))
+ #define MAX(a, b)	((a) < (b) ? (b) : (a))
+ 
+@@ -35,16 +39,21 @@
+ 
+ /* variable length buffer */
+ struct mem {
+-	char *s;		/* allocated buffer */
++	void *s;		/* allocated buffer */
+ 	long sz;		/* buffer size */
+ 	long n;			/* length of data stored in s */
++	int datasize;		/* size of a byte of data */
+ };
+ 
+-void mem_init(struct mem *mem);
++void mem_init(struct mem *mem, int datasize);
+ void mem_done(struct mem *mem);
+ void mem_cut(struct mem *mem, long pos);
+ void *mem_buf(struct mem *mem);
+ void mem_put(struct mem *mem, void *buf, long len);
++#ifdef NEATCC_CLEMENCY
++void mem_cpy2(struct mem *mem, long off, void *buf, long len);
++void mem_put2(struct mem *mem, void *buf, long len);
++#endif
+ void mem_putc(struct mem *mem, int c);
+ void mem_putz(struct mem *mem, long sz);
+ void mem_cpy(struct mem *mem, long off, void *buf, long len);
+@@ -52,7 +61,7 @@
+ void *mem_get(struct mem *mem);
+ 
+ /* SECTION ONE: Tokenisation */
+-void tok_init(char *path);
++void tok_init();
+ void tok_done(void);
+ char *tok_see(void);		/* return the current token; a static buffer */
+ char *tok_get(void);		/* return and consume the current token */
+@@ -76,7 +85,11 @@
+ 
+ /* number of bytes in basic types */
+ #define ULNG		(LONGSZ)
++#ifdef NEATCC_CLEMENCY
++#define UINT		(3)
++#else
+ #define UINT		(4)
++#endif
+ #define USHT		(2)
+ #define UCHR		(1)
+ /* basic types */
+@@ -105,6 +118,7 @@
+ #define O_RET	0x008000	/*	-	R	-	-  */
+ #define O_LD	0x010000	/*	R	RSL	D	-  */
+ #define O_ST	0x020000	/*	-	R	RSL	D  */
++#define O_DBRK	0x040000	/*	-	-	-	-  */
+ /* opcode flags: num, loc, sym */
+ #define O_NUM	0x100000	/* instruction immediate */
+ #define O_LOC	0x200000	/* local (frame pointer displacement) */
+@@ -144,6 +158,7 @@
+ void o_cast(long bt);
+ void o_memcpy(void);
+ void o_memset(void);
++void o_dbrk(void);
+ void o_call(int argc, int ret);
+ void o_ret(int ret);
+ void o_assign(long bt);
+@@ -169,6 +184,7 @@
+ long o_mark(void);
+ void o_back(long mark);
+ /* data/bss sections */
++void o_csnew(char *name, long size, int global);
+ long o_dsnew(char *name, long size, int global);
+ void o_dscpy(long addr, void *buf, long len);
+ void o_dsset(char *name, long off, long bt);
+@@ -263,15 +279,19 @@
+ #ifdef NEATCC_X86
+ #include "x86.h"
+ #endif
++#ifdef NEATCC_CLEMENCY
++#include "clemency.h"
++#endif
+ 
+ /* architecture-specific operations */
+ long i_reg(long op, long *rd, long *r1, long *r2, long *r3, long *mt);
+ long i_ins(long op, long rd, long r1, long r2, long r3);
+-int i_imm(long lim, long n);
++int i_imm(long op, long lim, long n);
+ void i_label(long id);
+ void i_wrap(int argc, long sargs, long spsub, int initfp, long sregs, long sregs_pos);
+ void i_code(char **c, long *c_len, long **rsym, long **rflg, long **roff, long *rcnt);
+ void i_done(void);
++void i_init(void);
+ 
+ extern int tmpregs[];
+ extern int argregs[];
+@@ -288,7 +308,11 @@
+ #define OUT_RL24	0x0400		/* 3-byte relocation */
+ #define OUT_RL32	0x0800		/* 4-byte relocation */
+ 
++#ifdef NEATCC_CLEMENCY
++#define OUT_ALIGNMENT	1
++#else
+ #define OUT_ALIGNMENT	16		/* section alignment */
++#endif
+ 
+ void out_init(long flags);
+ 
+@@ -297,3 +321,4 @@
+ void out_rel(long id, long flags, long off);
+ 
+ void out_write(int fd, char *cs, long cslen, char *ds, long dslen);
++
+Binary files neatcc.orig/ncc-inv and neatcc/ncc-inv differ
+diff -urN neatcc.orig/out.c neatcc/out.c
+--- neatcc.orig/out.c	2017-07-30 11:18:43.031415194 -0400
++++ neatcc/out.c	2017-06-13 23:04:23.512208232 -0400
+@@ -6,8 +6,6 @@
+ #include <unistd.h>
+ #include "ncc.h"
+ 
+-#define ALIGN(x, a)		(((x) + (a) - 1) & ~((a) - 1))
+-
+ #define SEC_TEXT		1
+ #define SEC_REL			2
+ #define SEC_SYMS		3
+@@ -248,7 +246,11 @@
+ 	text_shdr->sh_type = SHT_PROGBITS;
+ 	text_shdr->sh_flags = SHF_EXECINSTR | SHF_ALLOC;
+ 	text_shdr->sh_offset = offset;
++#ifdef NEATCC_CLEMENCY
++	text_shdr->sh_size = cslen*2;
++#else
+ 	text_shdr->sh_size = cslen;
++#endif
+ 	text_shdr->sh_entsize = 1;
+ 	text_shdr->sh_addralign = OUT_ALIGNMENT;
+ 	offset += text_shdr->sh_size;
+@@ -272,7 +274,11 @@
+ 	dat_shdr->sh_type = SHT_PROGBITS;
+ 	dat_shdr->sh_flags = SHF_ALLOC | SHF_WRITE;
+ 	dat_shdr->sh_offset = offset;
++#ifdef NEATCC_CLEMENCY
++	dat_shdr->sh_size = dslen*2;
++#else
+ 	dat_shdr->sh_size = dslen;
++#endif
+ 	dat_shdr->sh_entsize = 1;
+ 	dat_shdr->sh_addralign = OUT_ALIGNMENT;
+ 	offset += dat_shdr->sh_size;
+@@ -300,10 +306,18 @@
+ 
+ 	write(fd, &ehdr, sizeof(ehdr));
+ 	write(fd, shdr,  NSECS * sizeof(shdr[0]));
++#ifdef NEATCC_CLEMENCY
++	write(fd, cs, cslen*2);
++#else
+ 	write(fd, cs, cslen);
++#endif
+ 	write(fd, csrel, csrel_n * sizeof(csrel[0]));
+ 	write(fd, syms, syms_n * sizeof(syms[0]));
++#ifdef NEATCC_CLEMENCY
++	write(fd, ds, dslen*2);
++#else
+ 	write(fd, ds, dslen);
++#endif
+ 	write(fd, dsrel, dsrel_n * sizeof(dsrel[0]));
+ 	write(fd, symstr, symstr_n);
+ 
+@@ -358,3 +372,21 @@
+ 	return flags & OUT_RLREL ? R_386_PC32 : R_386_32;
+ }
+ #endif
++
++#ifdef NEATCC_CLEMENCY
++static void ehdr_init(Elf_Ehdr *ehdr)
++{
++	ehdr->e_machine = 0x4c43;       //CLem
++}
++
++static int rel_type(int flags)
++{
++	//just hijacking flags from other processors to make this easier
++	if(flags & OUT_RL24)
++		return R_ARM_PC13;	//4
++	if(flags & OUT_RL32)
++		return R_ARM_PC24;	//1
++	return flags & OUT_RLREL ? R_ARM_REL32 : R_ARM_ABS32;	// 3 / 2
++}
++#endif
++
+diff -urN neatcc.orig/tok.c neatcc/tok.c
+--- neatcc.orig/tok.c	2017-07-30 11:18:43.031415194 -0400
++++ neatcc/tok.c	2017-01-07 14:57:20.601806987 -0500
+@@ -18,6 +18,17 @@
+ 	"%=", "|=", "&=", "^=", "&&", "||", "==", "!=", "<=", ">=", "->"
+ };
+ 
++void tok_init()
++{
++        mem_init(&tok_mem, 1);
++        mem_init(&tok, 1);
++	buf = 0;
++	off = 0;
++	off_pre = 0;
++	len = 0;
++	tok_set = 0;
++}
++
+ static char *find_tok3(char *r)
+ {
+ 	int i;
+@@ -199,8 +210,19 @@
+ 		return 0;
+ 	}
+ 	if (id_char((unsigned char) buf[off])) {
+-		while (off < len && id_char((unsigned char) buf[off]))
+-			mem_putc(&tok, (unsigned char) buf[off++]);
++		while (off < len)
++		{
++			if(id_char((unsigned char) buf[off]))
++				mem_putc(&tok, (unsigned char) buf[off++]);
++			else if(((unsigned char)buf[off] == ':') && ((unsigned char)buf[off+1] == ':'))
++			{
++				mem_putc(&tok, ':');
++				mem_putc(&tok, ':');
++				off+=2;
++			}
++			else
++				break;
++		};
+ 		return 0;
+ 	}
+ 	if (off + 2 <= len && (t3 = find_tok3(buf + off))) {
+diff -urN neatcc.orig/x64.c neatcc/x64.c
+--- neatcc.orig/x64.c	2017-07-30 11:18:43.031415194 -0400
++++ neatcc/x64.c	2016-12-06 22:16:26.592673405 -0500
+@@ -44,7 +44,12 @@
+ #define MODRM(m, r1, r2)	((m) << 6 | (r1) << 3 | (r2))
+ #define REX(r1, r2)		(0x48 | (((r1) & 8) >> 1) | (((r2) & 8) >> 3))
+ 
+-static struct mem cs;		/* generated code */
++static struct mem cs;
++
++void i_init()
++{
++	mem_init(&cs, 1);
++}
+ 
+ /* code generation functions */
+ static void os(void *s, int n)
+@@ -704,7 +709,7 @@
+ 	return 1;
+ }
+ 
+-int i_imm(long lim, long n)
++int i_imm(long op, long lim, long n)
+ {
+ 	long max = (1 << (lim - 1)) - 1;
+ 	return n <= max && n + 1 >= -max;
+diff -urN neatcc.orig/x86.c neatcc/x86.c
+--- neatcc.orig/x86.c	2017-07-30 11:18:43.031415194 -0400
++++ neatcc/x86.c	2016-12-06 22:16:03.977421277 -0500
+@@ -44,7 +44,12 @@
+ #define O1(op)			((op) & 0xff)
+ #define MODRM(m, r1, r2)	((m) << 6 | (r1) << 3 | (r2))
+ 
+-static struct mem cs;		/* generated code */
++static struct mem cs;
++
++void i_init()
++{
++	mem_init(&cs, 1);
++}
+ 
+ /* code generation functions */
+ static void os(void *s, int n)
+@@ -659,7 +664,7 @@
+ 	return 1;
+ }
+ 
+-int i_imm(long lim, long n)
++int i_imm(long op, long lim, long n)
+ {
+ 	long max = (1 << (lim - 1)) - 1;
+ 	return n <= max && n + 1 >= -max;
+@@ -761,3 +766,4 @@
+ 	}
+ 	return 1;
+ }
++

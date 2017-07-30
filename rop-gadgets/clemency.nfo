@@ -1,0 +1,75 @@
+                                                                   ,Jap9Lb\,r
+                                                                   Z_:p;L4'9IC~
+                                                                  od1;8%s}<!=)Ux*
+                                                                 -Nn*'B\yk*_eo"p
+                                                                KT%ÇŒó-;B6] P5s:
+                                 '&e$LC\'                       i-5∞]1aTLBC P•
+                                 )d:$JpR˚UBYf                  ,{X]9QR(A$zˇL&Q
+                                ozmæC∑hr3Y|qO~                %_3zb#xKfGk3]n1
+                                }eH^M©'ÈxüÁ6P=                X:Sn2}6r?YH>Ti
+                               KÔ@+`1~rYpƒYk%˜               KxemX"q80a'MF~
+                               8öGb&&òw4qVØtX               ‹U4z.=)VèH]J??
+                              kks1»f2w2r5H P            ËOB-àbQmf∂A{ P&PzqaQXxs}V8[<{V@'q\\`
+                             |HnnQ9?wR5»WrW"HCk P7%?Êˆ\4nF%Je`Y%7-ÿ@W**lBC P<c!?P6_qE6<6AW
+                            Fb!k!´DWd%Ç»r%&r-ı P3e6H$rcp]&u.eX7\-[7$)Frﬂ PZ;*y2l8YRoP™j
+                    ÚH6&EPOg)òzó2√öpb P'#Bn\ydyud&od¢AL5∞LRˆwr*é P\›;2lB•ú0?[ÿ]w
+                   CSGj;kGc1à`b(X$A≥ P4b.bc∫1:uD>jmZO35»Pw*1LÜk P!Sa/e“J
+                   ro;Hr'p!Ç«w)%2eÊ P$Oib@^Kg/Oy]LiN-∏qrŒ°HGK P#=8o
+                   ˘aXG1°a~)5†a≤*@XC3 P2?|oW˚GLù;    qi?h4.C^§:ENe              C> Zñ2Rv
+                    ZtC3;<.[w5%1Kox(j±=              baD5êDs„3XA{ P*$BqW6[4rìh=<@!rGPu{˝O4
+                      ÷Zï_YV5ÿs∑2CfW2 P4P%A´wíë+l4#-HSi5†Z¢%⁄b ê P5}v/¨UTelz'gê-'_toa
+                         aZTzÌ@)ÄFw<NBt≤ P?æRp\g.S$}3?cGm1∞`rS¢rk≠ P;1lPy;[Cg;|W
+              œ-NèIMP5¿rR[_"0v P!H:Z^l7]A!{L*wÀ55–lsI†R7' P*<,÷ıH:P#ﬂX2
+             ,#,q~bQX1‡LÛé!R:5 P)87n!D-o:b3,Z/{^%ÇÿìmA.[' P-~'wU       C=m       IS:7
+            ae=H5†XÒe4:`* P\ALV$VV9(Dn8,/F-òB∑&#∆ôÅ Ph'¯4jVQˆ0<~;  ifIP       HLz/
+            05‘M;"ˇZ1ËO$6XNJ· P'unjfFsm=L6*K=Wa5Ä\7 1ZTJ P,XL%QzY x              um
+             gH[J5®tSX$~ÁT P8IZ#rm&|6B;Ëb&|NF)sGbO1?L7}nëFg7Y
+            .îú5{«X<]YCt)8kr?\fk,mI˚‡t]uB         X~zGg3lπdB
+            oX(,pErgE|iS}\9FG}<                  f|N%v0Qí>Z@
+                     2GïEØ|Dvp                   W=mI^.cPli
+                     b*≈IMW\˚                   )üƒ+O>Uaˇ`[
+                     0usavH                     VC^l"Èu>N
+                     +(%HC                     7œRo{D.ìTD
+                    sw>y_                      Z2F.s8&VGn
+                     a                        $o$*>:P0
+                                              wqNSUp{'
+                                             Ô`)e–IÆ
+
+
+
+            --=--=--=--=--=--Release Notes--=--=--=--=--=--
+
+Name: cLEMENCy Emulator
+Release date: 2017-07-27
+
+---Notes---
+Emulator for DEF CON CTF 2017, lifted from Lightning's laptop and patched to include
+this NFO at 0x5100000, don't worry, we hijacked the game one too. Has a built in
+debugger and disassembler. Debugger appears to accept basic math operations and
+function name usage if no spaces are included, [] for dereferences.
+
+Supports custom map files, not documented but lines look like below
+1: _start @ 0000000 0
+2: main @ 001a408 2592
+
+            --=--=-Legitimate Business Syndicate Crew-=--=--
+
+Deadwood    Fuzyll      Gynophage    HJ
+Hoju        Jymbolia    Lightning    Selir
+Sirgoon     Thing2      Vito
+
+            --=--=--=--=--=--=--Contact--=--=--=--=--=--=--
+
+Via Email:   ...@legitbs.net
+Via Web:     www.legitbs.net
+Via Twitter: #legitbs_ctf
+
+            --=--=--=--=--=--=--=Greetz=--=--=--=--=--=--=--
+
+Dark Tangent    Grifter    Stryde    Hax
+Soen            Aask       Phoenix Kiana
+Neil            Nikita     Pyr0
+Cseagle and the rest of the ddtek crew
+Visi and the kenshoto group
+
+            --=--=--=--=--=--=--=--=--=--=--=--=--=--=--=--

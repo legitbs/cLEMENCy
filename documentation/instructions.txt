@@ -1,0 +1,121 @@
+br|branch return
+di|disable interrupts
+ei|enable interrupts
+hs|Hash
+ht|halt
+ir|interrupt return
+wt|wait
+ad|add - rA = rB + rC
+adf|add floating point - rA = rB + rC
+adfm|add floating point multireg - rA = rB + rC
+adm|add multi reg - rA = rB + rC
+an|and - rA = rB & rC
+anf|and floating point - rA = rB & rC
+anfm|and floating point multireg - rA = rB & rC
+anm|and multi reg - rA = rB & rC
+dv|divide - rA = rB / rC
+dvf|divide floating point - rA = rB / rC
+dvfm|divide floating point multireg - rA = rB / rC
+dvm|divide multi reg - rA = rB / rC
+md|modulus - rA = rB % rC
+mdf|modulus floating point - rA = rB % rC
+mdfm|modulus floating point multireg - rA = rB % rC
+mdm|modulus multi reg - rA = rB % rC
+mu|multiply - rA = rB * rC
+muf|multiply floating point - rA = rB * rC
+mufm|multiply floating point multireg - rA = rB * rC
+mum|multiply multi reg - rA = rB * rC
+or|or - rA = rB | rC
+orf|or floating point - rA = rB | rC
+orfm|or floating point multireg - rA = rB | rC
+orm|or multi reg - rA = rB | rC
+rl|rotate left - rA = rB rol rC
+rlm|rotate left multi reg - rA = rB rol rC
+rr|rotate right - rA = rB ror rC
+rrm|rotate right multi reg - rA = rB ror rC
+sa|shift arithemetic right - rA = rB >> rC
+sam|shift arithemetic right multi reg - rA = rB >> rC
+sb|sub - rA = rB - rC
+sbf|sub floating point - rA = rB - rC
+sbfm|sub floating point multireg - rA = rB - rC
+sbm|sub multi reg - rA = rB - rC
+sl|shift left - rA = rB << rC
+slm|shift left multi reg - rA = rB << rC
+sr|shift right - rA = rB >> rC
+srm|shift right multi reg - rA = rB >> rC
+xr|xor - rA = rB ^ rC
+xrf|xor floating point - rA = rB ^ rC
+xrfm|xor floating point multireg - rA = rB ^ rC
+xrm|xor multi reg - rA = rB ^ rC
+rli|rotate left immediate - rA = rB rol Imm
+rri|rotate right immediate - rA = rB ror Imm
+sai|shift arithemetic right immediate - rA = rB >> Imm
+sli|shift left immediate - rA = rB << Imm
+sri|shift right immediate - rA = rB >> Imm
+lds|load single - rA->rX = [rB + Memory_Offset]
+ldt|load tri - rA->rX = [rB + Memory_Offset]
+ldw|load word - rA->rX = [rB + Memory_Offset]
+sts|store single - [rB + Memory_Offset] = rA->rX
+stt|store tri - [rB + Memory_Offset] = rA->rX
+stw|store word - [rB + Memory_Offset] = rA->rX
+ng|negate - rA = -rA
+ngf|negate floating point - rA = -rA
+ngfm|negate floating point multireg - rA = -rA
+ngm|negate multi reg - rA = -rA
+nt|not - rA = !rA
+ntf|not floating point - rA = !rA
+ntfm|not floating point multireg - rA = !rA
+ntm|not multi reg - rA = !rA
+rnd|rand - rA = random
+rndm|rand multi reg - rA = random
+cm|Compare
+cmf|Compare floating point
+cmfm|Compare floating point multireg
+cmm|Compare multi reg
+b|Branch Always
+be|Branch Equal
+bg|Branch Greater Than
+bge|Branch Equal or Greater Than or Equal
+bl|Branch Less Than
+ble|Branch Less Than or Equal
+bn|Branch Not Equal
+bno|Branch Not Overflow
+bo|Branch Overflow
+bs|Branch Signed
+bsg|Branch Signed Greater Than
+bsge|Branch Signed Greater Than or Equal
+bsl|Branch Signed Less Than
+bsle|Branch Signed Less Than or Equal
+bz|Branch Zero
+ba|Branch Absolute
+br|Branch Relative
+ca|Call Absolute
+cr|Call Relative
+mh|move high - rA = (Imm << 12) | (rA & 0xFFF)
+ml|move low - rA = Imm (zero extended)
+ms|move low signed - rA = Imm (sign extended)
+br|Branch Register Always
+bre|Branch Register Equal
+brg|Branch Register Greater Than
+brge|Branch Register Equal or Greater Than or Equal
+brl|Branch Register Less Than
+brle|Branch Register Less Than or Equal
+brn|Branch Register Not Equal
+brno|Branch Register Not Overflow
+bro|Branch Register Overflow
+brs|Branch Register Signed
+brsg|Branch Register Signed Greater Than
+brsge|Branch Register Signed Greater Than or Equal
+brsl|Branch Register Signed Less Than
+brsle|Branch Register Signed Less Than or Equal
+brz|Branch Register Zero
+rmp|Read Memory Protection
+smp|Set Memory Protection
+cmi|Compare Immediate
+cmif|Compare Immediate floating point
+cmifm|Compare Immediate floating point multireg
+cmim|Compare Immediate multi reg
+ftoi|float to int
+ftoim|float to int
+itof|int to float
+itofm|int to float

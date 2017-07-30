@@ -1,0 +1,1445 @@
+diff -urN neatld.orig/bytes_8_to_9.c neatld/bytes_8_to_9.c
+--- neatld.orig/bytes_8_to_9.c	1969-12-31 19:00:00.000000000 -0500
++++ neatld/bytes_8_to_9.c	2017-01-20 19:29:23.528444996 -0500
+@@ -0,0 +1,108 @@
++#include <fcntl.h>
++#include <stdio.h>
++#include "bytes_8_to_9.h"
++
++unsigned char *buffer_9bits;
++int cur_offset_9bits;		//current 9 byte offset
++int cur_offset_8bits;		//current 8 byte offset
++int cur_offset_8bit_single;	//which bit to start at (1 to 8, 1 being 0x80, 8 being 0x01) for writing
++int cur_buffer_size_8bits;
++int max_buffer_size_8bits;
++int max_buffer_size_9bits;
++
++#define Bits8To9(InBytes) ((InBytes*8/9) + (((InBytes*8)%9) != 0))
++
++void Init_9bits()
++{
++	cur_offset_9bits = 0;
++	cur_offset_8bits = 0;
++	cur_offset_8bit_single = 1;
++	cur_buffer_size_8bits = 0;
++	max_buffer_size_8bits = 0x4000;
++	max_buffer_size_9bits = Bits8To9(max_buffer_size_8bits) - 1;
++	buffer_9bits = malloc(max_buffer_size_8bits);
++	memset(buffer_9bits, 0, max_buffer_size_8bits);
++}
++
++void ExtendBuffer_9bits(int NewSize)
++{
++	int orig_size;
++
++	if((cur_offset_9bits + NewSize) >= max_buffer_size_9bits)
++	{
++		//extend the buffer
++		orig_size = max_buffer_size_8bits;
++		if(NewSize < 0x4000)
++			NewSize = 0x4000;
++		NewSize = (cur_offset_9bits + NewSize) * 9 / 8;
++		NewSize = ((NewSize >> 14) + 1) << 14;
++		max_buffer_size_8bits = NewSize;
++		max_buffer_size_9bits = Bits8To9(max_buffer_size_8bits) - 10;
++		buffer_9bits = realloc(buffer_9bits, max_buffer_size_8bits);
++		memset(&buffer_9bits[orig_size], 0, max_buffer_size_8bits - orig_size);
++	}
++}
++
++int write9bytes(short *buffer, int len)
++{
++	short CurByte;
++	int PartialNextByte;
++
++	//in buffer is 9 bits setup as a word
++	ExtendBuffer_9bits(len);
++
++	while(len)
++	{
++		buffer_9bits[cur_offset_8bits] &= (0xff << (9-cur_offset_8bit_single));
++		buffer_9bits[cur_offset_8bits] |= ((*buffer >> cur_offset_8bit_single) & 0xff);
++
++		//move to the next byte
++		cur_offset_8bits++;
++
++		//mask and write the rest of the 9 bits
++		CurByte = *buffer & ((1 << cur_offset_8bit_single) - 1);
++		buffer_9bits[cur_offset_8bits] = (CurByte << (8 - cur_offset_8bit_single)) & 0xff;
++		PartialNextByte = 1;
++
++		//adjust what bit to start with
++		cur_offset_8bit_single = 9 - (8 - cur_offset_8bit_single);
++
++		if(cur_offset_8bit_single == 9)
++		{
++			cur_offset_8bit_single = 1;
++			cur_offset_8bits++;
++			PartialNextByte = 0;
++		}
++
++		len--;
++		buffer++;
++		cur_offset_9bits++;
++
++		//keep track of how much of the buffer we fill
++		if((cur_offset_8bits + PartialNextByte) > cur_buffer_size_8bits)
++			cur_buffer_size_8bits = cur_offset_8bits + PartialNextByte;
++	}
++
++	return len;
++}
++
++void lseek9bytes(int pos, int SeekType)
++{
++	if(SeekType != SEEK_SET)
++	{
++		fprintf(stderr, "lseek9bytes: invalid seek\n");
++		exit(1);
++	}
++
++	cur_offset_9bits = pos;
++
++	//calculate the position in 8 bits
++	cur_offset_8bits = pos * 9 / 8;
++	cur_offset_8bit_single = ((pos * 9) % 8) + 1;
++}
++
++int write9buffer(int fd)
++{
++	return write(fd, buffer_9bits, cur_buffer_size_8bits);
++}
++
+diff -urN neatld.orig/bytes_8_to_9.h neatld/bytes_8_to_9.h
+--- neatld.orig/bytes_8_to_9.h	1969-12-31 19:00:00.000000000 -0500
++++ neatld/bytes_8_to_9.h	2016-08-21 21:27:20.868290414 -0400
+@@ -0,0 +1,10 @@
++#ifndef bytes_8_to_9
++#define bytes_8_to_9
++
++void Init_9bits();
++void ExtendBuffer_9bits(int NewSize);
++int write9bytes(short *buffer, int len);
++void lseek9bytes(int pos, int SeekType);
++int write9buffer(int fd);
++
++#endif
+diff -urN neatld.orig/.git/config neatld/.git/config
+--- neatld.orig/.git/config	2017-07-30 11:16:08.657493683 -0400
++++ neatld/.git/config	1969-12-31 19:00:00.000000000 -0500
+@@ -1,12 +0,0 @@
+-[core]
+-	repositoryformatversion = 0
+-	filemode = true
+-	bare = false
+-	logallrefupdates = true
+-[remote "origin"]
+-	url = https://github.com/litcave/neatld.git
+-	fetch = +refs/heads/*:refs/remotes/origin/*
+-[branch "master"]
+-	remote = origin
+-	merge = refs/heads/master
+-	rebase = true
+diff -urN neatld.orig/.git/description neatld/.git/description
+--- neatld.orig/.git/description	2017-07-30 11:16:07.821493672 -0400
++++ neatld/.git/description	1969-12-31 19:00:00.000000000 -0500
+@@ -1 +0,0 @@
+-Unnamed repository; edit this file 'description' to name the repository.
+diff -urN neatld.orig/.git/HEAD neatld/.git/HEAD
+--- neatld.orig/.git/HEAD	2017-07-30 11:17:35.235439776 -0400
++++ neatld/.git/HEAD	1969-12-31 19:00:00.000000000 -0500
+@@ -1 +0,0 @@
+-75d5b1fca23c43268f158bea93b8594fbc5bcf4f
+diff -urN neatld.orig/.git/hooks/applypatch-msg.sample neatld/.git/hooks/applypatch-msg.sample
+--- neatld.orig/.git/hooks/applypatch-msg.sample	2017-07-30 11:16:07.821493672 -0400
++++ neatld/.git/hooks/applypatch-msg.sample	1969-12-31 19:00:00.000000000 -0500
+@@ -1,15 +0,0 @@
+-#!/bin/sh
+-#
+-# An example hook script to check the commit log message taken by
+-# applypatch from an e-mail message.
+-#
+-# The hook should exit with non-zero status after issuing an
+-# appropriate message if it wants to stop the commit.  The hook is
+-# allowed to edit the commit message file.
+-#
+-# To enable this hook, rename this file to "applypatch-msg".
+-
+-. git-sh-setup
+-test -x "$GIT_DIR/hooks/commit-msg" &&
+-	exec "$GIT_DIR/hooks/commit-msg" ${1+"$@"}
+-:
+diff -urN neatld.orig/.git/hooks/commit-msg.sample neatld/.git/hooks/commit-msg.sample
+--- neatld.orig/.git/hooks/commit-msg.sample	2017-07-30 11:16:07.821493672 -0400
++++ neatld/.git/hooks/commit-msg.sample	1969-12-31 19:00:00.000000000 -0500
+@@ -1,24 +0,0 @@
+-#!/bin/sh
+-#
+-# An example hook script to check the commit log message.
+-# Called by "git commit" with one argument, the name of the file
+-# that has the commit message.  The hook should exit with non-zero
+-# status after issuing an appropriate message if it wants to stop the
+-# commit.  The hook is allowed to edit the commit message file.
+-#
+-# To enable this hook, rename this file to "commit-msg".
+-
+-# Uncomment the below to add a Signed-off-by line to the message.
+-# Doing this in a hook is a bad idea in general, but the prepare-commit-msg
+-# hook is more suited to it.
+-#
+-# SOB=$(git var GIT_AUTHOR_IDENT | sed -n 's/^\(.*>\).*$/Signed-off-by: \1/p')
+-# grep -qs "^$SOB" "$1" || echo "$SOB" >> "$1"
+-
+-# This example catches duplicate Signed-off-by lines.
+-
+-test "" = "$(grep '^Signed-off-by: ' "$1" |
+-	 sort | uniq -c | sed -e '/^[ 	]*1[ 	]/d')" || {
+-	echo >&2 Duplicate Signed-off-by lines.
+-	exit 1
+-}
+diff -urN neatld.orig/.git/hooks/post-update.sample neatld/.git/hooks/post-update.sample
+--- neatld.orig/.git/hooks/post-update.sample	2017-07-30 11:16:07.821493672 -0400
++++ neatld/.git/hooks/post-update.sample	1969-12-31 19:00:00.000000000 -0500
+@@ -1,8 +0,0 @@
+-#!/bin/sh
+-#
+-# An example hook script to prepare a packed repository for use over
+-# dumb transports.
+-#
+-# To enable this hook, rename this file to "post-update".
+-
+-exec git update-server-info
+diff -urN neatld.orig/.git/hooks/pre-applypatch.sample neatld/.git/hooks/pre-applypatch.sample
+--- neatld.orig/.git/hooks/pre-applypatch.sample	2017-07-30 11:16:07.821493672 -0400
++++ neatld/.git/hooks/pre-applypatch.sample	1969-12-31 19:00:00.000000000 -0500
+@@ -1,14 +0,0 @@
+-#!/bin/sh
+-#
+-# An example hook script to verify what is about to be committed
+-# by applypatch from an e-mail message.
+-#
+-# The hook should exit with non-zero status after issuing an
+-# appropriate message if it wants to stop the commit.
+-#
+-# To enable this hook, rename this file to "pre-applypatch".
+-
+-. git-sh-setup
+-test -x "$GIT_DIR/hooks/pre-commit" &&
+-	exec "$GIT_DIR/hooks/pre-commit" ${1+"$@"}
+-:
+diff -urN neatld.orig/.git/hooks/pre-commit.sample neatld/.git/hooks/pre-commit.sample
+--- neatld.orig/.git/hooks/pre-commit.sample	2017-07-30 11:16:07.821493672 -0400
++++ neatld/.git/hooks/pre-commit.sample	1969-12-31 19:00:00.000000000 -0500
+@@ -1,49 +0,0 @@
+-#!/bin/sh
+-#
+-# An example hook script to verify what is about to be committed.
+-# Called by "git commit" with no arguments.  The hook should
+-# exit with non-zero status after issuing an appropriate message if
+-# it wants to stop the commit.
+-#
+-# To enable this hook, rename this file to "pre-commit".
+-
+-if git rev-parse --verify HEAD >/dev/null 2>&1
+-then
+-	against=HEAD
+-else
+-	# Initial commit: diff against an empty tree object
+-	against=4b825dc642cb6eb9a060e54bf8d69288fbee4904
+-fi
+-
+-# If you want to allow non-ASCII filenames set this variable to true.
+-allownonascii=$(git config --bool hooks.allownonascii)
+-
+-# Redirect output to stderr.
+-exec 1>&2
+-
+-# Cross platform projects tend to avoid non-ASCII filenames; prevent
+-# them from being added to the repository. We exploit the fact that the
+-# printable range starts at the space character and ends with tilde.
+-if [ "$allownonascii" != "true" ] &&
+-	# Note that the use of brackets around a tr range is ok here, (it's
+-	# even required, for portability to Solaris 10's /usr/bin/tr), since
+-	# the square bracket bytes happen to fall in the designated range.
+-	test $(git diff --cached --name-only --diff-filter=A -z $against |
+-	  LC_ALL=C tr -d '[ -~]\0' | wc -c) != 0
+-then
+-	cat <<\EOF
+-Error: Attempt to add a non-ASCII file name.
+-
+-This can cause problems if you want to work with people on other platforms.
+-
+-To be portable it is advisable to rename the file.
+-
+-If you know what you are doing you can disable this check using:
+-
+-  git config hooks.allownonascii true
+-EOF
+-	exit 1
+-fi
+-
+-# If there are whitespace errors, print the offending file names and fail.
+-exec git diff-index --check --cached $against --
+diff -urN neatld.orig/.git/hooks/prepare-commit-msg.sample neatld/.git/hooks/prepare-commit-msg.sample
+--- neatld.orig/.git/hooks/prepare-commit-msg.sample	2017-07-30 11:16:07.821493672 -0400
++++ neatld/.git/hooks/prepare-commit-msg.sample	1969-12-31 19:00:00.000000000 -0500
+@@ -1,36 +0,0 @@
+-#!/bin/sh
+-#
+-# An example hook script to prepare the commit log message.
+-# Called by "git commit" with the name of the file that has the
+-# commit message, followed by the description of the commit
+-# message's source.  The hook's purpose is to edit the commit
+-# message file.  If the hook fails with a non-zero status,
+-# the commit is aborted.
+-#
+-# To enable this hook, rename this file to "prepare-commit-msg".
+-
+-# This hook includes three examples.  The first comments out the
+-# "Conflicts:" part of a merge commit.
+-#
+-# The second includes the output of "git diff --name-status -r"
+-# into the message, just before the "git status" output.  It is
+-# commented because it doesn't cope with --amend or with squashed
+-# commits.
+-#
+-# The third example adds a Signed-off-by line to the message, that can
+-# still be edited.  This is rarely a good idea.
+-
+-case "$2,$3" in
+-  merge,)
+-    /usr/bin/perl -i.bak -ne 's/^/# /, s/^# #/#/ if /^Conflicts/ .. /#/; print' "$1" ;;
+-
+-# ,|template,)
+-#   /usr/bin/perl -i.bak -pe '
+-#      print "\n" . `git diff --cached --name-status -r`
+-#	 if /^#/ && $first++ == 0' "$1" ;;
+-
+-  *) ;;
+-esac
+-
+-# SOB=$(git var GIT_AUTHOR_IDENT | sed -n 's/^\(.*>\).*$/Signed-off-by: \1/p')
+-# grep -qs "^$SOB" "$1" || echo "$SOB" >> "$1"
+diff -urN neatld.orig/.git/hooks/pre-push.sample neatld/.git/hooks/pre-push.sample
+--- neatld.orig/.git/hooks/pre-push.sample	2017-07-30 11:16:07.821493672 -0400
++++ neatld/.git/hooks/pre-push.sample	1969-12-31 19:00:00.000000000 -0500
+@@ -1,54 +0,0 @@
+-#!/bin/sh
+-
+-# An example hook script to verify what is about to be pushed.  Called by "git
+-# push" after it has checked the remote status, but before anything has been
+-# pushed.  If this script exits with a non-zero status nothing will be pushed.
+-#
+-# This hook is called with the following parameters:
+-#
+-# $1 -- Name of the remote to which the push is being done
+-# $2 -- URL to which the push is being done
+-#
+-# If pushing without using a named remote those arguments will be equal.
+-#
+-# Information about the commits which are being pushed is supplied as lines to
+-# the standard input in the form:
+-#
+-#   <local ref> <local sha1> <remote ref> <remote sha1>
+-#
+-# This sample shows how to prevent push of commits where the log message starts
+-# with "WIP" (work in progress).
+-
+-remote="$1"
+-url="$2"
+-
+-z40=0000000000000000000000000000000000000000
+-
+-IFS=' '
+-while read local_ref local_sha remote_ref remote_sha
+-do
+-	if [ "$local_sha" = $z40 ]
+-	then
+-		# Handle delete
+-		:
+-	else
+-		if [ "$remote_sha" = $z40 ]
+-		then
+-			# New branch, examine all commits
+-			range="$local_sha"
+-		else
+-			# Update to existing branch, examine new commits
+-			range="$remote_sha..$local_sha"
+-		fi
+-
+-		# Check for WIP commit
+-		commit=`git rev-list -n 1 --grep '^WIP' "$range"`
+-		if [ -n "$commit" ]
+-		then
+-			echo "Found WIP commit in $local_ref, not pushing"
+-			exit 1
+-		fi
+-	fi
+-done
+-
+-exit 0
+diff -urN neatld.orig/.git/hooks/pre-rebase.sample neatld/.git/hooks/pre-rebase.sample
+--- neatld.orig/.git/hooks/pre-rebase.sample	2017-07-30 11:16:07.821493672 -0400
++++ neatld/.git/hooks/pre-rebase.sample	1969-12-31 19:00:00.000000000 -0500
+@@ -1,169 +0,0 @@
+-#!/bin/sh
+-#
+-# Copyright (c) 2006, 2008 Junio C Hamano
+-#
+-# The "pre-rebase" hook is run just before "git rebase" starts doing
+-# its job, and can prevent the command from running by exiting with
+-# non-zero status.
+-#
+-# The hook is called with the following parameters:
+-#
+-# $1 -- the upstream the series was forked from.
+-# $2 -- the branch being rebased (or empty when rebasing the current branch).
+-#
+-# This sample shows how to prevent topic branches that are already
+-# merged to 'next' branch from getting rebased, because allowing it
+-# would result in rebasing already published history.
+-
+-publish=next
+-basebranch="$1"
+-if test "$#" = 2
+-then
+-	topic="refs/heads/$2"
+-else
+-	topic=`git symbolic-ref HEAD` ||
+-	exit 0 ;# we do not interrupt rebasing detached HEAD
+-fi
+-
+-case "$topic" in
+-refs/heads/??/*)
+-	;;
+-*)
+-	exit 0 ;# we do not interrupt others.
+-	;;
+-esac
+-
+-# Now we are dealing with a topic branch being rebased
+-# on top of master.  Is it OK to rebase it?
+-
+-# Does the topic really exist?
+-git show-ref -q "$topic" || {
+-	echo >&2 "No such branch $topic"
+-	exit 1
+-}
+-
+-# Is topic fully merged to master?
+-not_in_master=`git rev-list --pretty=oneline ^master "$topic"`
+-if test -z "$not_in_master"
+-then
+-	echo >&2 "$topic is fully merged to master; better remove it."
+-	exit 1 ;# we could allow it, but there is no point.
+-fi
+-
+-# Is topic ever merged to next?  If so you should not be rebasing it.
+-only_next_1=`git rev-list ^master "^$topic" ${publish} | sort`
+-only_next_2=`git rev-list ^master           ${publish} | sort`
+-if test "$only_next_1" = "$only_next_2"
+-then
+-	not_in_topic=`git rev-list "^$topic" master`
+-	if test -z "$not_in_topic"
+-	then
+-		echo >&2 "$topic is already up-to-date with master"
+-		exit 1 ;# we could allow it, but there is no point.
+-	else
+-		exit 0
+-	fi
+-else
+-	not_in_next=`git rev-list --pretty=oneline ^${publish} "$topic"`
+-	/usr/bin/perl -e '
+-		my $topic = $ARGV[0];
+-		my $msg = "* $topic has commits already merged to public branch:\n";
+-		my (%not_in_next) = map {
+-			/^([0-9a-f]+) /;
+-			($1 => 1);
+-		} split(/\n/, $ARGV[1]);
+-		for my $elem (map {
+-				/^([0-9a-f]+) (.*)$/;
+-				[$1 => $2];
+-			} split(/\n/, $ARGV[2])) {
+-			if (!exists $not_in_next{$elem->[0]}) {
+-				if ($msg) {
+-					print STDERR $msg;
+-					undef $msg;
+-				}
+-				print STDERR " $elem->[1]\n";
+-			}
+-		}
+-	' "$topic" "$not_in_next" "$not_in_master"
+-	exit 1
+-fi
+-
+-<<\DOC_END
+-
+-This sample hook safeguards topic branches that have been
+-published from being rewound.
+-
+-The workflow assumed here is:
+-
+- * Once a topic branch forks from "master", "master" is never
+-   merged into it again (either directly or indirectly).
+-
+- * Once a topic branch is fully cooked and merged into "master",
+-   it is deleted.  If you need to build on top of it to correct
+-   earlier mistakes, a new topic branch is created by forking at
+-   the tip of the "master".  This is not strictly necessary, but
+-   it makes it easier to keep your history simple.
+-
+- * Whenever you need to test or publish your changes to topic
+-   branches, merge them into "next" branch.
+-
+-The script, being an example, hardcodes the publish branch name
+-to be "next", but it is trivial to make it configurable via
+-$GIT_DIR/config mechanism.
+-
+-With this workflow, you would want to know:
+-
+-(1) ... if a topic branch has ever been merged to "next".  Young
+-    topic branches can have stupid mistakes you would rather
+-    clean up before publishing, and things that have not been
+-    merged into other branches can be easily rebased without
+-    affecting other people.  But once it is published, you would
+-    not want to rewind it.
+-
+-(2) ... if a topic branch has been fully merged to "master".
+-    Then you can delete it.  More importantly, you should not
+-    build on top of it -- other people may already want to
+-    change things related to the topic as patches against your
+-    "master", so if you need further changes, it is better to
+-    fork the topic (perhaps with the same name) afresh from the
+-    tip of "master".
+-
+-Let's look at this example:
+-
+-		   o---o---o---o---o---o---o---o---o---o "next"
+-		  /       /           /           /
+-		 /   a---a---b A     /           /
+-		/   /               /           /
+-	       /   /   c---c---c---c B         /
+-	      /   /   /             \         /
+-	     /   /   /   b---b C     \       /
+-	    /   /   /   /             \     /
+-    ---o---o---o---o---o---o---o---o---o---o---o "master"
+-
+-
+-A, B and C are topic branches.
+-
+- * A has one fix since it was merged up to "next".
+-
+- * B has finished.  It has been fully merged up to "master" and "next",
+-   and is ready to be deleted.
+-
+- * C has not merged to "next" at all.
+-
+-We would want to allow C to be rebased, refuse A, and encourage
+-B to be deleted.
+-
+-To compute (1):
+-
+-	git rev-list ^master ^topic next
+-	git rev-list ^master        next
+-
+-	if these match, topic has not merged in next at all.
+-
+-To compute (2):
+-
+-	git rev-list master..topic
+-
+-	if this is empty, it is fully merged to "master".
+-
+-DOC_END
+diff -urN neatld.orig/.git/hooks/update.sample neatld/.git/hooks/update.sample
+--- neatld.orig/.git/hooks/update.sample	2017-07-30 11:16:07.821493672 -0400
++++ neatld/.git/hooks/update.sample	1969-12-31 19:00:00.000000000 -0500
+@@ -1,128 +0,0 @@
+-#!/bin/sh
+-#
+-# An example hook script to blocks unannotated tags from entering.
+-# Called by "git receive-pack" with arguments: refname sha1-old sha1-new
+-#
+-# To enable this hook, rename this file to "update".
+-#
+-# Config
+-# ------
+-# hooks.allowunannotated
+-#   This boolean sets whether unannotated tags will be allowed into the
+-#   repository.  By default they won't be.
+-# hooks.allowdeletetag
+-#   This boolean sets whether deleting tags will be allowed in the
+-#   repository.  By default they won't be.
+-# hooks.allowmodifytag
+-#   This boolean sets whether a tag may be modified after creation. By default
+-#   it won't be.
+-# hooks.allowdeletebranch
+-#   This boolean sets whether deleting branches will be allowed in the
+-#   repository.  By default they won't be.
+-# hooks.denycreatebranch
+-#   This boolean sets whether remotely creating branches will be denied
+-#   in the repository.  By default this is allowed.
+-#
+-
+-# --- Command line
+-refname="$1"
+-oldrev="$2"
+-newrev="$3"
+-
+-# --- Safety check
+-if [ -z "$GIT_DIR" ]; then
+-	echo "Don't run this script from the command line." >&2
+-	echo " (if you want, you could supply GIT_DIR then run" >&2
+-	echo "  $0 <ref> <oldrev> <newrev>)" >&2
+-	exit 1
+-fi
+-
+-if [ -z "$refname" -o -z "$oldrev" -o -z "$newrev" ]; then
+-	echo "usage: $0 <ref> <oldrev> <newrev>" >&2
+-	exit 1
+-fi
+-
+-# --- Config
+-allowunannotated=$(git config --bool hooks.allowunannotated)
+-allowdeletebranch=$(git config --bool hooks.allowdeletebranch)
+-denycreatebranch=$(git config --bool hooks.denycreatebranch)
+-allowdeletetag=$(git config --bool hooks.allowdeletetag)
+-allowmodifytag=$(git config --bool hooks.allowmodifytag)
+-
+-# check for no description
+-projectdesc=$(sed -e '1q' "$GIT_DIR/description")
+-case "$projectdesc" in
+-"Unnamed repository"* | "")
+-	echo "*** Project description file hasn't been set" >&2
+-	exit 1
+-	;;
+-esac
+-
+-# --- Check types
+-# if $newrev is 0000...0000, it's a commit to delete a ref.
+-zero="0000000000000000000000000000000000000000"
+-if [ "$newrev" = "$zero" ]; then
+-	newrev_type=delete
+-else
+-	newrev_type=$(git cat-file -t $newrev)
+-fi
+-
+-case "$refname","$newrev_type" in
+-	refs/tags/*,commit)
+-		# un-annotated tag
+-		short_refname=${refname##refs/tags/}
+-		if [ "$allowunannotated" != "true" ]; then
+-			echo "*** The un-annotated tag, $short_refname, is not allowed in this repository" >&2
+-			echo "*** Use 'git tag [ -a | -s ]' for tags you want to propagate." >&2
+-			exit 1
+-		fi
+-		;;
+-	refs/tags/*,delete)
+-		# delete tag
+-		if [ "$allowdeletetag" != "true" ]; then
+-			echo "*** Deleting a tag is not allowed in this repository" >&2
+-			exit 1
+-		fi
+-		;;
+-	refs/tags/*,tag)
+-		# annotated tag
+-		if [ "$allowmodifytag" != "true" ] && git rev-parse $refname > /dev/null 2>&1
+-		then
+-			echo "*** Tag '$refname' already exists." >&2
+-			echo "*** Modifying a tag is not allowed in this repository." >&2
+-			exit 1
+-		fi
+-		;;
+-	refs/heads/*,commit)
+-		# branch
+-		if [ "$oldrev" = "$zero" -a "$denycreatebranch" = "true" ]; then
+-			echo "*** Creating a branch is not allowed in this repository" >&2
+-			exit 1
+-		fi
+-		;;
+-	refs/heads/*,delete)
+-		# delete branch
+-		if [ "$allowdeletebranch" != "true" ]; then
+-			echo "*** Deleting a branch is not allowed in this repository" >&2
+-			exit 1
+-		fi
+-		;;
+-	refs/remotes/*,commit)
+-		# tracking branch
+-		;;
+-	refs/remotes/*,delete)
+-		# delete tracking branch
+-		if [ "$allowdeletebranch" != "true" ]; then
+-			echo "*** Deleting a tracking branch is not allowed in this repository" >&2
+-			exit 1
+-		fi
+-		;;
+-	*)
+-		# Anything else (is there anything else?)
+-		echo "*** Update hook: unknown type of update to ref $refname of type $newrev_type" >&2
+-		exit 1
+-		;;
+-esac
+-
+-# --- Finished
+-exit 0
+Binary files neatld.orig/.git/index and neatld/.git/index differ
+diff -urN neatld.orig/.git/info/exclude neatld/.git/info/exclude
+--- neatld.orig/.git/info/exclude	2017-07-30 11:16:07.821493672 -0400
++++ neatld/.git/info/exclude	1969-12-31 19:00:00.000000000 -0500
+@@ -1,6 +0,0 @@
+-# git ls-files --others --exclude-from=.git/info/exclude
+-# Lines that start with '#' are comments.
+-# For a project mostly in C, the following would be a good set of
+-# exclude patterns (uncomment them if you want to use them):
+-# *.[oa]
+-# *~
+diff -urN neatld.orig/.git/logs/HEAD neatld/.git/logs/HEAD
+--- neatld.orig/.git/logs/HEAD	2017-07-30 11:17:35.235439776 -0400
++++ neatld/.git/logs/HEAD	1969-12-31 19:00:00.000000000 -0500
+@@ -1,2 +0,0 @@
+-0000000000000000000000000000000000000000 fb5d9f808717083e9be5cab996c0fa3fcb6f2622 Lightning <LightningTH@GMail.com> 1501427768 -0400	clone: from https://github.com/litcave/neatld.git
+-fb5d9f808717083e9be5cab996c0fa3fcb6f2622 75d5b1fca23c43268f158bea93b8594fbc5bcf4f Lightning <LightningTH@GMail.com> 1501427855 -0400	checkout: moving from master to 75d5b1fca23c43268f158bea93b8594fbc5bcf4f
+diff -urN neatld.orig/.git/logs/refs/heads/master neatld/.git/logs/refs/heads/master
+--- neatld.orig/.git/logs/refs/heads/master	2017-07-30 11:16:08.657493683 -0400
++++ neatld/.git/logs/refs/heads/master	1969-12-31 19:00:00.000000000 -0500
+@@ -1 +0,0 @@
+-0000000000000000000000000000000000000000 fb5d9f808717083e9be5cab996c0fa3fcb6f2622 Lightning <LightningTH@GMail.com> 1501427768 -0400	clone: from https://github.com/litcave/neatld.git
+diff -urN neatld.orig/.git/logs/refs/remotes/origin/HEAD neatld/.git/logs/refs/remotes/origin/HEAD
+--- neatld.orig/.git/logs/refs/remotes/origin/HEAD	2017-07-30 11:16:08.657493683 -0400
++++ neatld/.git/logs/refs/remotes/origin/HEAD	1969-12-31 19:00:00.000000000 -0500
+@@ -1 +0,0 @@
+-0000000000000000000000000000000000000000 fb5d9f808717083e9be5cab996c0fa3fcb6f2622 Lightning <LightningTH@GMail.com> 1501427768 -0400	clone: from https://github.com/litcave/neatld.git
+Binary files neatld.orig/.git/objects/pack/pack-6bb7b0cbe6dc957cc5dbced7b388cfcb969679a2.idx and neatld/.git/objects/pack/pack-6bb7b0cbe6dc957cc5dbced7b388cfcb969679a2.idx differ
+Binary files neatld.orig/.git/objects/pack/pack-6bb7b0cbe6dc957cc5dbced7b388cfcb969679a2.pack and neatld/.git/objects/pack/pack-6bb7b0cbe6dc957cc5dbced7b388cfcb969679a2.pack differ
+diff -urN neatld.orig/.git/packed-refs neatld/.git/packed-refs
+--- neatld.orig/.git/packed-refs	2017-07-30 11:16:08.657493683 -0400
++++ neatld/.git/packed-refs	1969-12-31 19:00:00.000000000 -0500
+@@ -1,2 +0,0 @@
+-# pack-refs with: peeled fully-peeled 
+-fb5d9f808717083e9be5cab996c0fa3fcb6f2622 refs/remotes/origin/master
+diff -urN neatld.orig/.git/refs/heads/master neatld/.git/refs/heads/master
+--- neatld.orig/.git/refs/heads/master	2017-07-30 11:16:08.657493683 -0400
++++ neatld/.git/refs/heads/master	1969-12-31 19:00:00.000000000 -0500
+@@ -1 +0,0 @@
+-fb5d9f808717083e9be5cab996c0fa3fcb6f2622
+diff -urN neatld.orig/.git/refs/remotes/origin/HEAD neatld/.git/refs/remotes/origin/HEAD
+--- neatld.orig/.git/refs/remotes/origin/HEAD	2017-07-30 11:16:08.657493683 -0400
++++ neatld/.git/refs/remotes/origin/HEAD	1969-12-31 19:00:00.000000000 -0500
+@@ -1 +0,0 @@
+-ref: refs/remotes/origin/master
+diff -urN neatld.orig/Makefile neatld/Makefile
+--- neatld.orig/Makefile	2017-07-30 11:16:08.661493683 -0400
++++ neatld/Makefile	2017-01-20 19:29:23.528444996 -0500
+@@ -1,11 +1,11 @@
+ CC = cc
+-CFLAGS = -Wall -O2
+-LDFLAGS =
++CFLAGS = -g -Wall -O2 -m32 -Wno-unused-result
++LDFLAGS = -m32
+ 
+ all: nld
+ .c.o:
+ 	$(CC) -c $(CFLAGS) $<
+-nld: nld.o
++nld: nld.o bytes_8_to_9.o
+ 	$(CC) $(LDFLAGS) -o $@ $^
+ clean:
+ 	rm -f nld *.o
+Binary files neatld.orig/nld and neatld/nld differ
+diff -urN neatld.orig/nld.c neatld/nld.c
+--- neatld.orig/nld.c	2017-07-30 11:17:35.235439776 -0400
++++ neatld/nld.c	2017-06-13 23:02:24.039886450 -0400
+@@ -13,11 +13,15 @@
+ #include <sys/stat.h>
+ #include <string.h>
+ #include <unistd.h>
++#include <mcheck.h>
++#include "bytes_8_to_9.h"
+ 
+ #define I_CS		0
+ #define I_DS		1
+ #define I_BSS		2
+ 
++#define CLEM_ID		0x4c43
++
+ static unsigned long sec_vaddr[3] = {0x800000};	/* virtual address of sections */
+ static unsigned long sec_laddr[3] = {0x800000};	/* load address of sections */
+ static int sec_set[3] = {1};			/* set address for section */
+@@ -25,9 +29,11 @@
+ static char *entry = "_start";			/* entry symbol */
+ static int e_machine;				/* target machine */
+ static int e_flags;				/* elf ehdr flags */
++static int _StartSize;
+ 
+ #define MAXSECS		(1 << 10)
+-#define MAXOBJS		(1 << 7)
++//#define MAXOBJS		(1 << 7)
++int MAXOBJS;
+ #define MAXSYMS		(1 << 12)
+ #define PAGE_SIZE	(1 << 12)
+ #define PAGE_MASK	(PAGE_SIZE - 1)
+@@ -66,6 +72,9 @@
+ #  define ELF_ST_TYPE	ELF32_ST_TYPE
+ #endif
+ 
++#define LIBDIRS		(1 << 5)
++#define PATHLEN		(1 << 8)
++
+ struct obj {
+ 	char *mem;
+ 	Elf_Ehdr *ehdr;
+@@ -94,7 +103,7 @@
+ 	int nph;
+ 	struct secmap secs[MAXSECS];
+ 	int nsecs;
+-	struct obj objs[MAXOBJS];
++	struct obj *objs;	//[MAXOBJS];
+ 	int nobjs;
+ 
+ 	/* code section */
+@@ -119,6 +128,8 @@
+ };
+ 
+ static int nosyms = 0;
++static int rawbin = 0;
++static int buildmap = 0;
+ 
+ static Elf_Sym *obj_find(struct obj *obj, char *name)
+ {
+@@ -166,6 +177,8 @@
+ 	oe->ehdr.e_ehsize = sizeof(oe->ehdr);
+ 	oe->ehdr.e_phentsize = sizeof(oe->phdr[0]);
+ 	oe->ehdr.e_shentsize = sizeof(Elf_Shdr);
++	MAXOBJS = (1<< 7);
++	oe->objs = malloc(MAXOBJS * sizeof(struct obj));
+ }
+ 
+ static struct secmap *outelf_mapping(struct outelf *oe, Elf_Shdr *shdr)
+@@ -230,7 +243,7 @@
+ 		if (name && *name && sym->st_shndx == SHN_UNDEF)
+ 			if (outelf_find(oe, name, &obj, &sym))
+ 				die_undef(name);
+-		if (sym->st_shndx == SHN_COMMON)
++		if (sym->st_shndx == 7)
+ 			return bss_addr(oe, sym);
+ 		s_idx = sym->st_shndx;
+ 		s_off = sym->st_value;
+@@ -238,6 +251,7 @@
+ 		if ((sec = outelf_mapping(oe, &obj->shdr[s_idx])))
+ 			return sec->vaddr + s_off;
+ 	}
++
+ 	return 0;
+ }
+ 
+@@ -253,6 +267,7 @@
+ #define REL_ARM		0x10000
+ #define REL_X64		0x20000
+ #define REL_X86		0x40000
++#define REL_CLEM	0x80000
+ 
+ static int arch_rel(int r)
+ {
+@@ -262,9 +277,84 @@
+ 		return REL_X64 | r;
+ 	if (e_machine == EM_386)
+ 		return REL_X86 | r;
++
++	if (e_machine == CLEM_ID)	//CL(em)
++		return REL_CLEM | r;
+ 	return 0;
+ }
+ 
++static void clem_rewrite_2_bytes(short *dst, unsigned int ORVal)
++{
++	//get the 3 values in
++	unsigned int CurVal;
++	CurVal = ((unsigned int)*(dst) << 9) | ((unsigned int)*(dst + 1) << 0);
++
++	CurVal |= ORVal;
++
++	//write it back out
++	*dst = (CurVal >> 9) & 0x1ff;
++	*(dst + 1) = (CurVal >> 0) & 0x1ff;
++}
++
++static void clem_rewrite_3_bytes(short *dst, unsigned int ORVal)
++{
++	//get the 3 values in
++	unsigned int CurVal;
++	CurVal = ((unsigned int)*(dst) << 9) | ((unsigned int)*(dst + 1) << 18) | ((unsigned int)*(dst + 2));
++	CurVal |= ORVal;
++
++	//write it back out
++	*dst = (CurVal >> 9) & 0x1ff;
++	*(dst + 1) = (CurVal >> 18) & 0x1ff;
++	*(dst + 2) = CurVal & 0x1ff;
++}
++
++static void clem_rewrite_3_bytes_mov(short *dst, unsigned int ORVal)
++{
++	//get the 3 values in
++	unsigned int CurVal;
++	CurVal = ((unsigned int)*(dst) << 9) | ((unsigned int)*(dst + 1) << 18) | ((unsigned int)*(dst + 2));
++	ORVal += (CurVal & 0x1ffff);
++	CurVal &= 0x7fe0000;
++	CurVal |= ORVal;
++
++	//write it back out
++	*dst = (CurVal >> 9) & 0x1ff;
++	*(dst + 1) = (CurVal >> 18) & 0x1ff;
++	*(dst + 2) = CurVal & 0x1ff;
++}
++
++static void clem_rewrite_4_bytes(short *dst, unsigned long long FinalVal)
++{
++	//rewrite the first 3 bytes
++	clem_rewrite_3_bytes(dst, (FinalVal >> 9) & 0x7ffffff);
++
++	//now write out the last byte
++	*(dst + 3) = FinalVal & 0x1ff;
++}
++
++static void clem_rewrite_6_bytes(short *dst, unsigned long long ORVal)
++{
++	//get the 3 values in
++	unsigned int CurVal;
++	CurVal = ((unsigned int)*(dst) << 9) | ((unsigned int)*(dst + 1) << 18) | ((unsigned int)*(dst + 2));
++	CurVal |= (ORVal >> 27);
++
++	//write it back out
++	*dst = (CurVal >> 9) & 0x1ff;
++	*(dst + 1) = (CurVal >> 18) & 0x1ff;
++	*(dst + 2) = CurVal & 0x1ff;
++
++	//2nd block of 3
++	CurVal = ((unsigned int)*(dst + 3) << 9) | ((unsigned int)*(dst + 4) << 18) | ((unsigned int)*(dst + 5));
++	CurVal |= (ORVal & 0x7ffffff);
++
++	//write it back out
++	*(dst + 3) = (CurVal >> 9) & 0x1ff;
++	*(dst + 4) = (CurVal >> 18) & 0x1ff;
++	*(dst + 5) = CurVal & 0x1ff;
++}
++
+ static void outelf_reloc_sec(struct outelf *oe, int o_idx, int s_idx)
+ {
+ 	struct obj *obj = &oe->objs[o_idx];
+@@ -280,7 +370,7 @@
+ 		int sym_idx = ELF_R_SYM(rel->r_info);
+ 		Elf_Sym *sym = &obj->syms[sym_idx];
+ 		unsigned long val = symval(oe, obj, sym) + REL_ADDEND(rel);
+-		unsigned long *dst = other + rel->r_offset;
++		unsigned long *dst = other + (rel->r_offset * sizeof(short));
+ 		switch (arch_rel(ELF_R_TYPE(rel->r_info))) {
+ 		case REL_ARM | R_ARM_NONE:
+ 		case REL_X86 | R_386_NONE:
+@@ -314,6 +404,64 @@
+ 			*dst = (*dst & 0xff000000) |
+ 					((*dst + ((val - addr) >> 2)) & 0x00ffffff);
+ 			break;
++
++		case REL_CLEM | 3:
++			//4 byte relative call or branch
++			addr = outelf_mapping(oe, other_shdr)->vaddr +
++				rel->r_offset;
++			clem_rewrite_4_bytes((short *)dst, (val - addr) & 0x7ffffff);
++			break;
++
++		case REL_CLEM | 2:
++			//27bit absolute value for a data area
++			clem_rewrite_3_bytes((short *)dst, val & 0x7ffffff);
++			break;
++
++		case REL_CLEM | 20:
++			//27bit relative value for a data area
++			addr = outelf_mapping(oe, other_shdr)->vaddr +
++				rel->r_offset;
++			clem_rewrite_3_bytes((short *)dst, (val - addr) & 0x7ffffff);
++			break;
++
++		case REL_CLEM | 4:
++			//17bit value for move low
++			if(val & 0xfffe0000)
++				die("Relative offset larger than 17bit");
++			clem_rewrite_3_bytes_mov((short *)dst, val);
++			break;
++
++		case REL_CLEM | 1:
++			//27bit value for move
++			clem_rewrite_3_bytes_mov((short *)dst, val & 0x0003ff);
++			clem_rewrite_3_bytes_mov(((short *)dst) + 3, (val & 0x7fffc00) >> 10);
++			break;
++
++		case REL_CLEM | 7:
++			//4 byte absolute call or branch
++			clem_rewrite_4_bytes((short *)dst, val & 0x7ffffff);
++			break;
++
++
++		case REL_CLEM | 26:
++			//3 byte relative branch
++			addr = outelf_mapping(oe, other_shdr)->vaddr +
++				rel->r_offset;
++			clem_rewrite_3_bytes((short *)dst, (val - addr) & 0x1ffff);
++			break;
++
++		case REL_CLEM | 5:
++			//6 byte load/store, just update the 6 bytes with the absolute address
++			clem_rewrite_6_bytes((short *)dst, ((unsigned long long)val & 0x7ffffff) << 3);
++			break;
++
++		case REL_CLEM | 6:
++			//6 byte load/store, just update the 6 bytes with the relative address
++			addr = outelf_mapping(oe, other_shdr)->vaddr +
++				rel->r_offset;
++			clem_rewrite_6_bytes((short *)dst, ((unsigned long long)addr & 0x7ffffff) << 3);
++			break;
++
+ 		default:
+ 			die("unknown relocation type");
+ 		}
+@@ -346,7 +494,7 @@
+ 	for (i = 0; i < oe->nobjs; i++) {
+ 		struct obj *obj = &oe->objs[i];
+ 		for (j = 0; j < obj->nsyms; j++)
+-			if (obj->syms[j].st_shndx == SHN_COMMON)
++			if (obj->syms[j].st_shndx == 7)
+ 				alloc_bss(oe, &obj->syms[j]);
+ 	}
+ }
+@@ -421,13 +569,133 @@
+ 	sym_shdr->sh_info = 0;
+ }
+ 
+-static void outelf_write(struct outelf *oe, int fd)
++static void build_map(struct outelf *oe, char *outfile)
++{
++	char mapfile[PATHLEN];
++	char *finddot, *lastdot;
++	FILE *fd;
++	int i, j;
++	int n = 1;
++	oe->nsh = 3;
++
++	memcpy(mapfile, outfile, sizeof(mapfile));
++	mapfile[sizeof(mapfile) - 1] = 0;
++
++	//append .map to the end of the filename
++	i = strlen(mapfile);
++	memcpy(&mapfile[i], ".map\0", 5);
++
++	fd = fopen(mapfile, "w");
++	if(fd < 0)
++		die("Failed to create map file");
++
++	for (i = 0; i < oe->nobjs; i++) {
++		struct obj *obj = &oe->objs[i];
++		for (j = 0; j < obj->nsyms; j++) {
++			Elf_Sym *sym = &obj->syms[j];
++			char *name = obj->symstr + sym->st_name;
++			if (!*name || sym->st_shndx == SHN_UNDEF)
++				continue;
++			fprintf(fd, "%d: %s @ %07x %d\n", n, name, symval(oe, obj,sym), sym->st_size);
++			n++;
++		}
++	}
++	fclose(fd);
++}
++
++static void write_3_9_bytes(unsigned int val)
++{
++	short CurVal;
++
++	CurVal = (val >> 9) & 0x1ff;
++	write9bytes(&CurVal, 1);
++	CurVal = (val >> 18) & 0x1ff;
++	write9bytes(&CurVal, 1);
++	CurVal = (val >> 0) & 0x1ff;
++	write9bytes(&CurVal, 1);
++}
++
++static void outbin_write(struct outelf *oe, int fd, char *outfile)
++{
++	int i;
++	int Pages[3] = {0, 0, 0};
++	int Sizes[3] = {0, 0, 0};
++
++	if(buildmap)
++		build_map(oe, outfile);
++
++	lseek(fd, 0, SEEK_SET);
++	Sizes[2] = oe->bss_len;
++	for (i = 0; i < oe->nsecs; i++) {
++		struct secmap *sec = &oe->secs[i];
++		unsigned int len = sec->o_shdr->sh_size / 2;
++		if(sec->o_shdr->sh_size & 1)
++			len++;
++
++		if(SEC_CODE(sec->o_shdr))
++			Sizes[0] += len;
++		else if(SEC_DATA(sec->o_shdr))
++			Sizes[1] += len;
++		else if(SEC_BSS(sec->o_shdr))
++			Sizes[2] += len;
++	}
++
++	//calculate page count per area
++	for(i = 0; i < 3; i++)
++	{
++		Pages[i] = (Sizes[i] >> 10);
++		if(Sizes[i] & 0x3ff)
++			Pages[i]++;
++	}
++
++	//write everything out
++	for (i = 0; i < oe->nsecs; i++) {
++		struct secmap *sec = &oe->secs[i];
++		char *buf = sec->obj->mem + sec->o_shdr->sh_offset;
++		int len = sec->o_shdr->sh_size / 2;
++		if (SEC_BSS(sec->o_shdr))
++			continue;
++		lseek9bytes(sec->vaddr, SEEK_SET);
++
++		//if the first entry and code and we have a non-default vaddr for code
++		//then write differently
++		if(sec_vaddr[0] && (i == 0) && SEC_CODE(sec->o_shdr))
++			write9bytes(buf, _StartSize);
++		else
++			write9bytes(buf, len);
++	}
++
++	//if we have the page symbols then update them in the file directly
++	struct obj *obj;
++	Elf_Sym *sym;
++	char **SymbolStrs[3] = {"PAGE_COUNT_CODE", "PAGE_COUNT_DATA", "PAGE_COUNT_BSS"};
++	for(i = 0; i < 3; i++)
++	{
++		if (!outelf_find(oe, SymbolStrs[i], &obj, &sym))
++		{
++			Sizes[i] = symval(oe, obj, sym);
++			lseek9bytes(Sizes[i], SEEK_SET);
++			write_3_9_bytes(Pages[i]);
++		}
++		else
++			printf("Unable to locate %s\n", SymbolStrs[i]);
++	}
++
++	write9buffer(fd);
++}
++
++static void outelf_write(struct outelf *oe, int fd, char *outfile)
+ {
+ 	int i;
+ 	oe->ehdr.e_entry = outelf_addr(oe, entry) -
+ 				sec_vaddr[I_CS] + sec_laddr[I_CS];
++
+ 	if (!nosyms)
+ 		build_symtab(oe);
++
++	if(buildmap)
++		build_map(oe, outfile);
++
+ 	oe->ehdr.e_phnum = oe->nph;
+ 	oe->ehdr.e_phoff = sizeof(oe->ehdr);
+ 	oe->ehdr.e_machine = e_machine;
+@@ -465,7 +733,11 @@
+ 	e_machine = ehdr->e_machine;
+ 	e_flags = ehdr->e_flags;
+ 	if (oe->nobjs >= MAXOBJS)
+-		die("ld: MAXOBJS reached!");
++	{
++		MAXOBJS = MAXOBJS * 2;
++		oe->objs = realloc(oe->objs, MAXOBJS*sizeof(struct obj));
++	}
++		//die("ld: MAXOBJS reached!");
+ 	obj = &oe->objs[oe->nobjs++];
+ 	obj_init(obj, mem);
+ 	for (i = 0; i < ehdr->e_shnum; i++) {
+@@ -489,10 +761,10 @@
+ 		int alignment = MAX(sec->o_shdr->sh_addralign, 4);
+ 		if (!SEC_CODE(sec->o_shdr))
+ 			continue;
+-		len = ALIGN(vaddr + len, alignment) - vaddr;
++		//len = ALIGN(vaddr + len, alignment) - vaddr;
+ 		sec->vaddr = vaddr + len;
+ 		sec->faddr = faddr + len;
+-		len += sec->o_shdr->sh_size;
++		len += sec->o_shdr->sh_size / 2;
+ 	}
+ 	phdr->p_type = PT_LOAD;
+ 	phdr->p_flags = PF_R | PF_W | PF_X;
+@@ -516,7 +788,7 @@
+ 			continue;
+ 		sec->vaddr = vaddr + len;
+ 		sec->faddr = faddr + len;
+-		len += sec->o_shdr->sh_size;
++		len += sec->o_shdr->sh_size / 2;
+ 	}
+ 	len = ALIGN(len, 4);
+ 	phdr->p_type = PT_LOAD;
+@@ -539,10 +811,10 @@
+ 		int alignment = MAX(sec->o_shdr->sh_addralign, 4);
+ 		if (!SEC_BSS(sec->o_shdr))
+ 			continue;
+-		len = ALIGN(vaddr + len, alignment) - vaddr;
++		//len = ALIGN(vaddr + len, alignment) - vaddr;
+ 		sec->vaddr = vaddr + len;
+ 		sec->faddr = faddr;
+-		len += sec->o_shdr->sh_size;
++		len += sec->o_shdr->sh_size / 2;
+ 	}
+ 	phdr->p_type = PT_LOAD;
+ 	phdr->p_flags = PF_R | PF_W;
+@@ -559,25 +831,63 @@
+ {
+ 	unsigned long faddr, vaddr, laddr;
+ 	int len;
+-	len = ALIGN(sizeof(oe->ehdr) + MAXPHDRS * sizeof(oe->phdr[0]), secalign);
+-	faddr = len & ~PAGE_MASK;
+-	vaddr = sec_vaddr[I_CS];
+-	laddr = sec_laddr[I_CS];
++	if((e_machine == CLEM_ID) && rawbin)
++	{
++		len = 0;
++		faddr = len & ~PAGE_MASK;
++		vaddr = 0;
++		laddr = 0;
++	}
++	else
++	{
++		len = ALIGN(sizeof(oe->ehdr) + MAXPHDRS * sizeof(oe->phdr[0]), secalign);
++		faddr = len & ~PAGE_MASK;
++		vaddr = sec_vaddr[I_CS];
++		laddr = sec_laddr[I_CS];
++	}
+ 	len = link_cs(oe, &oe->phdr[0], faddr, vaddr, laddr, len & PAGE_MASK);
+ 
+-	len = ALIGN(faddr + len, secalign) - faddr;
+-	faddr += len;
+-	vaddr = sec_set[I_DS] ? sec_vaddr[I_DS] | (faddr & PAGE_MASK) : vaddr + len;
+-	laddr = sec_set[I_DS] ? sec_laddr[I_DS] | (faddr & PAGE_MASK) : laddr + len;
++	//if CLemency and raw then change the alignment options
++	if((e_machine == CLEM_ID) && rawbin)
++	{
++		//page align to 1k
++		if(len & 0x3ff)
++			len = ((len >> 10) + 1) << 10;
++		faddr = len;
++		vaddr = len;
++		laddr = len;
++		len = 0;
++	}
++	else
++	{
++		len = ALIGN(faddr + len, secalign) - faddr;
++		faddr += len;
++		vaddr = sec_set[I_DS] ? sec_vaddr[I_DS] | (faddr & PAGE_MASK) : vaddr + len;
++		laddr = sec_set[I_DS] ? sec_laddr[I_DS] | (faddr & PAGE_MASK) : laddr + len;
++	}
+ 	len = link_ds(oe, &oe->phdr[1], faddr, vaddr, laddr);
+ 
+-	len = ALIGN(faddr + len, secalign) - faddr;
+-	faddr += len;
+-	vaddr = sec_set[I_BSS] ? sec_vaddr[I_BSS] | (faddr & PAGE_MASK) : vaddr + len;
++	//bss is purely a data holding area, we will just provide an updated symbol for it's info
++	if((e_machine == CLEM_ID) && rawbin)
++	{
++		//page align to 1k
++		if(len & 0x3ff)
++			len = ((len >> 10) + 1) << 10;
++		faddr += len;
++		vaddr += len;
++		len = 0;
++	}
++	else
++	{
++		len = ALIGN(faddr + len, secalign) - faddr;
++		faddr += len;
++		vaddr = sec_set[I_BSS] ? sec_vaddr[I_BSS] | (faddr & PAGE_MASK) : vaddr + len;
++	}
++
+ 	outelf_bss(oe);
+ 	oe->bss_vaddr = vaddr;
+-	len = link_bss(oe, &oe->phdr[2], faddr, vaddr, oe->bss_len);
+ 
++	len = link_bss(oe, &oe->phdr[2], faddr, vaddr, oe->bss_len);
+ 	oe->nph = 3;
+ 	outelf_reloc(oe);
+ 	oe->shdr_faddr = faddr;
+@@ -601,7 +911,7 @@
+ static int sym_undef(struct outelf *oe, char *name)
+ {
+ 	int i, j;
+-	int undef = 0;
++	int undef = 1;
+ 	for (i = 0; i < oe->nobjs; i++) {
+ 		struct obj *obj = &oe->objs[i];
+ 		for (j = 0; j < obj->nsyms; j++) {
+@@ -625,11 +935,47 @@
+ 	int nsyms = get_be32((void *) ar);
+ 	int added = 0;
+ 	int i;
++	unsigned char *NewStartBuf;
++
++	//we need to make sure _start is first if we are doing a raw binary
++	if(rawbin)
++	{
++		ar_index = ar + 4;
++		ar_name = ar_index + nsyms * 4;
++
++		for (i = 0; i < nsyms; i++) {
++			int off = get_be32((void *) ar_index + i * 4) +
++					sizeof(struct arhdr);
++			if(strcmp(ar_name, "_start") == 0)
++			{
++				if (sym_undef(oe, ar_name)) {
++					outelf_add(oe, ar - base + off);
++					//if someone set a non 0 alignment size, adjust _start's size so it starts at 0
++					_StartSize = oe->secs[0].o_shdr->sh_size;
++					if(sec_vaddr[0])
++						oe->secs[0].o_shdr->sh_size = (sec_vaddr[0] * 2);
++					added++;
++				}
++				break;
++			}
++			ar_name = strchr(ar_name, '\0') + 1;
++		}
++	}
++
++	//reset, try again for all of it
+ 	ar_index = ar + 4;
+ 	ar_name = ar_index + nsyms * 4;
++
+ 	for (i = 0; i < nsyms; i++) {
+ 		int off = get_be32((void *) ar_index + i * 4) +
+ 				sizeof(struct arhdr);
++		//if doing a raw binary then ignore _start
++		if(rawbin && (strcmp(ar_name, "_start") == 0))
++		{
++			ar_name = strchr(ar_name, '\0') + 1;
++			continue;
++		}
++
+ 		if (sym_undef(oe, ar_name)) {
+ 			outelf_add(oe, ar - base + off);
+ 			added++;
+@@ -645,6 +991,7 @@
+ 
+ 	/* skip magic */
+ 	ar += 8;
++
+ 	for(;;) {
+ 		struct arhdr *hdr = (void *) ar;
+ 		char *name = hdr->ar_name;
+@@ -687,9 +1034,6 @@
+ 	return len > 2 && path[len - 2] == '.' && path[len - 1] == 'a';
+ }
+ 
+-#define LIBDIRS		(1 << 5)
+-#define PATHLEN		(1 << 8)
+-
+ static char *libdirs[LIBDIRS] = {"/lib"};
+ static int nlibdirs = 1;
+ 
+@@ -739,9 +1083,28 @@
+ 		outelf_archive(oe, buf);
+ 	else
+ 		outelf_add(oe, buf);
++
+ 	return buf;
+ }
+ 
++int print_help(char  *AppName)
++{
++	printf("Usage: %s [options] Input.o Input2.o ...\n", AppName);
++	printf("\t-l lib\t\tLibrary to link in\n");
++	printf("\t-L libpath\tLibrary search path to add\n");
++	printf("\t-o output\tFile to write output to\n");
++	printf("\t-s\t\tNo symbols added to binary\n");
++	printf("\t-M\t\tCreate a map file\n");
++	printf("\t-mc Y\t\tSet beginning address of code section to Y\n");
++	printf("\t-md Y\t\tSet beginning address of data section to Y\n");
++	printf("\t-mb Y\t\tSet beginning address of BSS section to Y\n");
++	printf("\tp\t\tSet section alignment in binary to 0x%x instead of 0x%x\n", PAGE_SIZE, secalign);
++	printf("\te xxxx\t\tSet entry of binary to xxxx instead of _start\n");
++	printf("\tb\t\tOutput binary format instead of ELF\n");
++	printf("\tf\t\tCreate cLEMENCy firmware\n");
++	return 0;
++}
++
+ int main(int argc, char **argv)
+ {
+ 	char out[PATHLEN] = "a.out";
+@@ -750,8 +1113,13 @@
+ 	int nmem = 0;
+ 	int fd;
+ 	int i = 0;
++
+ 	if (argc < 2)
+-		die("no object given");
++	{
++		//die("no object given");
++		print_help(argv[0]);
++		return 0;
++	}
+ 	outelf_init(&oe);
+ 
+ 	while (++i < argc) {
+@@ -759,6 +1127,10 @@
+ 			mem[nmem++] = obj_add(&oe, argv[i]);
+ 			continue;
+ 		}
++		if (argv[i][1] == 'h') {
++			print_help(argv[0]);
++			return 0;
++		}
+ 		if (argv[i][1] == 'l') {
+ 			char path[PATHLEN];
+ 			if (lib_find(path, argv[i] + 2))
+@@ -778,6 +1150,10 @@
+ 			nosyms = 1;
+ 			continue;
+ 		}
++		if (argv[i][1] == 'M') {
++			buildmap = 1;
++			continue;
++		}
+ 		if (argv[i][1] == 'g')
+ 			continue;
+ 		if (argv[i][1] == 'm') {
+@@ -794,12 +1170,32 @@
+ 			entry = argv[i][2] ? argv[i] + 2 : argv[++i];
+ 			continue;
+ 		}
++		if (argv[i][1] == 'b') {
++			rawbin = 1;
++			continue;
++		}
++		if (argv[i][1] == 'f') {
++			rawbin = 1;
++			set_addr('c', "0");
++			nosyms = 1;
++			buildmap = 1;
++			continue;
++		}
+ 	}
++
+ 	outelf_link(&oe);
+ 	fd = open(out, O_WRONLY | O_TRUNC | O_CREAT, 0700);
+-	outelf_write(&oe, fd);
++
++	if(rawbin)
++		outbin_write(&oe, fd, out);
++	else
++		outelf_write(&oe, fd, out);
+ 	close(fd);
++
++	/*
+ 	for (i = 0; i < nmem; i++)
+ 		free(mem[i]);
++	*/
++
+ 	return 0;
+ }

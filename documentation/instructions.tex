@@ -1,0 +1,3183 @@
+\pagebreak[3]
+
+\vfill
+\pagebreak[3]
+\pagebreak
+\section{AD: Add}
+\index{AD}
+{
+\setlength{\tabcolsep}{3pt}
+\begin{tabu} spread \linewidth {l r l r l r l r l r c}
+\multicolumn{1}{l}{0} & \multicolumn{1}{r}{6} & \multicolumn{1}{|l}{7} & \multicolumn{1}{r}{11} & \multicolumn{1}{|l}{12} & \multicolumn{1}{r}{16} & \multicolumn{1}{|l}{17} & \multicolumn{1}{r}{21} & \multicolumn{1}{|l}{22} & \multicolumn{1}{r}{25} & \multicolumn{1}{|c}{26} \\
+\multicolumn{2}{c}{\texttt{0000000}} & \multicolumn{2}{|c}{rA} & \multicolumn{2}{|c}{rB} & \multicolumn{2}{|c}{rC} & \multicolumn{2}{|c}{\texttt{0000}} & \multicolumn{1}{|c}{UF}
+\end{tabu}
+}
+\nopagebreak
+\begin{description}
+\item [Format:] \texttt{AD rA, rB, rC}
+\item [Purpose:] Add two 27-bit integer registers together
+\item [Description:] The 27-bit value in rC is added to the 27-bit value in rB, the result is placed in rA.
+
+\item [Operation:] \begin{verbatim}
+rA ← rB + rC\end{verbatim}
+\item [Flags affected:] \texttt{Z C O S}
+\end{description}
+\vfill
+\pagebreak[3]
+\section{ADC: Add With Carry}
+\index{ADC}
+{
+\setlength{\tabcolsep}{3pt}
+\begin{tabu} spread \linewidth {l r l r l r l r l r c}
+\multicolumn{1}{l}{0} & \multicolumn{1}{r}{6} & \multicolumn{1}{|l}{7} & \multicolumn{1}{r}{11} & \multicolumn{1}{|l}{12} & \multicolumn{1}{r}{16} & \multicolumn{1}{|l}{17} & \multicolumn{1}{r}{21} & \multicolumn{1}{|l}{22} & \multicolumn{1}{r}{25} & \multicolumn{1}{|c}{26} \\
+\multicolumn{2}{c}{\texttt{0100000}} & \multicolumn{2}{|c}{rA} & \multicolumn{2}{|c}{rB} & \multicolumn{2}{|c}{rC} & \multicolumn{2}{|c}{\texttt{0000}} & \multicolumn{1}{|c}{UF}
+\end{tabu}
+}
+\nopagebreak
+\begin{description}
+\item [Format:] \texttt{ADC rA, rB, rC}
+\item [Purpose:] Add two 27-bit integer registers together including the carry bit
+\item [Description:] The 27-bit value in rC is added to the 27-bit value in rB, the carry bit from any previous operation is added to the result. The result is placed in rA.
+
+\item [Operation:] \begin{verbatim}
+rA ← rB + rC + Carry_Bit\end{verbatim}
+\item [Flags affected:] \texttt{Z C O S}
+\end{description}
+\vfill
+\pagebreak[3]
+\section{ADCI: Add Immediate With Carry}
+\index{ADCI}
+{
+\setlength{\tabcolsep}{3pt}
+\begin{tabu} spread \linewidth {l r l r l r l r l r c}
+\multicolumn{1}{l}{0} & \multicolumn{1}{r}{6} & \multicolumn{1}{|l}{7} & \multicolumn{1}{r}{11} & \multicolumn{1}{|l}{12} & \multicolumn{1}{r}{16} & \multicolumn{1}{|l}{17} & \multicolumn{1}{r}{23} & \multicolumn{1}{|l}{24} & \multicolumn{1}{r}{25} & \multicolumn{1}{|c}{26} \\
+\multicolumn{2}{c}{\texttt{0100000}} & \multicolumn{2}{|c}{rA} & \multicolumn{2}{|c}{rB} & \multicolumn{2}{|c}{Immediate} & \multicolumn{2}{|c}{\texttt{01}} & \multicolumn{1}{|c}{UF}
+\end{tabu}
+}
+\nopagebreak
+\begin{description}
+\item [Format:] \texttt{ADCI rA, rB, IMM}
+\item [Purpose:] Add a 7-bit immediate value to a 27-bit integer register including the carry bit
+\item [Description:] The 7-bit immediate value is added to the 27-bit value in rB, the carry bit from any previous operation is added to the result. The result is placed in rA.
+
+\item [Operation:] \begin{verbatim}
+rA ← rB + IMM + Carry_Bit\end{verbatim}
+\item [Flags affected:] \texttt{Z C O S}
+\end{description}
+\vfill
+\pagebreak[3]
+\section{ADCIM: Add Immediate Multi Reg With Carry}
+\index{ADCIM}
+{
+\setlength{\tabcolsep}{3pt}
+\begin{tabu} spread \linewidth {l r l r l r l r l r c}
+\multicolumn{1}{l}{0} & \multicolumn{1}{r}{6} & \multicolumn{1}{|l}{7} & \multicolumn{1}{r}{11} & \multicolumn{1}{|l}{12} & \multicolumn{1}{r}{16} & \multicolumn{1}{|l}{17} & \multicolumn{1}{r}{23} & \multicolumn{1}{|l}{24} & \multicolumn{1}{r}{25} & \multicolumn{1}{|c}{26} \\
+\multicolumn{2}{c}{\texttt{0100010}} & \multicolumn{2}{|c}{rA} & \multicolumn{2}{|c}{rB} & \multicolumn{2}{|c}{Immediate} & \multicolumn{2}{|c}{\texttt{01}} & \multicolumn{1}{|c}{UF}
+\end{tabu}
+}
+\nopagebreak
+\begin{description}
+\item [Format:] \texttt{ADCIM rA, rB, IMM}
+\item [Purpose:] Add a 7-bit immediate value to a 54-bit integer register including the carry bit
+\item [Description:] The 7-bit immediate value is added to the 54-bit value in rB:rB+1, the carry bit from any previous operation is added to the result. The result is placed in rA:rA+1.
+
+\item [Operation:] \begin{verbatim}
+rA:rA+1 ← rB:rB+1 + IMM + Carry_Bit\end{verbatim}
+\item [Flags affected:] \texttt{Z C O S}
+\end{description}
+\vfill
+\pagebreak[3]
+\section{ADCM: Add Multi Reg With Carry}
+\index{ADCM}
+{
+\setlength{\tabcolsep}{3pt}
+\begin{tabu} spread \linewidth {l r l r l r l r l r c}
+\multicolumn{1}{l}{0} & \multicolumn{1}{r}{6} & \multicolumn{1}{|l}{7} & \multicolumn{1}{r}{11} & \multicolumn{1}{|l}{12} & \multicolumn{1}{r}{16} & \multicolumn{1}{|l}{17} & \multicolumn{1}{r}{21} & \multicolumn{1}{|l}{22} & \multicolumn{1}{r}{25} & \multicolumn{1}{|c}{26} \\
+\multicolumn{2}{c}{\texttt{0100010}} & \multicolumn{2}{|c}{rA} & \multicolumn{2}{|c}{rB} & \multicolumn{2}{|c}{rC} & \multicolumn{2}{|c}{\texttt{0000}} & \multicolumn{1}{|c}{UF}
+\end{tabu}
+}
+\nopagebreak
+\begin{description}
+\item [Format:] \texttt{ADCM rA, rB, rC}
+\item [Purpose:] Add two 54-bit integer registers together including the carry bit
+\item [Description:] The 54-bit value in rC:rC+1 is added to the 54-bit value in rB:rB+1, the carry bit from any previous operation is added to the result. The result is placed in rA:rA+1.
+
+\item [Operation:] \begin{verbatim}
+rA:rA+1 ← rB:rB+1 + rC:rC+1 + Carry_Bit\end{verbatim}
+\item [Flags affected:] \texttt{Z C O S}
+\end{description}
+\vfill
+\pagebreak[3]
+\section{ADF: Add Floating Point}
+\index{ADF}
+{
+\setlength{\tabcolsep}{3pt}
+\begin{tabu} spread \linewidth {l r l r l r l r l r c}
+\multicolumn{1}{l}{0} & \multicolumn{1}{r}{6} & \multicolumn{1}{|l}{7} & \multicolumn{1}{r}{11} & \multicolumn{1}{|l}{12} & \multicolumn{1}{r}{16} & \multicolumn{1}{|l}{17} & \multicolumn{1}{r}{21} & \multicolumn{1}{|l}{22} & \multicolumn{1}{r}{25} & \multicolumn{1}{|c}{26} \\
+\multicolumn{2}{c}{\texttt{0000001}} & \multicolumn{2}{|c}{rA} & \multicolumn{2}{|c}{rB} & \multicolumn{2}{|c}{rC} & \multicolumn{2}{|c}{\texttt{0000}} & \multicolumn{1}{|c}{UF}
+\end{tabu}
+}
+\nopagebreak
+\begin{description}
+\item [Format:] \texttt{ADF rA, rB, rC}
+\item [Purpose:] Add two 27-bit floating point registers together
+\item [Description:] The 27-bit floating point value in rC is added to the 27-bit floating point value in rB, the result is placed in rA.
+
+\item [Operation:] \begin{verbatim}
+rA ← rB + rC\end{verbatim}
+\item [Flags affected:] \texttt{Z C O S}
+\end{description}
+\vfill
+\pagebreak[3]
+\section{ADFM: Add Floating Point Multi Reg}
+\index{ADFM}
+{
+\setlength{\tabcolsep}{3pt}
+\begin{tabu} spread \linewidth {l r l r l r l r l r c}
+\multicolumn{1}{l}{0} & \multicolumn{1}{r}{6} & \multicolumn{1}{|l}{7} & \multicolumn{1}{r}{11} & \multicolumn{1}{|l}{12} & \multicolumn{1}{r}{16} & \multicolumn{1}{|l}{17} & \multicolumn{1}{r}{21} & \multicolumn{1}{|l}{22} & \multicolumn{1}{r}{25} & \multicolumn{1}{|c}{26} \\
+\multicolumn{2}{c}{\texttt{0000011}} & \multicolumn{2}{|c}{rA} & \multicolumn{2}{|c}{rB} & \multicolumn{2}{|c}{rC} & \multicolumn{2}{|c}{\texttt{0000}} & \multicolumn{1}{|c}{UF}
+\end{tabu}
+}
+\nopagebreak
+\begin{description}
+\item [Format:] \texttt{ADFM rA, rB, rC}
+\item [Purpose:] Add two 54-bit floating point registers together
+\item [Description:] The 54-bit floating point value in rC:rC+1 is added to the 54-bit floating point value in rB:rB+1, the result is placed in rA:rA+1.
+
+\item [Operation:] \begin{verbatim}
+rA:rA+1 ← rB:rB+1 + rC:rC+1\end{verbatim}
+\item [Flags affected:] \texttt{Z C O S}
+\end{description}
+\vfill
+\pagebreak[3]
+\section{ADI: Add Immediate}
+\index{ADI}
+{
+\setlength{\tabcolsep}{3pt}
+\begin{tabu} spread \linewidth {l r l r l r l r l r c}
+\multicolumn{1}{l}{0} & \multicolumn{1}{r}{6} & \multicolumn{1}{|l}{7} & \multicolumn{1}{r}{11} & \multicolumn{1}{|l}{12} & \multicolumn{1}{r}{16} & \multicolumn{1}{|l}{17} & \multicolumn{1}{r}{23} & \multicolumn{1}{|l}{24} & \multicolumn{1}{r}{25} & \multicolumn{1}{|c}{26} \\
+\multicolumn{2}{c}{\texttt{0000000}} & \multicolumn{2}{|c}{rA} & \multicolumn{2}{|c}{rB} & \multicolumn{2}{|c}{Immediate} & \multicolumn{2}{|c}{\texttt{01}} & \multicolumn{1}{|c}{UF}
+\end{tabu}
+}
+\nopagebreak
+\begin{description}
+\item [Format:] \texttt{ADI rA, rB, IMM}
+\item [Purpose:] Add a 7-bit immediate value to a 27-bit integer register
+\item [Description:] The 7-bit immediate value is added to the 27-bit value in rB, the result is placed in rA.
+
+\item [Operation:] \begin{verbatim}
+rA ← rB + IMM\end{verbatim}
+\item [Flags affected:] \texttt{Z C O S}
+\end{description}
+\vfill
+\pagebreak[3]
+\section{ADIM: Add Immediate Multi Reg}
+\index{ADIM}
+{
+\setlength{\tabcolsep}{3pt}
+\begin{tabu} spread \linewidth {l r l r l r l r l r c}
+\multicolumn{1}{l}{0} & \multicolumn{1}{r}{6} & \multicolumn{1}{|l}{7} & \multicolumn{1}{r}{11} & \multicolumn{1}{|l}{12} & \multicolumn{1}{r}{16} & \multicolumn{1}{|l}{17} & \multicolumn{1}{r}{23} & \multicolumn{1}{|l}{24} & \multicolumn{1}{r}{25} & \multicolumn{1}{|c}{26} \\
+\multicolumn{2}{c}{\texttt{0000010}} & \multicolumn{2}{|c}{rA} & \multicolumn{2}{|c}{rB} & \multicolumn{2}{|c}{Immediate} & \multicolumn{2}{|c}{\texttt{01}} & \multicolumn{1}{|c}{UF}
+\end{tabu}
+}
+\nopagebreak
+\begin{description}
+\item [Format:] \texttt{ADIM rA, rB, IMM}
+\item [Purpose:] Add a 7-bit immediate value to a 54-bit integer register
+\item [Description:] The 7-bit immediate value is added to the 54-bit value in rB:rB+1, the result is placed in rA:rA+1.
+
+\item [Operation:] \begin{verbatim}
+rA:rA+1 ← rB:rB+1 + IMM\end{verbatim}
+\item [Flags affected:] \texttt{Z C O S}
+\end{description}
+\vfill
+\pagebreak[3]
+\section{ADM: Add Multi Reg}
+\index{ADM}
+{
+\setlength{\tabcolsep}{3pt}
+\begin{tabu} spread \linewidth {l r l r l r l r l r c}
+\multicolumn{1}{l}{0} & \multicolumn{1}{r}{6} & \multicolumn{1}{|l}{7} & \multicolumn{1}{r}{11} & \multicolumn{1}{|l}{12} & \multicolumn{1}{r}{16} & \multicolumn{1}{|l}{17} & \multicolumn{1}{r}{21} & \multicolumn{1}{|l}{22} & \multicolumn{1}{r}{25} & \multicolumn{1}{|c}{26} \\
+\multicolumn{2}{c}{\texttt{0000010}} & \multicolumn{2}{|c}{rA} & \multicolumn{2}{|c}{rB} & \multicolumn{2}{|c}{rC} & \multicolumn{2}{|c}{\texttt{0000}} & \multicolumn{1}{|c}{UF}
+\end{tabu}
+}
+\nopagebreak
+\begin{description}
+\item [Format:] \texttt{ADM rA, rB, rC}
+\item [Purpose:] Add two 54-bit integer registers together
+\item [Description:] The 54-bit value in rC:rC+1 is added to the 54-bit value in rB:rB+1, the result is placed in rA:rA+1.
+
+\item [Operation:] \begin{verbatim}
+rA:rA+1 ← rB:rB+1 + rC:rC+1\end{verbatim}
+\item [Flags affected:] \texttt{Z C O S}
+\end{description}
+\vfill
+\pagebreak[3]
+\pagebreak
+\section{AN: And}
+\index{AN}
+{
+\setlength{\tabcolsep}{3pt}
+\begin{tabu} spread \linewidth {l r l r l r l r l r c}
+\multicolumn{1}{l}{0} & \multicolumn{1}{r}{6} & \multicolumn{1}{|l}{7} & \multicolumn{1}{r}{11} & \multicolumn{1}{|l}{12} & \multicolumn{1}{r}{16} & \multicolumn{1}{|l}{17} & \multicolumn{1}{r}{21} & \multicolumn{1}{|l}{22} & \multicolumn{1}{r}{25} & \multicolumn{1}{|c}{26} \\
+\multicolumn{2}{c}{\texttt{0010100}} & \multicolumn{2}{|c}{rA} & \multicolumn{2}{|c}{rB} & \multicolumn{2}{|c}{rC} & \multicolumn{2}{|c}{\texttt{0000}} & \multicolumn{1}{|c}{UF}
+\end{tabu}
+}
+\nopagebreak
+\begin{description}
+\item [Format:] \texttt{AN rA, rB, rC}
+\item [Purpose:] Bit-wise AND two 27-bit integer registers together
+\item [Description:] The 27-bit value in rC is bit-wise AND to the 27-bit value in rB, the result is placed in rA.
+
+\item [Operation:] \begin{verbatim}
+rA ← rB & rC\end{verbatim}
+\item [Flags affected:] \texttt{Z C O S}
+\end{description}
+\vfill
+\pagebreak[3]
+\section{ANI: And Immediate}
+\index{ANI}
+{
+\setlength{\tabcolsep}{3pt}
+\begin{tabu} spread \linewidth {l r l r l r l r l r c}
+\multicolumn{1}{l}{0} & \multicolumn{1}{r}{6} & \multicolumn{1}{|l}{7} & \multicolumn{1}{r}{11} & \multicolumn{1}{|l}{12} & \multicolumn{1}{r}{16} & \multicolumn{1}{|l}{17} & \multicolumn{1}{r}{23} & \multicolumn{1}{|l}{24} & \multicolumn{1}{r}{25} & \multicolumn{1}{|c}{26} \\
+\multicolumn{2}{c}{\texttt{0010100}} & \multicolumn{2}{|c}{rA} & \multicolumn{2}{|c}{rB} & \multicolumn{2}{|c}{Immediate} & \multicolumn{2}{|c}{\texttt{01}} & \multicolumn{1}{|c}{UF}
+\end{tabu}
+}
+\nopagebreak
+\begin{description}
+\item [Format:] \texttt{ANI rA, rB, IMM}
+\item [Purpose:] Bit-wise AND a 27-bit integer register and 7-bit immediate together
+\item [Description:] The 7-bit immediate value is bit-wise AND to the 27-bit value in rB, the result is placed in rA.
+
+\item [Operation:] \begin{verbatim}
+rA ← rB & IMM\end{verbatim}
+\item [Flags affected:] \texttt{Z C O S}
+\end{description}
+\vfill
+\pagebreak[3]
+\section{ANM: And Multi Reg}
+\index{ANM}
+{
+\setlength{\tabcolsep}{3pt}
+\begin{tabu} spread \linewidth {l r l r l r l r l r c}
+\multicolumn{1}{l}{0} & \multicolumn{1}{r}{6} & \multicolumn{1}{|l}{7} & \multicolumn{1}{r}{11} & \multicolumn{1}{|l}{12} & \multicolumn{1}{r}{16} & \multicolumn{1}{|l}{17} & \multicolumn{1}{r}{21} & \multicolumn{1}{|l}{22} & \multicolumn{1}{r}{25} & \multicolumn{1}{|c}{26} \\
+\multicolumn{2}{c}{\texttt{0010110}} & \multicolumn{2}{|c}{rA} & \multicolumn{2}{|c}{rB} & \multicolumn{2}{|c}{rC} & \multicolumn{2}{|c}{\texttt{0000}} & \multicolumn{1}{|c}{UF}
+\end{tabu}
+}
+\nopagebreak
+\begin{description}
+\item [Format:] \texttt{ANM rA, rB, rC}
+\item [Purpose:] Bit-wise AND two 54-bit integer registers together
+\item [Description:] The 54-bit value in rC:rC+1 is bit-wise AND to the 54-bit value in rB:rB+1, the result is placed in rA:rA+1.
+
+\item [Operation:] \begin{verbatim}
+rA:rA+1 ← rB:rB+1 & rC:rC+1\end{verbatim}
+\item [Flags affected:] \texttt{Z C O S}
+\end{description}
+\vfill
+%% LONG ONE
+\pagebreak
+\section{B: Branch Conditional}
+\index{B}
+{
+\setlength{\tabcolsep}{3pt}
+\begin{tabu} spread \linewidth {l r l r l r}
+\multicolumn{1}{l}{0} & \multicolumn{1}{r}{5} & \multicolumn{1}{|l}{6} & \multicolumn{1}{r}{9} & \multicolumn{1}{|l}{10} & \multicolumn{1}{r}{26} \\
+\multicolumn{2}{c}{\texttt{110000}} & \multicolumn{2}{|c}{Condition} & \multicolumn{2}{|c}{Offset}
+\end{tabu}
+}
+\nopagebreak
+\begin{description}
+\item [Format:] \texttt{Bcc Offset}
+\item [Purpose:] Conditional branch to an offset
+\item [Description:] If the specified condition is true then the sign extended offset is added to the current program counter.
+
+\nopagebreak
+
+The condition table is as follows:
+
+\nopagebreak[4]
+\input{./tables/e93d68f331693c89c9e8007e106ad6fc2f5827beb5a7b121574a823daab01bdf.tex}
+%% table row
+%% table row
+%% table row
+%% table row
+%% table row
+%% table row
+%% table row
+%% table row
+%% table row
+%% table row
+%% table row
+%% table row
+%% table row
+%% table row
+%% table row
+
+
+\item [Operation:] \begin{verbatim}
+
+if Flags == Condition then
+  PC += (signed)Offset\end{verbatim}
+\item [Flags affected:] \textit{None}
+\end{description}
+\vfill
+\pagebreak
+\pagebreak[3]
+\section{BF: Bit Flip}
+\index{BF}
+{
+\setlength{\tabcolsep}{3pt}
+\begin{tabu} spread \linewidth {l r l r l r l r c}
+\multicolumn{1}{l}{0} & \multicolumn{1}{r}{8} & \multicolumn{1}{|l}{9} & \multicolumn{1}{r}{13} & \multicolumn{1}{|l}{14} & \multicolumn{1}{r}{18} & \multicolumn{1}{|l}{19} & \multicolumn{1}{r}{25} & \multicolumn{1}{|c}{26} \\
+\multicolumn{2}{c}{\texttt{101001100}} & \multicolumn{2}{|c}{rA} & \multicolumn{2}{|c}{rB} & \multicolumn{2}{|c}{\texttt{1000000}} & \multicolumn{1}{|c}{UF}
+\end{tabu}
+}
+\nopagebreak
+\begin{description}
+\item [Format:] \texttt{BF rA, rB}
+\item [Purpose:] Bit flip a 27-bit register
+\item [Description:] Invert all bits of the 27-bit rB register value and store the result in rA.
+
+\item [Operation:] \begin{verbatim}
+rA ← ~rB\end{verbatim}
+\item [Flags affected:] \texttt{Z C O S}
+\end{description}
+\vfill
+\pagebreak[3]
+\section{BFM: Bit Flip Multi Reg}
+\index{BFM}
+{
+\setlength{\tabcolsep}{3pt}
+\begin{tabu} spread \linewidth {l r l r l r l r c}
+\multicolumn{1}{l}{0} & \multicolumn{1}{r}{8} & \multicolumn{1}{|l}{9} & \multicolumn{1}{r}{13} & \multicolumn{1}{|l}{14} & \multicolumn{1}{r}{18} & \multicolumn{1}{|l}{19} & \multicolumn{1}{r}{25} & \multicolumn{1}{|c}{26} \\
+\multicolumn{2}{c}{\texttt{101001110}} & \multicolumn{2}{|c}{rA} & \multicolumn{2}{|c}{rB} & \multicolumn{2}{|c}{\texttt{1000000}} & \multicolumn{1}{|c}{UF}
+\end{tabu}
+}
+\nopagebreak
+\begin{description}
+\item [Format:] \texttt{BFM rA, rB}
+\item [Purpose:] Bit flip a 54-bit register
+\item [Description:] Invert all bits of the 54-bit rB:rB+1 register value and store the result in rA:rA+1.
+
+\item [Operation:] \begin{verbatim}
+rA:rA+1 ← ~rB:rB+1\end{verbatim}
+\item [Flags affected:] \texttt{Z C O S}
+\end{description}
+\vfill
+%% LONG ONE
+\pagebreak
+\section{BR: Branch Register Conditional}
+\index{BR}
+{
+\setlength{\tabcolsep}{3pt}
+\begin{tabu} spread \linewidth {l r l r l r l r}
+\multicolumn{1}{l}{0} & \multicolumn{1}{r}{5} & \multicolumn{1}{|l}{6} & \multicolumn{1}{r}{9} & \multicolumn{1}{|l}{10} & \multicolumn{1}{r}{14} & \multicolumn{1}{|l}{15} & \multicolumn{1}{r}{17} \\
+\multicolumn{2}{c}{\texttt{110010}} & \multicolumn{2}{|c}{Condition} & \multicolumn{2}{|c}{rA} & \multicolumn{2}{|c}{\texttt{000}}
+\end{tabu}
+}
+\nopagebreak
+\begin{description}
+\item [Format:] \texttt{BRcc rA}
+\item [Purpose:] Conditional branch to a register
+\item [Description:] If the specified condition is true then the value in rA is placed into the program counter.
+
+\nopagebreak
+
+The condition table is as follows:
+
+\nopagebreak[4]
+\input{./tables/e93d68f331693c89c9e8007e106ad6fc2f5827beb5a7b121574a823daab01bdf.tex}
+%% table row
+%% table row
+%% table row
+%% table row
+%% table row
+%% table row
+%% table row
+%% table row
+%% table row
+%% table row
+%% table row
+%% table row
+%% table row
+%% table row
+%% table row
+
+
+\item [Operation:] \begin{verbatim}
+
+if Flags == Condition then
+  PC = rA\end{verbatim}
+\item [Flags affected:] \textit{None}
+\end{description}
+\vfill
+\pagebreak
+\pagebreak[3]
+\section{BRA: Branch Absolute}
+\index{BRA}
+{
+\setlength{\tabcolsep}{3pt}
+\begin{tabu} spread \linewidth {l r l r}
+\multicolumn{1}{l}{0} & \multicolumn{1}{r}{8} & \multicolumn{1}{|l}{9} & \multicolumn{1}{r}{35} \\
+\multicolumn{2}{c}{\texttt{111000100}} & \multicolumn{2}{|c}{Location}
+\end{tabu}
+}
+\nopagebreak
+\begin{description}
+\item [Format:] \texttt{BRA Location}
+\item [Purpose:] Branch to a set absolute location
+\item [Description:] The program counter is set to the specified 27-bit location.
+
+\item [Operation:] \begin{verbatim}
+PC = Location\end{verbatim}
+\item [Flags affected:] \textit{None}
+\end{description}
+\vfill
+\pagebreak[3]
+\section{BRR: Branch Relative}
+\index{BRR}
+{
+\setlength{\tabcolsep}{3pt}
+\begin{tabu} spread \linewidth {l r l r}
+\multicolumn{1}{l}{0} & \multicolumn{1}{r}{8} & \multicolumn{1}{|l}{9} & \multicolumn{1}{r}{35} \\
+\multicolumn{2}{c}{\texttt{111000000}} & \multicolumn{2}{|c}{Offset}
+\end{tabu}
+}
+\nopagebreak
+\begin{description}
+\item [Format:] \texttt{BRR Offset}
+\item [Purpose:] Branch to a relative offset
+\item [Description:] The 27-bit offset is added to the current program counter.
+
+\item [Operation:] \begin{verbatim}
+PC = PC + Offset\end{verbatim}
+\item [Flags affected:] \textit{None}
+\end{description}
+\vfill
+%% LONG ONE
+\pagebreak
+\section{C: Call Conditional}
+\index{C}
+{
+\setlength{\tabcolsep}{3pt}
+\begin{tabu} spread \linewidth {l r l r l r}
+\multicolumn{1}{l}{0} & \multicolumn{1}{r}{5} & \multicolumn{1}{|l}{6} & \multicolumn{1}{r}{9} & \multicolumn{1}{|l}{10} & \multicolumn{1}{r}{26} \\
+\multicolumn{2}{c}{\texttt{110101}} & \multicolumn{2}{|c}{Condition} & \multicolumn{2}{|c}{Offset}
+\end{tabu}
+}
+\nopagebreak
+\begin{description}
+\item [Format:] \texttt{Ccc Offset}
+\item [Purpose:] Conditional call to an offset
+\item [Description:] If the specified condition is true then the current program counter + 3 is saved into the RA register and the sign extended offset is added to the current program counter.
+
+\nopagebreak
+
+The condition table is as follows:
+
+\nopagebreak[4]
+\input{./tables/e93d68f331693c89c9e8007e106ad6fc2f5827beb5a7b121574a823daab01bdf.tex}
+%% table row
+%% table row
+%% table row
+%% table row
+%% table row
+%% table row
+%% table row
+%% table row
+%% table row
+%% table row
+%% table row
+%% table row
+%% table row
+%% table row
+%% table row
+
+
+\item [Operation:] \begin{verbatim}
+
+if Flags == Condition then
+  RA = PC + 3
+  PC += (signed)Offset\end{verbatim}
+\item [Flags affected:] \textit{None}
+\end{description}
+\vfill
+\pagebreak
+\pagebreak[3]
+\section{CAA: Call Absolute}
+\index{CAA}
+{
+\setlength{\tabcolsep}{3pt}
+\begin{tabu} spread \linewidth {l r l r}
+\multicolumn{1}{l}{0} & \multicolumn{1}{r}{8} & \multicolumn{1}{|l}{9} & \multicolumn{1}{r}{35} \\
+\multicolumn{2}{c}{\texttt{111001100}} & \multicolumn{2}{|c}{Location}
+\end{tabu}
+}
+\nopagebreak
+\begin{description}
+\item [Format:] \texttt{CAA Location}
+\item [Purpose:] Call to a set absolute location
+\item [Description:] The current program counter + 4 is stored into RA and the program counter is set to the specified 27-bit location.
+
+\item [Operation:] \begin{verbatim}
+
+RA = PC + 4
+PC = Location\end{verbatim}
+\item [Flags affected:] \textit{None}
+\end{description}
+\vfill
+\pagebreak[3]
+\section{CAR: Call Relative}
+\index{CAR}
+{
+\setlength{\tabcolsep}{3pt}
+\begin{tabu} spread \linewidth {l r l r}
+\multicolumn{1}{l}{0} & \multicolumn{1}{r}{8} & \multicolumn{1}{|l}{9} & \multicolumn{1}{r}{35} \\
+\multicolumn{2}{c}{\texttt{111001000}} & \multicolumn{2}{|c}{Offset}
+\end{tabu}
+}
+\nopagebreak
+\begin{description}
+\item [Format:] \texttt{CAR Offset}
+\item [Purpose:] Call to a relative offset
+\item [Description:] The current program counter + 4 is stored into RA and the 27-bit offset is added to the current program counter.
+
+\item [Operation:] \begin{verbatim}
+
+RA = PC + 4
+PC = PC + Offset\end{verbatim}
+\item [Flags affected:] \textit{None}
+\end{description}
+\vfill
+\pagebreak[3]
+\pagebreak
+\section{CM: Compare}
+\index{CM}
+{
+\setlength{\tabcolsep}{3pt}
+\begin{tabu} spread \linewidth {l r l r l r}
+\multicolumn{1}{l}{0} & \multicolumn{1}{r}{7} & \multicolumn{1}{|l}{8} & \multicolumn{1}{r}{12} & \multicolumn{1}{|l}{13} & \multicolumn{1}{r}{17} \\
+\multicolumn{2}{c}{\texttt{10111000}} & \multicolumn{2}{|c}{rA} & \multicolumn{2}{|c}{rB}
+\end{tabu}
+}
+\nopagebreak
+\begin{description}
+\item [Format:] \texttt{CM rA, rB}
+\item [Purpose:] Compare two registers
+\item [Description:] The 27-bit values in rB is subtracted from rA. The flags are set appropriately.
+
+\item [Operation:] \begin{verbatim}
+
+FLAGS = FLAGS & ~0xF
+28-bit temp = rA - rB
+if temp == 0 then
+  ZERO FLAG = 1
+if temp & 0x4000000 then
+  SIGNED FLAG = 1
+if (temp & 0x4000000) != (rA & 0x4000000) then
+  OVERFLOW FLAG = 1
+if (temp & 0x8000000) then
+  CARRY FLAG = 1\end{verbatim}
+\item [Flags affected:] \texttt{Z S O C}
+\end{description}
+\vfill
+\pagebreak[3]
+\section{CMF: Compare Floating Point}
+\index{CMF}
+{
+\setlength{\tabcolsep}{3pt}
+\begin{tabu} spread \linewidth {l r l r l r}
+\multicolumn{1}{l}{0} & \multicolumn{1}{r}{7} & \multicolumn{1}{|l}{8} & \multicolumn{1}{r}{12} & \multicolumn{1}{|l}{13} & \multicolumn{1}{r}{17} \\
+\multicolumn{2}{c}{\texttt{10111010}} & \multicolumn{2}{|c}{rA} & \multicolumn{2}{|c}{rB}
+\end{tabu}
+}
+\nopagebreak
+\begin{description}
+\item [Format:] \texttt{CMF rA, rB}
+\item [Purpose:] Compare two floating point registers
+\item [Description:] The 27-bit floating point value in rB is subtracted from the floating point rA. The flags are set appropriately.
+
+\item [Operation:] \begin{verbatim}
+
+FLAGS = FLAGS & ~0xF
+temp = rA - rB
+if temp == 0.0 then
+  ZERO FLAG = 1
+if temp < 0.0 then
+  SIGNED FLAG = 1
+if (temp < 0.0) != (rA < 0.0) then
+  OVERFLOW FLAG = 1\end{verbatim}
+\item [Flags affected:] \texttt{Z S O}
+\end{description}
+\vfill
+\pagebreak[3]
+\section{CMFM: Compare Floating Point Multi Reg}
+\index{CMFM}
+{
+\setlength{\tabcolsep}{3pt}
+\begin{tabu} spread \linewidth {l r l r l r}
+\multicolumn{1}{l}{0} & \multicolumn{1}{r}{7} & \multicolumn{1}{|l}{8} & \multicolumn{1}{r}{12} & \multicolumn{1}{|l}{13} & \multicolumn{1}{r}{17} \\
+\multicolumn{2}{c}{\texttt{10111110}} & \multicolumn{2}{|c}{rA} & \multicolumn{2}{|c}{rB}
+\end{tabu}
+}
+\nopagebreak
+\begin{description}
+\item [Format:] \texttt{CMFM rA, rB}
+\item [Purpose:] Compare two floating point registers
+\item [Description:] The 54-bit floating point value in rB is subtracted from the floating point rA. The flags are set appropriately.
+
+\item [Operation:] \begin{verbatim}
+
+FLAGS = FLAGS & ~0xF
+temp = rA:rA+1 - rB:rB+1
+if temp == 0 then
+  ZERO FLAG = 1
+if temp < 0.0 then
+  SIGNED FLAG = 1
+if (temp < 0.0) != (rA:rA+1 < 0.0) then
+  OVERFLOW FLAG = 1\end{verbatim}
+\item [Flags affected:] \texttt{Z S O}
+\end{description}
+\vfill
+\pagebreak[3]
+\section{CMI: Compare Immediate}
+\index{CMI}
+{
+\setlength{\tabcolsep}{3pt}
+\begin{tabu} spread \linewidth {l r l r l r}
+\multicolumn{1}{l}{0} & \multicolumn{1}{r}{7} & \multicolumn{1}{|l}{8} & \multicolumn{1}{r}{12} & \multicolumn{1}{|l}{13} & \multicolumn{1}{r}{26} \\
+\multicolumn{2}{c}{\texttt{10111001}} & \multicolumn{2}{|c}{rA} & \multicolumn{2}{|c}{Immediate}
+\end{tabu}
+}
+\nopagebreak
+\begin{description}
+\item [Format:] \texttt{CMI rA, IMM}
+\item [Purpose:] Compare a register and immediate value
+\item [Description:] The sign extended immediate value is subtracted from the 27-bit rA. The flags are set appropriately.
+
+\item [Operation:] \begin{verbatim}
+
+FLAGS = FLAGS & ~0xF
+28-bit temp = rA - (signed)IMM
+if temp == 0 then
+  ZERO FLAG = 1
+if temp & 0x4000000 then
+  SIGNED FLAG = 1
+if (temp & 0x4000000) != (rA & 0x4000000) then
+  OVERFLOW FLAG = 1
+if (temp & 0x8000000) then
+  CARRY FLAG = 1\end{verbatim}
+\item [Flags affected:] \texttt{Z S O C}
+\end{description}
+\vfill
+\pagebreak[3]
+\section{CMIM: Compare Immediate Multi Reg}
+\index{CMIM}
+{
+\setlength{\tabcolsep}{3pt}
+\begin{tabu} spread \linewidth {l r l r l r}
+\multicolumn{1}{l}{0} & \multicolumn{1}{r}{7} & \multicolumn{1}{|l}{8} & \multicolumn{1}{r}{12} & \multicolumn{1}{|l}{13} & \multicolumn{1}{r}{26} \\
+\multicolumn{2}{c}{\texttt{10111101}} & \multicolumn{2}{|c}{rA} & \multicolumn{2}{|c}{Immediate}
+\end{tabu}
+}
+\nopagebreak
+\begin{description}
+\item [Format:] \texttt{CMIM rA, IMM}
+\item [Purpose:] Compare a register and immediate value
+\item [Description:] The sign extended immediate value is subtracted from the 54-bit rA:rA+1. The flags are set appropriately.
+
+\item [Operation:] \begin{verbatim}
+
+FLAGS = FLAGS & ~0xF
+55-bit temp = rA:rA+1 - (signed)IMM
+if temp == 0 then
+  ZERO FLAG = 1
+if temp & 0x20000000000000 then
+  SIGNED FLAG = 1
+if ((temp & 0x20000000000000) !=
+    (rA:rA+1 & 0x20000000000000)) then
+  OVERFLOW FLAG = 1
+if (temp & 0x40000000000000) then
+  CARRY FLAG = 1\end{verbatim}
+\item [Flags affected:] \texttt{Z S O C}
+\end{description}
+\vfill
+\pagebreak[3]
+\pagebreak
+\section{CMM: Compare Multi Reg}
+\index{CMM}
+{
+\setlength{\tabcolsep}{3pt}
+\begin{tabu} spread \linewidth {l r l r l r}
+\multicolumn{1}{l}{0} & \multicolumn{1}{r}{7} & \multicolumn{1}{|l}{8} & \multicolumn{1}{r}{12} & \multicolumn{1}{|l}{13} & \multicolumn{1}{r}{17} \\
+\multicolumn{2}{c}{\texttt{10111100}} & \multicolumn{2}{|c}{rA} & \multicolumn{2}{|c}{rB}
+\end{tabu}
+}
+\nopagebreak
+\begin{description}
+\item [Format:] \texttt{CMM rA, rB}
+\item [Purpose:] Compare two registers
+\item [Description:] The 54-bit values in rB:rB+1 is subtracted from rA:rA+1. The flags are set appropriately.
+
+\item [Operation:] \begin{verbatim}
+
+FLAGS = FLAGS & ~0xF
+55-bit temp = rA:rA+1 - rB:rB+1
+if temp == 0 then
+  ZERO FLAG = 1
+if temp & 0x20000000000000 then
+  SIGNED FLAG = 1
+if ((temp & 0x20000000000000) !=
+    (rA:rA+1 & 0x20000000000000)) then
+  OVERFLOW FLAG = 1
+if (temp & 0x40000000000000) then
+  CARRY FLAG = 1\end{verbatim}
+\item [Flags affected:] \texttt{Z S O C}
+\end{description}
+\vfill
+%% LONG ONE
+\pagebreak
+\section{CR: Call Register Conditional}
+\index{CR}
+{
+\setlength{\tabcolsep}{3pt}
+\begin{tabu} spread \linewidth {l r l r l r l r}
+\multicolumn{1}{l}{0} & \multicolumn{1}{r}{5} & \multicolumn{1}{|l}{6} & \multicolumn{1}{r}{9} & \multicolumn{1}{|l}{10} & \multicolumn{1}{r}{14} & \multicolumn{1}{|l}{15} & \multicolumn{1}{r}{17} \\
+\multicolumn{2}{c}{\texttt{110111}} & \multicolumn{2}{|c}{Condition} & \multicolumn{2}{|c}{rA} & \multicolumn{2}{|c}{\texttt{000}}
+\end{tabu}
+}
+\nopagebreak
+\begin{description}
+\item [Format:] \texttt{CRcc rA}
+\item [Purpose:] Conditional call to a register
+\item [Description:] If the specified condition is true then the current program counter + 2 is saved into the RA register and the program counter is set to the value in rA.
+
+\nopagebreak
+
+The condition table is as follows:
+
+\nopagebreak[4]
+\input{./tables/e93d68f331693c89c9e8007e106ad6fc2f5827beb5a7b121574a823daab01bdf.tex}
+%% table row
+%% table row
+%% table row
+%% table row
+%% table row
+%% table row
+%% table row
+%% table row
+%% table row
+%% table row
+%% table row
+%% table row
+%% table row
+%% table row
+%% table row
+
+
+\item [Operation:] \begin{verbatim}
+
+if Flags == Condition then
+  RA = PC + 2
+  PC = rA\end{verbatim}
+\item [Flags affected:] \textit{None}
+\end{description}
+\vfill
+\pagebreak
+\pagebreak[3]
+\section{DBRK: Debug Break}
+\index{DBRK}
+{
+\setlength{\tabcolsep}{3pt}
+\begin{tabu} spread \linewidth {l r}
+\multicolumn{1}{l}{0} & \multicolumn{1}{r}{17} \\
+\multicolumn{2}{c}{\texttt{111111111111111111}}
+\end{tabu}
+}
+\nopagebreak
+\begin{description}
+\item [Format:] \texttt{DBRK}
+\item [Purpose:] Debug break
+\item [Description:] A special instruction for emulators to allow forcing a break in the emulation. Normal execution will cause an illegal instruction fault.
+
+\item [Operation:] \begin{verbatim}
+\end{verbatim}
+\item [Flags affected:] \textit{None}
+\end{description}
+\vfill
+\pagebreak[3]
+\section{DI: Disable Interrupts}
+\index{DI}
+{
+\setlength{\tabcolsep}{3pt}
+\begin{tabu} spread \linewidth {l r l r c}
+\multicolumn{1}{l}{0} & \multicolumn{1}{r}{11} & \multicolumn{1}{|l}{12} & \multicolumn{1}{r}{16} & \multicolumn{1}{|c}{17} \\
+\multicolumn{2}{c}{\texttt{101000000101}} & \multicolumn{2}{|c}{rA} & \multicolumn{1}{|c}{\texttt{0}}
+\end{tabu}
+}
+\nopagebreak
+\begin{description}
+\item [Format:] \texttt{DI rA}
+\item [Purpose:] Disable interrupts based on rA
+\item [Description:] Disable interrupts based on the mask in rA.
+
+\item [Operation:] \begin{verbatim}
+ FLAGS = (FLAGS & 0x7FFE00F) | ((~rA << 4) & 0x1FF0)\end{verbatim}
+\item [Flags affected:] \textit{None}
+\end{description}
+\vfill
+\pagebreak[3]
+\section{DMT: Direct Memory Transfer}
+\index{DMT}
+{
+\setlength{\tabcolsep}{3pt}
+\begin{tabu} spread \linewidth {l r l r l r l r l r}
+\multicolumn{1}{l}{0} & \multicolumn{1}{r}{6} & \multicolumn{1}{|l}{7} & \multicolumn{1}{r}{11} & \multicolumn{1}{|l}{12} & \multicolumn{1}{r}{16} & \multicolumn{1}{|l}{17} & \multicolumn{1}{r}{21} & \multicolumn{1}{|l}{22} & \multicolumn{1}{r}{26} \\
+\multicolumn{2}{c}{\texttt{0110100}} & \multicolumn{2}{|c}{rA} & \multicolumn{2}{|c}{rB} & \multicolumn{2}{|c}{rC} & \multicolumn{2}{|c}{\texttt{00000}}
+\end{tabu}
+}
+\nopagebreak
+\begin{description}
+\item [Format:] \texttt{DMT rA, rB, rC}
+\item [Purpose:] Directly transfer memory between locations
+\item [Description:] Directly transfer rC bytes of memory from location pointed to by rB to memory location rA.
+
+\item [Operation:] \begin{verbatim}
+
+P = 0
+while(P < rC)
+  (byte)[rA + P] = (byte)[rB + P]
+  P = P + 1\end{verbatim}
+\item [Flags affected:] \textit{None}
+\end{description}
+\vfill
+\pagebreak[3]
+\section{DV: Divide}
+\index{DV}
+{
+\setlength{\tabcolsep}{3pt}
+\begin{tabu} spread \linewidth {l r l r l r l r l r c}
+\multicolumn{1}{l}{0} & \multicolumn{1}{r}{6} & \multicolumn{1}{|l}{7} & \multicolumn{1}{r}{11} & \multicolumn{1}{|l}{12} & \multicolumn{1}{r}{16} & \multicolumn{1}{|l}{17} & \multicolumn{1}{r}{21} & \multicolumn{1}{|l}{22} & \multicolumn{1}{r}{25} & \multicolumn{1}{|c}{26} \\
+\multicolumn{2}{c}{\texttt{0001100}} & \multicolumn{2}{|c}{rA} & \multicolumn{2}{|c}{rB} & \multicolumn{2}{|c}{rC} & \multicolumn{2}{|c}{\texttt{0000}} & \multicolumn{1}{|c}{UF}
+\end{tabu}
+}
+\nopagebreak
+\begin{description}
+\item [Format:] \texttt{DV rA, rB, rC}
+\item [Purpose:] Divide two 27-bit integer registers
+\item [Description:] The 27-bit value in rB is divided with the 27-bit value in rC, the result is placed in rA.
+
+\item [Operation:] \begin{verbatim}
+rA ← rB / rC\end{verbatim}
+\item [Flags affected:] \texttt{Z C O S}
+\end{description}
+\vfill
+\pagebreak[3]
+\section{DVF: Divide Floating Point}
+\index{DVF}
+{
+\setlength{\tabcolsep}{3pt}
+\begin{tabu} spread \linewidth {l r l r l r l r l r c}
+\multicolumn{1}{l}{0} & \multicolumn{1}{r}{6} & \multicolumn{1}{|l}{7} & \multicolumn{1}{r}{11} & \multicolumn{1}{|l}{12} & \multicolumn{1}{r}{16} & \multicolumn{1}{|l}{17} & \multicolumn{1}{r}{21} & \multicolumn{1}{|l}{22} & \multicolumn{1}{r}{25} & \multicolumn{1}{|c}{26} \\
+\multicolumn{2}{c}{\texttt{0001101}} & \multicolumn{2}{|c}{rA} & \multicolumn{2}{|c}{rB} & \multicolumn{2}{|c}{rC} & \multicolumn{2}{|c}{\texttt{0000}} & \multicolumn{1}{|c}{UF}
+\end{tabu}
+}
+\nopagebreak
+\begin{description}
+\item [Format:] \texttt{DVF rA, rB, rC}
+\item [Purpose:] Divide two 27-bit floating point registers
+\item [Description:] The 27-bit floating point value in rB is divided with the 27-bit floating point value in rC, the result is placed in rA.
+
+\item [Operation:] \begin{verbatim}
+rA ← rB / rC\end{verbatim}
+\item [Flags affected:] \texttt{Z C O S}
+\end{description}
+\vfill
+\pagebreak[3]
+\section{DVFM: Divide Floating Point Multi Reg}
+\index{DVFM}
+{
+\setlength{\tabcolsep}{3pt}
+\begin{tabu} spread \linewidth {l r l r l r l r l r c}
+\multicolumn{1}{l}{0} & \multicolumn{1}{r}{6} & \multicolumn{1}{|l}{7} & \multicolumn{1}{r}{11} & \multicolumn{1}{|l}{12} & \multicolumn{1}{r}{16} & \multicolumn{1}{|l}{17} & \multicolumn{1}{r}{21} & \multicolumn{1}{|l}{22} & \multicolumn{1}{r}{25} & \multicolumn{1}{|c}{26} \\
+\multicolumn{2}{c}{\texttt{0001111}} & \multicolumn{2}{|c}{rA} & \multicolumn{2}{|c}{rB} & \multicolumn{2}{|c}{rC} & \multicolumn{2}{|c}{\texttt{0000}} & \multicolumn{1}{|c}{UF}
+\end{tabu}
+}
+\nopagebreak
+\begin{description}
+\item [Format:] \texttt{DVFM rA, rB, rC}
+\item [Purpose:] Divide two 54-bit floating point registers
+\item [Description:] The 54-bit floating point value in rB:rB+1 is divided with the 54-bit floating point value in rC:rC+1, the result is placed in rA:rA+1.
+
+\item [Operation:] \begin{verbatim}
+rA:rA+1 ← rB:rB+1 / rC:rC+1\end{verbatim}
+\item [Flags affected:] \texttt{Z C O S}
+\end{description}
+\vfill
+\pagebreak[3]
+\section{DVI: Divide Immediate}
+\index{DVI}
+{
+\setlength{\tabcolsep}{3pt}
+\begin{tabu} spread \linewidth {l r l r l r l r l r c}
+\multicolumn{1}{l}{0} & \multicolumn{1}{r}{6} & \multicolumn{1}{|l}{7} & \multicolumn{1}{r}{11} & \multicolumn{1}{|l}{12} & \multicolumn{1}{r}{16} & \multicolumn{1}{|l}{17} & \multicolumn{1}{r}{23} & \multicolumn{1}{|l}{24} & \multicolumn{1}{r}{25} & \multicolumn{1}{|c}{26} \\
+\multicolumn{2}{c}{\texttt{0001100}} & \multicolumn{2}{|c}{rA} & \multicolumn{2}{|c}{rB} & \multicolumn{2}{|c}{Immediate} & \multicolumn{2}{|c}{\texttt{01}} & \multicolumn{1}{|c}{UF}
+\end{tabu}
+}
+\nopagebreak
+\begin{description}
+\item [Format:] \texttt{DVI rA, rB, IMM}
+\item [Purpose:] Divide a 27-bit integer register by a 7-bit immediate
+\item [Description:] The 27-bit value in rB is divided with the 7-bit immediate value, the result is placed in rA.
+
+\item [Operation:] \begin{verbatim}
+rA ← rB / IMM\end{verbatim}
+\item [Flags affected:] \texttt{Z C O S}
+\end{description}
+\vfill
+\pagebreak[3]
+\section{DVIM: Divide Immediate Multi Reg}
+\index{DVIM}
+{
+\setlength{\tabcolsep}{3pt}
+\begin{tabu} spread \linewidth {l r l r l r l r l r c}
+\multicolumn{1}{l}{0} & \multicolumn{1}{r}{6} & \multicolumn{1}{|l}{7} & \multicolumn{1}{r}{11} & \multicolumn{1}{|l}{12} & \multicolumn{1}{r}{16} & \multicolumn{1}{|l}{17} & \multicolumn{1}{r}{23} & \multicolumn{1}{|l}{24} & \multicolumn{1}{r}{25} & \multicolumn{1}{|c}{26} \\
+\multicolumn{2}{c}{\texttt{0001110}} & \multicolumn{2}{|c}{rA} & \multicolumn{2}{|c}{rB} & \multicolumn{2}{|c}{Immediate} & \multicolumn{2}{|c}{\texttt{01}} & \multicolumn{1}{|c}{UF}
+\end{tabu}
+}
+\nopagebreak
+\begin{description}
+\item [Format:] \texttt{DVIM rA, rB, IMM}
+\item [Purpose:] Divide a 54-bit integer register by a 7-bit immediate
+\item [Description:] The 54-bit value in rB:rB+1 is divided with the 7-bit immediate value, the result is placed in rA:rA+1.
+
+\item [Operation:] \begin{verbatim}
+rA:rA+1 ← rB:rB+1 / IMM\end{verbatim}
+\item [Flags affected:] \texttt{Z C O S}
+\end{description}
+\vfill
+\pagebreak[3]
+\section{DVIS: Divide Immediate Signed}
+\index{DVIS}
+{
+\setlength{\tabcolsep}{3pt}
+\begin{tabu} spread \linewidth {l r l r l r l r l r c}
+\multicolumn{1}{l}{0} & \multicolumn{1}{r}{6} & \multicolumn{1}{|l}{7} & \multicolumn{1}{r}{11} & \multicolumn{1}{|l}{12} & \multicolumn{1}{r}{16} & \multicolumn{1}{|l}{17} & \multicolumn{1}{r}{23} & \multicolumn{1}{|l}{24} & \multicolumn{1}{r}{25} & \multicolumn{1}{|c}{26} \\
+\multicolumn{2}{c}{\texttt{0001100}} & \multicolumn{2}{|c}{rA} & \multicolumn{2}{|c}{rB} & \multicolumn{2}{|c}{Immediate} & \multicolumn{2}{|c}{\texttt{11}} & \multicolumn{1}{|c}{UF}
+\end{tabu}
+}
+\nopagebreak
+\begin{description}
+\item [Format:] \texttt{DVIS rA, rB, IMM}
+\item [Purpose:] Divide a signed 27-bit integer register by a signed 7-bit immediate
+\item [Description:] The signed 27-bit value in rB is divided with the signed 7-bit immediate value, the result is placed in rA.
+
+\item [Operation:] \begin{verbatim}
+rA ← (signed)rB / (signed)IMM\end{verbatim}
+\item [Flags affected:] \texttt{Z C O S}
+\end{description}
+\vfill
+\pagebreak[3]
+\section{DVISM: Divide Immediate Signed Multi Reg}
+\index{DVISM}
+{
+\setlength{\tabcolsep}{3pt}
+\begin{tabu} spread \linewidth {l r l r l r l r l r c}
+\multicolumn{1}{l}{0} & \multicolumn{1}{r}{6} & \multicolumn{1}{|l}{7} & \multicolumn{1}{r}{11} & \multicolumn{1}{|l}{12} & \multicolumn{1}{r}{16} & \multicolumn{1}{|l}{17} & \multicolumn{1}{r}{23} & \multicolumn{1}{|l}{24} & \multicolumn{1}{r}{25} & \multicolumn{1}{|c}{26} \\
+\multicolumn{2}{c}{\texttt{0001110}} & \multicolumn{2}{|c}{rA} & \multicolumn{2}{|c}{rB} & \multicolumn{2}{|c}{Immediate} & \multicolumn{2}{|c}{\texttt{11}} & \multicolumn{1}{|c}{UF}
+\end{tabu}
+}
+\nopagebreak
+\begin{description}
+\item [Format:] \texttt{DVISM rA, rB, IMM}
+\item [Purpose:] Divide a signed 54-bit integer register by a signed 7-bit immediate
+\item [Description:] The signed 54-bit value in rB:rB+1 is divided with the signed 7-bit immediate value, the result is placed in rA:rA+1.
+
+\item [Operation:] \begin{verbatim}
+rA:rA+1 ← (signed)rB:rB+1 / (signed)IMM\end{verbatim}
+\item [Flags affected:] \texttt{Z C O S}
+\end{description}
+\vfill
+\pagebreak[3]
+\section{DVM: Divide Multi Reg}
+\index{DVM}
+{
+\setlength{\tabcolsep}{3pt}
+\begin{tabu} spread \linewidth {l r l r l r l r l r c}
+\multicolumn{1}{l}{0} & \multicolumn{1}{r}{6} & \multicolumn{1}{|l}{7} & \multicolumn{1}{r}{11} & \multicolumn{1}{|l}{12} & \multicolumn{1}{r}{16} & \multicolumn{1}{|l}{17} & \multicolumn{1}{r}{21} & \multicolumn{1}{|l}{22} & \multicolumn{1}{r}{25} & \multicolumn{1}{|c}{26} \\
+\multicolumn{2}{c}{\texttt{0001110}} & \multicolumn{2}{|c}{rA} & \multicolumn{2}{|c}{rB} & \multicolumn{2}{|c}{rC} & \multicolumn{2}{|c}{\texttt{0000}} & \multicolumn{1}{|c}{UF}
+\end{tabu}
+}
+\nopagebreak
+\begin{description}
+\item [Format:] \texttt{DVM rA, rB, rC}
+\item [Purpose:] Divide two 54-bit integer registers
+\item [Description:] The 54-bit value in rB:rB+1 is divided with the 54-bit value in rC:rC+1, the result is placed in rA:rA+1.
+
+\item [Operation:] \begin{verbatim}
+rA:rA+1 ← rB:rB+1 / rC:rC+1\end{verbatim}
+\item [Flags affected:] \texttt{Z C O S}
+\end{description}
+\vfill
+\pagebreak[3]
+\section{DVS: Divide Signed}
+\index{DVS}
+{
+\setlength{\tabcolsep}{3pt}
+\begin{tabu} spread \linewidth {l r l r l r l r l r c}
+\multicolumn{1}{l}{0} & \multicolumn{1}{r}{6} & \multicolumn{1}{|l}{7} & \multicolumn{1}{r}{11} & \multicolumn{1}{|l}{12} & \multicolumn{1}{r}{16} & \multicolumn{1}{|l}{17} & \multicolumn{1}{r}{21} & \multicolumn{1}{|l}{22} & \multicolumn{1}{r}{25} & \multicolumn{1}{|c}{26} \\
+\multicolumn{2}{c}{\texttt{0001100}} & \multicolumn{2}{|c}{rA} & \multicolumn{2}{|c}{rB} & \multicolumn{2}{|c}{rC} & \multicolumn{2}{|c}{\texttt{0010}} & \multicolumn{1}{|c}{UF}
+\end{tabu}
+}
+\nopagebreak
+\begin{description}
+\item [Format:] \texttt{DVS rA, rB, rC}
+\item [Purpose:] Divide two signed 27-bit integer registers
+\item [Description:] The signed 27-bit value in rB is divided with the signed 27-bit value in rC, the result is placed in rA.
+
+\item [Operation:] \begin{verbatim}
+rA ← (signed)rB / (signed)rC\end{verbatim}
+\item [Flags affected:] \texttt{Z C O S}
+\end{description}
+\vfill
+\pagebreak[3]
+\section{DVSM: Divide Signed Multi Reg}
+\index{DVSM}
+{
+\setlength{\tabcolsep}{3pt}
+\begin{tabu} spread \linewidth {l r l r l r l r l r c}
+\multicolumn{1}{l}{0} & \multicolumn{1}{r}{6} & \multicolumn{1}{|l}{7} & \multicolumn{1}{r}{11} & \multicolumn{1}{|l}{12} & \multicolumn{1}{r}{16} & \multicolumn{1}{|l}{17} & \multicolumn{1}{r}{21} & \multicolumn{1}{|l}{22} & \multicolumn{1}{r}{25} & \multicolumn{1}{|c}{26} \\
+\multicolumn{2}{c}{\texttt{0001110}} & \multicolumn{2}{|c}{rA} & \multicolumn{2}{|c}{rB} & \multicolumn{2}{|c}{rC} & \multicolumn{2}{|c}{\texttt{0010}} & \multicolumn{1}{|c}{UF}
+\end{tabu}
+}
+\nopagebreak
+\begin{description}
+\item [Format:] \texttt{DVSM rA, rB, rC}
+\item [Purpose:] Divide two 54-bit integer registers
+\item [Description:] The 54-bit value in rB:rB+1 is divided with the 54-bit value in rC:rC+1, the result is placed in rA:rA+1.
+
+\item [Operation:] \begin{verbatim}
+rA:rA+1 ← (signed)rB:rB+1 / (signed)rC:rC+1\end{verbatim}
+\item [Flags affected:] \texttt{Z C O S}
+\end{description}
+\vfill
+\pagebreak[3]
+\section{EI: Enable Interrupts}
+\index{EI}
+{
+\setlength{\tabcolsep}{3pt}
+\begin{tabu} spread \linewidth {l r l r c}
+\multicolumn{1}{l}{0} & \multicolumn{1}{r}{11} & \multicolumn{1}{|l}{12} & \multicolumn{1}{r}{16} & \multicolumn{1}{|c}{17} \\
+\multicolumn{2}{c}{\texttt{101000000100}} & \multicolumn{2}{|c}{rA} & \multicolumn{1}{|c}{\texttt{0}}
+\end{tabu}
+}
+\nopagebreak
+\begin{description}
+\item [Format:] \texttt{EI rA}
+\item [Purpose:] Enable interrupts base on rA
+\item [Description:] Enable interrupts based on the mask in rA.
+
+\item [Operation:] \begin{verbatim}
+ FLAGS = (FLAGS & 0x7FFE00F) | ((rA << 4) & 0x1FF0)\end{verbatim}
+\item [Flags affected:] \textit{None}
+\end{description}
+\vfill
+\pagebreak[3]
+\section{FTI: Float to Integer}
+\index{FTI}
+{
+\setlength{\tabcolsep}{3pt}
+\begin{tabu} spread \linewidth {l r l r l r l r}
+\multicolumn{1}{l}{0} & \multicolumn{1}{r}{8} & \multicolumn{1}{|l}{9} & \multicolumn{1}{r}{13} & \multicolumn{1}{|l}{14} & \multicolumn{1}{r}{18} & \multicolumn{1}{|l}{19} & \multicolumn{1}{r}{26} \\
+\multicolumn{2}{c}{\texttt{101000101}} & \multicolumn{2}{|c}{rA} & \multicolumn{2}{|c}{rB} & \multicolumn{2}{|c}{\texttt{00000000}}
+\end{tabu}
+}
+\nopagebreak
+\begin{description}
+\item [Format:] \texttt{FTI rA, rB}
+\item [Purpose:] Convert a 27-bit float to integer
+\item [Description:] The 27-bit float in rB in converted to a 27-bit integer value and stored in rA.
+
+\item [Operation:] \begin{verbatim}
+rA ← int(rB)\end{verbatim}
+\item [Flags affected:] \texttt{Z C O S}
+\end{description}
+\vfill
+\pagebreak[3]
+\section{FTIM: Float to Integer Multi Reg}
+\index{FTIM}
+{
+\setlength{\tabcolsep}{3pt}
+\begin{tabu} spread \linewidth {l r l r l r l r}
+\multicolumn{1}{l}{0} & \multicolumn{1}{r}{8} & \multicolumn{1}{|l}{9} & \multicolumn{1}{r}{13} & \multicolumn{1}{|l}{14} & \multicolumn{1}{r}{18} & \multicolumn{1}{|l}{19} & \multicolumn{1}{r}{26} \\
+\multicolumn{2}{c}{\texttt{101000111}} & \multicolumn{2}{|c}{rA} & \multicolumn{2}{|c}{rB} & \multicolumn{2}{|c}{\texttt{00000000}}
+\end{tabu}
+}
+\nopagebreak
+\begin{description}
+\item [Format:] \texttt{FTIM rA, rB}
+\item [Purpose:] Convert a 54-bit float to integer
+\item [Description:] The 54-bit float in rB:rB+1 in converted to a 54-bit integer value and stored in rA:rA+1.
+
+\item [Operation:] \begin{verbatim}
+rA:rA+1 ← int(rB:rB+1)\end{verbatim}
+\item [Flags affected:] \texttt{Z C O S}
+\end{description}
+\vfill
+\pagebreak[3]
+\section{HT: Halt}
+\index{HT}
+{
+\setlength{\tabcolsep}{3pt}
+\begin{tabu} spread \linewidth {l r}
+\multicolumn{1}{l}{0} & \multicolumn{1}{r}{17} \\
+\multicolumn{2}{c}{\texttt{101000000011000000}}
+\end{tabu}
+}
+\nopagebreak
+\begin{description}
+\item [Format:] \texttt{HT}
+\item [Purpose:] Halt the processor
+\item [Description:] Disables all interrupts and stops the processor from responding to any more instructions.
+
+\item [Operation:] \begin{verbatim}
+\end{verbatim}
+\item [Flags affected:] \textit{None}
+\end{description}
+\vfill
+\pagebreak[3]
+\section{IR: Interrupt Return}
+\index{IR}
+{
+\setlength{\tabcolsep}{3pt}
+\begin{tabu} spread \linewidth {l r}
+\multicolumn{1}{l}{0} & \multicolumn{1}{r}{17} \\
+\multicolumn{2}{c}{\texttt{101000000001000000}}
+\end{tabu}
+}
+\nopagebreak
+\begin{description}
+\item [Format:] \texttt{IR}
+\item [Purpose:] Return from an interrupt
+\item [Description:] Return from an interrupt routine.
+
+\item [Operation:] \begin{verbatim}
+
+if Stack_Direction_Flag then
+  SP -= 0x63
+R0:R31 ← [SP:SP+0x60]
+FLAGS ← [SP+0x60:SP+0x63]
+if not Stack_Direction_Flag then
+  SP += 0x63\end{verbatim}
+\item [Flags affected:] \texttt{Z C O S}
+\end{description}
+\vfill
+\pagebreak[3]
+\section{ITF: Integer to Float}
+\index{ITF}
+{
+\setlength{\tabcolsep}{3pt}
+\begin{tabu} spread \linewidth {l r l r l r l r}
+\multicolumn{1}{l}{0} & \multicolumn{1}{r}{8} & \multicolumn{1}{|l}{9} & \multicolumn{1}{r}{13} & \multicolumn{1}{|l}{14} & \multicolumn{1}{r}{18} & \multicolumn{1}{|l}{19} & \multicolumn{1}{r}{26} \\
+\multicolumn{2}{c}{\texttt{101000100}} & \multicolumn{2}{|c}{rA} & \multicolumn{2}{|c}{rB} & \multicolumn{2}{|c}{\texttt{00000000}}
+\end{tabu}
+}
+\nopagebreak
+\begin{description}
+\item [Format:] \texttt{ITF rA, rB}
+\item [Purpose:] Convert a 27-bit integer to float
+\item [Description:] The 27-bit integer in rB in converted to a 27-bit float value and stored in rA.
+
+\item [Operation:] \begin{verbatim}
+rA ← float(rB)\end{verbatim}
+\item [Flags affected:] \texttt{Z C O S}
+\end{description}
+\vfill
+\pagebreak[3]
+\section{ITFM: Integer to Float Multi Reg}
+\index{ITFM}
+{
+\setlength{\tabcolsep}{3pt}
+\begin{tabu} spread \linewidth {l r l r l r l r}
+\multicolumn{1}{l}{0} & \multicolumn{1}{r}{8} & \multicolumn{1}{|l}{9} & \multicolumn{1}{r}{13} & \multicolumn{1}{|l}{14} & \multicolumn{1}{r}{18} & \multicolumn{1}{|l}{19} & \multicolumn{1}{r}{26} \\
+\multicolumn{2}{c}{\texttt{101000110}} & \multicolumn{2}{|c}{rA} & \multicolumn{2}{|c}{rB} & \multicolumn{2}{|c}{\texttt{00000000}}
+\end{tabu}
+}
+\nopagebreak
+\begin{description}
+\item [Format:] \texttt{ITFM rA, rB}
+\item [Purpose:] Convert a 54-bit integer to float
+\item [Description:] The 54-bit integer in rB:rB+1 in converted to a 54-bit float value and stored in rA:rA+1.
+
+\item [Operation:] \begin{verbatim}
+rA:rA+1 ← float(rB:rB+1)\end{verbatim}
+\item [Flags affected:] \texttt{Z C O S}
+\end{description}
+\vfill
+%% LONG ONE
+\pagebreak
+\section{LDS: Load Single}
+\index{LDS}
+{
+\setlength{\tabcolsep}{3pt}
+\begin{tabu} spread \linewidth {l r l r l r l r l r l r l r}
+\multicolumn{1}{l}{0} & \multicolumn{1}{r}{6} & \multicolumn{1}{|l}{7} & \multicolumn{1}{r}{11} & \multicolumn{1}{|l}{12} & \multicolumn{1}{r}{16} & \multicolumn{1}{|l}{17} & \multicolumn{1}{r}{21} & \multicolumn{1}{|l}{22} & \multicolumn{1}{r}{23} & \multicolumn{1}{|l}{24} & \multicolumn{1}{r}{50} & \multicolumn{1}{|l}{51} & \multicolumn{1}{r}{53} \\
+\multicolumn{2}{c}{\texttt{1010100}} & \multicolumn{2}{|c}{rA} & \multicolumn{2}{|c}{rB} & \multicolumn{2}{|c}{Register Count} & \multicolumn{2}{|c}{Adjust rB} & \multicolumn{2}{|c}{Memory Offset} & \multicolumn{2}{|c}{\texttt{000}}
+\end{tabu}
+}
+\nopagebreak
+\begin{description}
+\item [Format:] \texttt{LDSm rA, [rB + Offset, RegCount]}
+\item [Purpose:] Load a single byte from memory
+\item [Description:] The value in rB is added to Offset and a single byte per register is loaded into the low 9 bits of rA to rA+RegCount. The top 18 bits are set to zero for each affected register.
+
+\nopagebreak
+
+m refers to the Adjust RB value which can have the following designations to indicate the mode:
+
+\nopagebreak[4]
+\input{./tables/455c4c5d842459a0c36984a490d9251e979a3bb3b258e716651b241c99c01014.tex}
+%% table row
+%% table row
+
+
+\item [Operation:] \begin{verbatim}
+
+StartReg = rA
+RegCount = RegCount + 1
+CurCount = RegCount
+Temp = rB
+TempPC = PC
+if Mode is 2 then
+  Temp = Temp - CurCount
+MemLocation = (Temp + Offset)
+While CurCount is not 0
+  Registers[StartReg] = Memory[MemLocation]
+  MemLocation += 1
+  StartReg = (StartReg + 1) % 32
+  CurCount = CurCount - 1
+if Mode is 1 then
+  rB = rB + RegCount
+if Mode is 2 then
+  rB = Temp
+PC = TempPC\end{verbatim}
+\item [Flags affected:] \textit{None}
+\end{description}
+\vfill
+\pagebreak
+%% LONG ONE
+\pagebreak
+\section{LDT: Load Tri}
+\index{LDT}
+{
+\setlength{\tabcolsep}{3pt}
+\begin{tabu} spread \linewidth {l r l r l r l r l r l r l r}
+\multicolumn{1}{l}{0} & \multicolumn{1}{r}{6} & \multicolumn{1}{|l}{7} & \multicolumn{1}{r}{11} & \multicolumn{1}{|l}{12} & \multicolumn{1}{r}{16} & \multicolumn{1}{|l}{17} & \multicolumn{1}{r}{21} & \multicolumn{1}{|l}{22} & \multicolumn{1}{r}{23} & \multicolumn{1}{|l}{24} & \multicolumn{1}{r}{50} & \multicolumn{1}{|l}{51} & \multicolumn{1}{r}{53} \\
+\multicolumn{2}{c}{\texttt{1010110}} & \multicolumn{2}{|c}{rA} & \multicolumn{2}{|c}{rB} & \multicolumn{2}{|c}{Register Count} & \multicolumn{2}{|c}{Adjust rB} & \multicolumn{2}{|c}{Memory Offset} & \multicolumn{2}{|c}{\texttt{000}}
+\end{tabu}
+}
+\nopagebreak
+\begin{description}
+\item [Format:] \texttt{LDTm rA, [rB + Offset, RegCount]}
+\item [Purpose:] Load three bytes from memory
+\item [Description:] The value in rB is added to Offset and three bytes per register are loaded into rA to rA+RegCount.
+
+\nopagebreak
+
+m refers to the Adjust RB value which can have the following designations to indicate the mode:
+
+\nopagebreak[4]
+\input{./tables/455c4c5d842459a0c36984a490d9251e979a3bb3b258e716651b241c99c01014.tex}
+%% table row
+%% table row
+
+
+\item [Operation:] \begin{verbatim}
+
+StartReg = rA
+RegCount = RegCount + 1
+CurCount = RegCount
+Temp = rB
+TempPC = PC
+if Mode is 2 then
+  Temp = Temp - (CurCount * 3)
+MemLocation = (Temp + Offset)
+While CurCount is not 0
+  Registers[StartReg] =
+    (Memory[MemLocation] << 9) |
+    (Memory[(MemLocation + 1)] << 18) |
+    Memory[(MemLocation + 2)]
+  MemLocation += 3
+  StartReg = (StartReg + 1) % 32
+  CurCount = CurCount - 1
+if Mode is 1 then
+  rB = rB + (RegCount * 3)
+if Mode is 2 then
+  rB = Temp
+PC = TempPC\end{verbatim}
+\item [Flags affected:] \textit{None}
+\end{description}
+\vfill
+\pagebreak
+%% LONG ONE
+\pagebreak
+\section{LDW: Load Word}
+\index{LDW}
+{
+\setlength{\tabcolsep}{3pt}
+\begin{tabu} spread \linewidth {l r l r l r l r l r l r l r}
+\multicolumn{1}{l}{0} & \multicolumn{1}{r}{6} & \multicolumn{1}{|l}{7} & \multicolumn{1}{r}{11} & \multicolumn{1}{|l}{12} & \multicolumn{1}{r}{16} & \multicolumn{1}{|l}{17} & \multicolumn{1}{r}{21} & \multicolumn{1}{|l}{22} & \multicolumn{1}{r}{23} & \multicolumn{1}{|l}{24} & \multicolumn{1}{r}{50} & \multicolumn{1}{|l}{51} & \multicolumn{1}{r}{53} \\
+\multicolumn{2}{c}{\texttt{1010101}} & \multicolumn{2}{|c}{rA} & \multicolumn{2}{|c}{rB} & \multicolumn{2}{|c}{Register Count} & \multicolumn{2}{|c}{Adjust rB} & \multicolumn{2}{|c}{Memory Offset} & \multicolumn{2}{|c}{\texttt{000}}
+\end{tabu}
+}
+\nopagebreak
+\begin{description}
+\item [Format:] \texttt{LDWm rA, [rB + Offset, RegCount]}
+\item [Purpose:] Load two bytes from memory
+\item [Description:] The value in rB is added to Offset and two bytes per register are loaded into the low 18 bits of rA to rA+RegCount. The top 9 bits are set to zero for each affected register.
+
+\nopagebreak
+
+m refers to the Adjust RB value which can have the following designations to indicate the mode:
+
+\nopagebreak[4]
+\input{./tables/455c4c5d842459a0c36984a490d9251e979a3bb3b258e716651b241c99c01014.tex}
+%% table row
+%% table row
+
+
+\item [Operation:] \begin{verbatim}
+
+StartReg = rA
+RegCount = RegCount + 1
+CurCount = RegCount
+Temp = rB
+TempPC = PC
+if Mode is 2 then
+  Temp = Temp - (CurCount * 2)
+MemLocation = (Temp + Offset)
+While CurCount is not 0
+  Registers[StartReg] =
+    (Memory[MemLocation] << 9) | Memory[(MemLocation + 1)]
+  MemLocation += 2
+  StartReg = (StartReg + 1) % 32
+  CurCount = CurCount - 1
+if Mode is 1 then
+  rB = rB + (RegCount * 2)
+if Mode is 2 then
+  rB = Temp
+PC = TempPC\end{verbatim}
+\item [Flags affected:] \textit{None}
+\end{description}
+\vfill
+\pagebreak
+\pagebreak[3]
+\section{MD: Modulus}
+\index{MD}
+{
+\setlength{\tabcolsep}{3pt}
+\begin{tabu} spread \linewidth {l r l r l r l r l r c}
+\multicolumn{1}{l}{0} & \multicolumn{1}{r}{6} & \multicolumn{1}{|l}{7} & \multicolumn{1}{r}{11} & \multicolumn{1}{|l}{12} & \multicolumn{1}{r}{16} & \multicolumn{1}{|l}{17} & \multicolumn{1}{r}{21} & \multicolumn{1}{|l}{22} & \multicolumn{1}{r}{25} & \multicolumn{1}{|c}{26} \\
+\multicolumn{2}{c}{\texttt{0010000}} & \multicolumn{2}{|c}{rA} & \multicolumn{2}{|c}{rB} & \multicolumn{2}{|c}{rC} & \multicolumn{2}{|c}{\texttt{0000}} & \multicolumn{1}{|c}{UF}
+\end{tabu}
+}
+\nopagebreak
+\begin{description}
+\item [Format:] \texttt{MD rA, rB, rC}
+\item [Purpose:] Access the remainder of dividing two 27-bit integer registers
+\item [Description:] The 27-bit value in rB is divided with the 27-bit value in rC, the remainder of the division is placed in rA.
+
+\item [Operation:] \begin{verbatim}
+rA ← rB % rC\end{verbatim}
+\item [Flags affected:] \texttt{Z C O S}
+\end{description}
+\vfill
+\pagebreak[3]
+\section{MDF: Modulus Floating Point}
+\index{MDF}
+{
+\setlength{\tabcolsep}{3pt}
+\begin{tabu} spread \linewidth {l r l r l r l r l r c}
+\multicolumn{1}{l}{0} & \multicolumn{1}{r}{6} & \multicolumn{1}{|l}{7} & \multicolumn{1}{r}{11} & \multicolumn{1}{|l}{12} & \multicolumn{1}{r}{16} & \multicolumn{1}{|l}{17} & \multicolumn{1}{r}{21} & \multicolumn{1}{|l}{22} & \multicolumn{1}{r}{25} & \multicolumn{1}{|c}{26} \\
+\multicolumn{2}{c}{\texttt{0010001}} & \multicolumn{2}{|c}{rA} & \multicolumn{2}{|c}{rB} & \multicolumn{2}{|c}{rC} & \multicolumn{2}{|c}{\texttt{0000}} & \multicolumn{1}{|c}{UF}
+\end{tabu}
+}
+\nopagebreak
+\begin{description}
+\item [Format:] \texttt{MDF rA, rB, rC}
+\item [Purpose:] Access the remainder of dividing two 27-bit floating point registers
+\item [Description:] The 27-bit floating point value in rB is divided with the 27-bit floating point value in rC, the remainder of the division is placed in rA.
+
+\item [Operation:] \begin{verbatim}
+rA ← rB % rC\end{verbatim}
+\item [Flags affected:] \texttt{Z C O S}
+\end{description}
+\vfill
+\pagebreak[3]
+\section{MDFM: Modulus Floating Point Multi Reg}
+\index{MDFM}
+{
+\setlength{\tabcolsep}{3pt}
+\begin{tabu} spread \linewidth {l r l r l r l r l r c}
+\multicolumn{1}{l}{0} & \multicolumn{1}{r}{6} & \multicolumn{1}{|l}{7} & \multicolumn{1}{r}{11} & \multicolumn{1}{|l}{12} & \multicolumn{1}{r}{16} & \multicolumn{1}{|l}{17} & \multicolumn{1}{r}{21} & \multicolumn{1}{|l}{22} & \multicolumn{1}{r}{25} & \multicolumn{1}{|c}{26} \\
+\multicolumn{2}{c}{\texttt{0010011}} & \multicolumn{2}{|c}{rA} & \multicolumn{2}{|c}{rB} & \multicolumn{2}{|c}{rC} & \multicolumn{2}{|c}{\texttt{0000}} & \multicolumn{1}{|c}{UF}
+\end{tabu}
+}
+\nopagebreak
+\begin{description}
+\item [Format:] \texttt{MDFM rA, rB, rC}
+\item [Purpose:] Access the remainder of dividing two 54-bit floating point registers
+\item [Description:] The 54-bit floating point value in rB:rB+1 is divided with the 54-bit floating point value in rC:rC+1, the remainder of the division is placed in rA:rA+1.
+
+\item [Operation:] \begin{verbatim}
+rA:rA+1 ← rB:rB+1 % rC:rC+1\end{verbatim}
+\item [Flags affected:] \texttt{Z C O S}
+\end{description}
+\vfill
+\pagebreak[3]
+\section{MDI: Modulus Immediate}
+\index{MDI}
+{
+\setlength{\tabcolsep}{3pt}
+\begin{tabu} spread \linewidth {l r l r l r l r l r c}
+\multicolumn{1}{l}{0} & \multicolumn{1}{r}{6} & \multicolumn{1}{|l}{7} & \multicolumn{1}{r}{11} & \multicolumn{1}{|l}{12} & \multicolumn{1}{r}{16} & \multicolumn{1}{|l}{17} & \multicolumn{1}{r}{23} & \multicolumn{1}{|l}{24} & \multicolumn{1}{r}{25} & \multicolumn{1}{|c}{26} \\
+\multicolumn{2}{c}{\texttt{0010000}} & \multicolumn{2}{|c}{rA} & \multicolumn{2}{|c}{rB} & \multicolumn{2}{|c}{Immediate} & \multicolumn{2}{|c}{\texttt{01}} & \multicolumn{1}{|c}{UF}
+\end{tabu}
+}
+\nopagebreak
+\begin{description}
+\item [Format:] \texttt{MDI rA, rB, IMM}
+\item [Purpose:] Access the remainder of dividing a 27-bit integer register by a 7-bit immediate
+\item [Description:] The 27-bit value in rB is divided with a 7-bit immediate value, the remainder of the division is placed in rA.
+
+\item [Operation:] \begin{verbatim}
+rA ← rB % IMM\end{verbatim}
+\item [Flags affected:] \texttt{Z C O S}
+\end{description}
+\vfill
+\pagebreak[3]
+\section{MDIM: Modulus Immediate Multi Reg}
+\index{MDIM}
+{
+\setlength{\tabcolsep}{3pt}
+\begin{tabu} spread \linewidth {l r l r l r l r l r c}
+\multicolumn{1}{l}{0} & \multicolumn{1}{r}{6} & \multicolumn{1}{|l}{7} & \multicolumn{1}{r}{11} & \multicolumn{1}{|l}{12} & \multicolumn{1}{r}{16} & \multicolumn{1}{|l}{17} & \multicolumn{1}{r}{23} & \multicolumn{1}{|l}{24} & \multicolumn{1}{r}{25} & \multicolumn{1}{|c}{26} \\
+\multicolumn{2}{c}{\texttt{0010010}} & \multicolumn{2}{|c}{rA} & \multicolumn{2}{|c}{rB} & \multicolumn{2}{|c}{Immediate} & \multicolumn{2}{|c}{\texttt{01}} & \multicolumn{1}{|c}{UF}
+\end{tabu}
+}
+\nopagebreak
+\begin{description}
+\item [Format:] \texttt{MDIM rA, rB, IMM}
+\item [Purpose:] Access the remainder of dividing a 54-bit integer register by a 7-bit immediate
+\item [Description:] The 54-bit value in rB:rB+1 is divided with the 7-bit immediate value, the remainder of the division is placed in rA:rA+1.
+
+\item [Operation:] \begin{verbatim}
+rA:rA+1 ← rB:rB+1 % IMM\end{verbatim}
+\item [Flags affected:] \texttt{Z C O S}
+\end{description}
+\vfill
+\pagebreak[3]
+\section{MDIS: Modulus Immediate Signed}
+\index{MDIS}
+{
+\setlength{\tabcolsep}{3pt}
+\begin{tabu} spread \linewidth {l r l r l r l r l r c}
+\multicolumn{1}{l}{0} & \multicolumn{1}{r}{6} & \multicolumn{1}{|l}{7} & \multicolumn{1}{r}{11} & \multicolumn{1}{|l}{12} & \multicolumn{1}{r}{16} & \multicolumn{1}{|l}{17} & \multicolumn{1}{r}{23} & \multicolumn{1}{|l}{24} & \multicolumn{1}{r}{25} & \multicolumn{1}{|c}{26} \\
+\multicolumn{2}{c}{\texttt{0010000}} & \multicolumn{2}{|c}{rA} & \multicolumn{2}{|c}{rB} & \multicolumn{2}{|c}{Immediate} & \multicolumn{2}{|c}{\texttt{11}} & \multicolumn{1}{|c}{UF}
+\end{tabu}
+}
+\nopagebreak
+\begin{description}
+\item [Format:] \texttt{MDIS rA, rB, IMM}
+\item [Purpose:] Access the remainder of dividing a signed 27-bit integer register by a signed 7-bit immediate
+\item [Description:] The signed 27-bit value in rB is divided with a signed 7-bit immediate value, the remainder of the division is placed in rA.
+
+\item [Operation:] \begin{verbatim}
+rA ← (signed)rB % (signed)IMM\end{verbatim}
+\item [Flags affected:] \texttt{Z C O S}
+\end{description}
+\vfill
+\pagebreak[3]
+\section{MDISM: Modulus Immediate Signed Multi Reg}
+\index{MDISM}
+{
+\setlength{\tabcolsep}{3pt}
+\begin{tabu} spread \linewidth {l r l r l r l r l r c}
+\multicolumn{1}{l}{0} & \multicolumn{1}{r}{6} & \multicolumn{1}{|l}{7} & \multicolumn{1}{r}{11} & \multicolumn{1}{|l}{12} & \multicolumn{1}{r}{16} & \multicolumn{1}{|l}{17} & \multicolumn{1}{r}{23} & \multicolumn{1}{|l}{24} & \multicolumn{1}{r}{25} & \multicolumn{1}{|c}{26} \\
+\multicolumn{2}{c}{\texttt{0010010}} & \multicolumn{2}{|c}{rA} & \multicolumn{2}{|c}{rB} & \multicolumn{2}{|c}{Immediate} & \multicolumn{2}{|c}{\texttt{11}} & \multicolumn{1}{|c}{UF}
+\end{tabu}
+}
+\nopagebreak
+\begin{description}
+\item [Format:] \texttt{MDISM rA, rB, IMM}
+\item [Purpose:] Access the remainder of dividing a signed 54-bit integer register by a signed 7-bit immediate
+\item [Description:] The signed 54-bit value in rB:rB+1 is divided with the signed 7-bit immediate value, the remainder of the division is placed in rA:rA+1.
+
+\item [Operation:] \begin{verbatim}
+rA:rA+1 ← (signed)rB:rB+1 % (signed)IMM\end{verbatim}
+\item [Flags affected:] \texttt{Z C O S}
+\end{description}
+\vfill
+\pagebreak[3]
+\section{MDM: Modulus Multi Reg}
+\index{MDM}
+{
+\setlength{\tabcolsep}{3pt}
+\begin{tabu} spread \linewidth {l r l r l r l r l r c}
+\multicolumn{1}{l}{0} & \multicolumn{1}{r}{6} & \multicolumn{1}{|l}{7} & \multicolumn{1}{r}{11} & \multicolumn{1}{|l}{12} & \multicolumn{1}{r}{16} & \multicolumn{1}{|l}{17} & \multicolumn{1}{r}{21} & \multicolumn{1}{|l}{22} & \multicolumn{1}{r}{25} & \multicolumn{1}{|c}{26} \\
+\multicolumn{2}{c}{\texttt{0010010}} & \multicolumn{2}{|c}{rA} & \multicolumn{2}{|c}{rB} & \multicolumn{2}{|c}{rC} & \multicolumn{2}{|c}{\texttt{0000}} & \multicolumn{1}{|c}{UF}
+\end{tabu}
+}
+\nopagebreak
+\begin{description}
+\item [Format:] \texttt{MDM rA, rB, rC}
+\item [Purpose:] Access the remainder of dividing two 54-bit integer registers
+\item [Description:] The 54-bit value in rB:rB+1 is divided with the 54-bit value in rC:rC+1, the remainder of the division is placed in rA:rA+1.
+
+\item [Operation:] \begin{verbatim}
+rA:rA+1 ← rB:rB+1 % rC:rC+1\end{verbatim}
+\item [Flags affected:] \texttt{Z C O S}
+\end{description}
+\vfill
+\pagebreak[3]
+\section{MDS: Modulus Signed}
+\index{MDS}
+{
+\setlength{\tabcolsep}{3pt}
+\begin{tabu} spread \linewidth {l r l r l r l r l r c}
+\multicolumn{1}{l}{0} & \multicolumn{1}{r}{6} & \multicolumn{1}{|l}{7} & \multicolumn{1}{r}{11} & \multicolumn{1}{|l}{12} & \multicolumn{1}{r}{16} & \multicolumn{1}{|l}{17} & \multicolumn{1}{r}{21} & \multicolumn{1}{|l}{22} & \multicolumn{1}{r}{25} & \multicolumn{1}{|c}{26} \\
+\multicolumn{2}{c}{\texttt{0010000}} & \multicolumn{2}{|c}{rA} & \multicolumn{2}{|c}{rB} & \multicolumn{2}{|c}{rC} & \multicolumn{2}{|c}{\texttt{0010}} & \multicolumn{1}{|c}{UF}
+\end{tabu}
+}
+\nopagebreak
+\begin{description}
+\item [Format:] \texttt{MDS rA, rB, rC}
+\item [Purpose:] Access the remainder of dividing two signed 27-bit integer registers
+\item [Description:] The signed 27-bit value in rB is divided with the signed 27-bit value in rC, the remainder of the division is placed in rA.
+
+\item [Operation:] \begin{verbatim}
+rA ← (signed)rB % (signed)rC\end{verbatim}
+\item [Flags affected:] \texttt{Z C O S}
+\end{description}
+\vfill
+\pagebreak[3]
+\section{MDSM: Modulus Signed Multi Reg}
+\index{MDSM}
+{
+\setlength{\tabcolsep}{3pt}
+\begin{tabu} spread \linewidth {l r l r l r l r l r c}
+\multicolumn{1}{l}{0} & \multicolumn{1}{r}{6} & \multicolumn{1}{|l}{7} & \multicolumn{1}{r}{11} & \multicolumn{1}{|l}{12} & \multicolumn{1}{r}{16} & \multicolumn{1}{|l}{17} & \multicolumn{1}{r}{21} & \multicolumn{1}{|l}{22} & \multicolumn{1}{r}{25} & \multicolumn{1}{|c}{26} \\
+\multicolumn{2}{c}{\texttt{0010010}} & \multicolumn{2}{|c}{rA} & \multicolumn{2}{|c}{rB} & \multicolumn{2}{|c}{rC} & \multicolumn{2}{|c}{\texttt{0010}} & \multicolumn{1}{|c}{UF}
+\end{tabu}
+}
+\nopagebreak
+\begin{description}
+\item [Format:] \texttt{MDSM rA, rB, rC}
+\item [Purpose:] Access the remainder of dividing two signed 54-bit integer registers
+\item [Description:] The signed 54-bit value in rB:rB+1 is divided with the signed 54-bit value in rC:rC+1, the remainder of the division is placed in rA:rA+1.
+
+\item [Operation:] \begin{verbatim}
+rA:rA+1 ← (signed)rB:rB+1 % (signed)rC:rC+1\end{verbatim}
+\item [Flags affected:] \texttt{Z C O S}
+\end{description}
+\vfill
+\pagebreak[3]
+\section{MH: Move High}
+\index{MH}
+{
+\setlength{\tabcolsep}{3pt}
+\begin{tabu} spread \linewidth {l r l r l r}
+\multicolumn{1}{l}{0} & \multicolumn{1}{r}{4} & \multicolumn{1}{|l}{5} & \multicolumn{1}{r}{9} & \multicolumn{1}{|l}{10} & \multicolumn{1}{r}{26} \\
+\multicolumn{2}{c}{\texttt{10001}} & \multicolumn{2}{|c}{rA} & \multicolumn{2}{|c}{Immediate}
+\end{tabu}
+}
+\nopagebreak
+\begin{description}
+\item [Format:] \texttt{MH rA, IMM}
+\item [Purpose:] Move an immediate value to the high bits of a register
+\item [Description:] The high 17 bits of a 27-bit value in rA is set to the specified immediate value.
+
+\item [Operation:] \begin{verbatim}
+rA ← (IMM << 10) | (rA & 0x3FF)\end{verbatim}
+\item [Flags affected:] \texttt{Z C O S}
+\end{description}
+\vfill
+\pagebreak[3]
+\section{ML: Move Low}
+\index{ML}
+{
+\setlength{\tabcolsep}{3pt}
+\begin{tabu} spread \linewidth {l r l r l r}
+\multicolumn{1}{l}{0} & \multicolumn{1}{r}{4} & \multicolumn{1}{|l}{5} & \multicolumn{1}{r}{9} & \multicolumn{1}{|l}{10} & \multicolumn{1}{r}{26} \\
+\multicolumn{2}{c}{\texttt{10010}} & \multicolumn{2}{|c}{rA} & \multicolumn{2}{|c}{Immediate}
+\end{tabu}
+}
+\nopagebreak
+\begin{description}
+\item [Format:] \texttt{ML rA, IMM}
+\item [Purpose:] Move a 17-bit immediate value to the register
+\item [Description:] A 27-bit rA is set to the specified 17-bit immediate value. The high bits are zero'd out.
+
+\item [Operation:] \begin{verbatim}
+rA ← IMM\end{verbatim}
+\item [Flags affected:] \texttt{Z C O S}
+\end{description}
+\vfill
+\pagebreak[3]
+\section{MS: Move Low Signed}
+\index{MS}
+{
+\setlength{\tabcolsep}{3pt}
+\begin{tabu} spread \linewidth {l r l r l r}
+\multicolumn{1}{l}{0} & \multicolumn{1}{r}{4} & \multicolumn{1}{|l}{5} & \multicolumn{1}{r}{9} & \multicolumn{1}{|l}{10} & \multicolumn{1}{r}{26} \\
+\multicolumn{2}{c}{\texttt{10011}} & \multicolumn{2}{|c}{rA} & \multicolumn{2}{|c}{Immediate}
+\end{tabu}
+}
+\nopagebreak
+\begin{description}
+\item [Format:] \texttt{MS rA, IMM}
+\item [Purpose:] Move a signed 17-bit immediate value to the register
+\item [Description:] A 27-bit rA is set to the specified signed 17-bit immediate value. The high bits are set based on the signed bit of the immediate value specified.
+
+\item [Operation:] \begin{verbatim}
+rA ← (signed)IMM\end{verbatim}
+\item [Flags affected:] \texttt{Z C O S}
+\end{description}
+\vfill
+\pagebreak[3]
+\section{MU: Multiply}
+\index{MU}
+{
+\setlength{\tabcolsep}{3pt}
+\begin{tabu} spread \linewidth {l r l r l r l r l r c}
+\multicolumn{1}{l}{0} & \multicolumn{1}{r}{6} & \multicolumn{1}{|l}{7} & \multicolumn{1}{r}{11} & \multicolumn{1}{|l}{12} & \multicolumn{1}{r}{16} & \multicolumn{1}{|l}{17} & \multicolumn{1}{r}{21} & \multicolumn{1}{|l}{22} & \multicolumn{1}{r}{25} & \multicolumn{1}{|c}{26} \\
+\multicolumn{2}{c}{\texttt{0001000}} & \multicolumn{2}{|c}{rA} & \multicolumn{2}{|c}{rB} & \multicolumn{2}{|c}{rC} & \multicolumn{2}{|c}{\texttt{0000}} & \multicolumn{1}{|c}{UF}
+\end{tabu}
+}
+\nopagebreak
+\begin{description}
+\item [Format:] \texttt{MU rA, rB, rC}
+\item [Purpose:] Multiply two 27-bit integer registers together
+\item [Description:] The 27-bit value in rC is multiplied with the 27-bit value in rB, the result is placed in rA.
+
+\item [Operation:] \begin{verbatim}
+rA ← rB * rC\end{verbatim}
+\item [Flags affected:] \texttt{Z C O S}
+\end{description}
+\vfill
+\pagebreak[3]
+\section{MUF: Multiply Floating Point}
+\index{MUF}
+{
+\setlength{\tabcolsep}{3pt}
+\begin{tabu} spread \linewidth {l r l r l r l r l r c}
+\multicolumn{1}{l}{0} & \multicolumn{1}{r}{6} & \multicolumn{1}{|l}{7} & \multicolumn{1}{r}{11} & \multicolumn{1}{|l}{12} & \multicolumn{1}{r}{16} & \multicolumn{1}{|l}{17} & \multicolumn{1}{r}{21} & \multicolumn{1}{|l}{22} & \multicolumn{1}{r}{25} & \multicolumn{1}{|c}{26} \\
+\multicolumn{2}{c}{\texttt{0001001}} & \multicolumn{2}{|c}{rA} & \multicolumn{2}{|c}{rB} & \multicolumn{2}{|c}{rC} & \multicolumn{2}{|c}{\texttt{0000}} & \multicolumn{1}{|c}{UF}
+\end{tabu}
+}
+\nopagebreak
+\begin{description}
+\item [Format:] \texttt{MUF rA, rB, rC}
+\item [Purpose:] Multiply two 27-bit floating point registers together
+\item [Description:] The 27-bit floating point value in rC is multiplied with the 27-bit floating point value in rB, the result is placed in rA.
+
+\item [Operation:] \begin{verbatim}
+rA ← rB * rC\end{verbatim}
+\item [Flags affected:] \texttt{Z C O S}
+\end{description}
+\vfill
+\pagebreak[3]
+\section{MUFM: Multiply Floating Point Multi Reg}
+\index{MUFM}
+{
+\setlength{\tabcolsep}{3pt}
+\begin{tabu} spread \linewidth {l r l r l r l r l r c}
+\multicolumn{1}{l}{0} & \multicolumn{1}{r}{6} & \multicolumn{1}{|l}{7} & \multicolumn{1}{r}{11} & \multicolumn{1}{|l}{12} & \multicolumn{1}{r}{16} & \multicolumn{1}{|l}{17} & \multicolumn{1}{r}{21} & \multicolumn{1}{|l}{22} & \multicolumn{1}{r}{25} & \multicolumn{1}{|c}{26} \\
+\multicolumn{2}{c}{\texttt{0001011}} & \multicolumn{2}{|c}{rA} & \multicolumn{2}{|c}{rB} & \multicolumn{2}{|c}{rC} & \multicolumn{2}{|c}{\texttt{0000}} & \multicolumn{1}{|c}{UF}
+\end{tabu}
+}
+\nopagebreak
+\begin{description}
+\item [Format:] \texttt{MUFM rA, rB, rC}
+\item [Purpose:] Multiply two 54-bit floating point registers together
+\item [Description:] The 54-bit floating point value in rC:rC+1 is multiplied with the 54-bit floating point value in rB:rB+1, the result is placed in rA:rA+1.
+
+\item [Operation:] \begin{verbatim}
+rA:rA+1 ← rB:rB+1 * rC:rC+1\end{verbatim}
+\item [Flags affected:] \texttt{Z C O S}
+\end{description}
+\vfill
+\pagebreak[3]
+\section{MUI: Multiply Immediate}
+\index{MUI}
+{
+\setlength{\tabcolsep}{3pt}
+\begin{tabu} spread \linewidth {l r l r l r l r l r c}
+\multicolumn{1}{l}{0} & \multicolumn{1}{r}{6} & \multicolumn{1}{|l}{7} & \multicolumn{1}{r}{11} & \multicolumn{1}{|l}{12} & \multicolumn{1}{r}{16} & \multicolumn{1}{|l}{17} & \multicolumn{1}{r}{23} & \multicolumn{1}{|l}{24} & \multicolumn{1}{r}{25} & \multicolumn{1}{|c}{26} \\
+\multicolumn{2}{c}{\texttt{0001000}} & \multicolumn{2}{|c}{rA} & \multicolumn{2}{|c}{rB} & \multicolumn{2}{|c}{Immediate} & \multicolumn{2}{|c}{\texttt{01}} & \multicolumn{1}{|c}{UF}
+\end{tabu}
+}
+\nopagebreak
+\begin{description}
+\item [Format:] \texttt{MUI rA, rB, IMM}
+\item [Purpose:] Multiply a 27-bit integer register by a 7-bit immediate
+\item [Description:] The 7-bit immediate value is multiplied with the 27-bit value in rB, the result is placed in rA.
+
+\item [Operation:] \begin{verbatim}
+rA ← rB * IMM\end{verbatim}
+\item [Flags affected:] \texttt{Z C O S}
+\end{description}
+\vfill
+\pagebreak[3]
+\section{MUIM: Multiply Immediate Multi Reg}
+\index{MUIM}
+{
+\setlength{\tabcolsep}{3pt}
+\begin{tabu} spread \linewidth {l r l r l r l r l r c}
+\multicolumn{1}{l}{0} & \multicolumn{1}{r}{6} & \multicolumn{1}{|l}{7} & \multicolumn{1}{r}{11} & \multicolumn{1}{|l}{12} & \multicolumn{1}{r}{16} & \multicolumn{1}{|l}{17} & \multicolumn{1}{r}{23} & \multicolumn{1}{|l}{24} & \multicolumn{1}{r}{25} & \multicolumn{1}{|c}{26} \\
+\multicolumn{2}{c}{\texttt{0001010}} & \multicolumn{2}{|c}{rA} & \multicolumn{2}{|c}{rB} & \multicolumn{2}{|c}{Immediate} & \multicolumn{2}{|c}{\texttt{01}} & \multicolumn{1}{|c}{UF}
+\end{tabu}
+}
+\nopagebreak
+\begin{description}
+\item [Format:] \texttt{MUIM rA, rB, IMM}
+\item [Purpose:] Multiply a 54-bit integer register by a 7-bit immediate
+\item [Description:] The 7-bit immediate value is multiplied with the 54-bit value in rB:rB+1, the result is placed in rA:rA+1.
+
+\item [Operation:] \begin{verbatim}
+rA:rA+1 ← rB:rB+1 * IMM\end{verbatim}
+\item [Flags affected:] \texttt{Z C O S}
+\end{description}
+\vfill
+\pagebreak[3]
+\section{MUIS: Multiply Immediate Signed}
+\index{MUIS}
+{
+\setlength{\tabcolsep}{3pt}
+\begin{tabu} spread \linewidth {l r l r l r l r l r c}
+\multicolumn{1}{l}{0} & \multicolumn{1}{r}{6} & \multicolumn{1}{|l}{7} & \multicolumn{1}{r}{11} & \multicolumn{1}{|l}{12} & \multicolumn{1}{r}{16} & \multicolumn{1}{|l}{17} & \multicolumn{1}{r}{23} & \multicolumn{1}{|l}{24} & \multicolumn{1}{r}{25} & \multicolumn{1}{|c}{26} \\
+\multicolumn{2}{c}{\texttt{0001000}} & \multicolumn{2}{|c}{rA} & \multicolumn{2}{|c}{rB} & \multicolumn{2}{|c}{Immediate} & \multicolumn{2}{|c}{\texttt{11}} & \multicolumn{1}{|c}{UF}
+\end{tabu}
+}
+\nopagebreak
+\begin{description}
+\item [Format:] \texttt{MUIS rA, rB, IMM}
+\item [Purpose:] Multiply a signed 27-bit integer register by a signed 7-bit immediate
+\item [Description:] The signed 7-bit immediate value is multiplied with the signed 27-bit value in rB, the result is placed in rA.
+
+\item [Operation:] \begin{verbatim}
+rA ← (signed)rB * (signed)IMM\end{verbatim}
+\item [Flags affected:] \texttt{Z C O S}
+\end{description}
+\vfill
+\pagebreak[3]
+\section{MUISM: Multiply Immediate Signed Multi Reg}
+\index{MUISM}
+{
+\setlength{\tabcolsep}{3pt}
+\begin{tabu} spread \linewidth {l r l r l r l r l r c}
+\multicolumn{1}{l}{0} & \multicolumn{1}{r}{6} & \multicolumn{1}{|l}{7} & \multicolumn{1}{r}{11} & \multicolumn{1}{|l}{12} & \multicolumn{1}{r}{16} & \multicolumn{1}{|l}{17} & \multicolumn{1}{r}{23} & \multicolumn{1}{|l}{24} & \multicolumn{1}{r}{25} & \multicolumn{1}{|c}{26} \\
+\multicolumn{2}{c}{\texttt{0001010}} & \multicolumn{2}{|c}{rA} & \multicolumn{2}{|c}{rB} & \multicolumn{2}{|c}{Immediate} & \multicolumn{2}{|c}{\texttt{11}} & \multicolumn{1}{|c}{UF}
+\end{tabu}
+}
+\nopagebreak
+\begin{description}
+\item [Format:] \texttt{MUISM rA, rB, IMM}
+\item [Purpose:] Multiply a signed 54-bit integer register by a signed 7-bit immediate
+\item [Description:] The signed 7-bit immediate value is multiplied with the signed 54-bit value in rB:rB+1, the result is placed in rA:rA+1.
+
+\item [Operation:] \begin{verbatim}
+rA:rA+1 ← (signed)rB:rB+1 * (signed)IMM\end{verbatim}
+\item [Flags affected:] \texttt{Z C O S}
+\end{description}
+\vfill
+\pagebreak[3]
+\section{MUM: Multiply Multi Reg}
+\index{MUM}
+{
+\setlength{\tabcolsep}{3pt}
+\begin{tabu} spread \linewidth {l r l r l r l r l r c}
+\multicolumn{1}{l}{0} & \multicolumn{1}{r}{6} & \multicolumn{1}{|l}{7} & \multicolumn{1}{r}{11} & \multicolumn{1}{|l}{12} & \multicolumn{1}{r}{16} & \multicolumn{1}{|l}{17} & \multicolumn{1}{r}{21} & \multicolumn{1}{|l}{22} & \multicolumn{1}{r}{25} & \multicolumn{1}{|c}{26} \\
+\multicolumn{2}{c}{\texttt{0001010}} & \multicolumn{2}{|c}{rA} & \multicolumn{2}{|c}{rB} & \multicolumn{2}{|c}{rC} & \multicolumn{2}{|c}{\texttt{0000}} & \multicolumn{1}{|c}{UF}
+\end{tabu}
+}
+\nopagebreak
+\begin{description}
+\item [Format:] \texttt{MUM rA, rB, rC}
+\item [Purpose:] Multiply two 54-bit integer registers together
+\item [Description:] The 54-bit value in rC:rC+1 is multiplied with the 54-bit value in rB:rB+1, the result is placed in rA:rA+1.
+
+\item [Operation:] \begin{verbatim}
+rA:rA+1 ← rB:rB+1 * rC:rC+1\end{verbatim}
+\item [Flags affected:] \texttt{Z C O S}
+\end{description}
+\vfill
+\pagebreak[3]
+\section{MUS: Multiply Signed}
+\index{MUS}
+{
+\setlength{\tabcolsep}{3pt}
+\begin{tabu} spread \linewidth {l r l r l r l r l r c}
+\multicolumn{1}{l}{0} & \multicolumn{1}{r}{6} & \multicolumn{1}{|l}{7} & \multicolumn{1}{r}{11} & \multicolumn{1}{|l}{12} & \multicolumn{1}{r}{16} & \multicolumn{1}{|l}{17} & \multicolumn{1}{r}{21} & \multicolumn{1}{|l}{22} & \multicolumn{1}{r}{25} & \multicolumn{1}{|c}{26} \\
+\multicolumn{2}{c}{\texttt{0001000}} & \multicolumn{2}{|c}{rA} & \multicolumn{2}{|c}{rB} & \multicolumn{2}{|c}{rC} & \multicolumn{2}{|c}{\texttt{0010}} & \multicolumn{1}{|c}{UF}
+\end{tabu}
+}
+\nopagebreak
+\begin{description}
+\item [Format:] \texttt{MUS rA, rB, rC}
+\item [Purpose:] Multiply two signed 27-bit integer registers together
+\item [Description:] The signed 27-bit value in rC is multiplied with the signed 27-bit value in rB, the result is placed in rA.
+
+\item [Operation:] \begin{verbatim}
+rA ← (signed)rB * (signed)rC\end{verbatim}
+\item [Flags affected:] \texttt{Z C O S}
+\end{description}
+\vfill
+\pagebreak[3]
+\section{MUSM: Multiply Signed Multi Reg}
+\index{MUSM}
+{
+\setlength{\tabcolsep}{3pt}
+\begin{tabu} spread \linewidth {l r l r l r l r l r c}
+\multicolumn{1}{l}{0} & \multicolumn{1}{r}{6} & \multicolumn{1}{|l}{7} & \multicolumn{1}{r}{11} & \multicolumn{1}{|l}{12} & \multicolumn{1}{r}{16} & \multicolumn{1}{|l}{17} & \multicolumn{1}{r}{21} & \multicolumn{1}{|l}{22} & \multicolumn{1}{r}{25} & \multicolumn{1}{|c}{26} \\
+\multicolumn{2}{c}{\texttt{0001010}} & \multicolumn{2}{|c}{rA} & \multicolumn{2}{|c}{rB} & \multicolumn{2}{|c}{rC} & \multicolumn{2}{|c}{\texttt{0010}} & \multicolumn{1}{|c}{UF}
+\end{tabu}
+}
+\nopagebreak
+\begin{description}
+\item [Format:] \texttt{MUSM rA, rB, rC}
+\item [Purpose:] Multiply two 54-bit integer registers together
+\item [Description:] The signed 54-bit value in rC:rC+1 is multiplied with the signed 54-bit value in rB:rB+1, the result is placed in rA:rA+1.
+
+\item [Operation:] \begin{verbatim}
+rA:rA+1 ← (signed)rB:rB+1 * (signed)rC:rC+1\end{verbatim}
+\item [Flags affected:] \texttt{Z C O S}
+\end{description}
+\vfill
+\pagebreak[3]
+\section{NG: Negate}
+\index{NG}
+{
+\setlength{\tabcolsep}{3pt}
+\begin{tabu} spread \linewidth {l r l r l r l r c}
+\multicolumn{1}{l}{0} & \multicolumn{1}{r}{8} & \multicolumn{1}{|l}{9} & \multicolumn{1}{r}{13} & \multicolumn{1}{|l}{14} & \multicolumn{1}{r}{18} & \multicolumn{1}{|l}{19} & \multicolumn{1}{r}{25} & \multicolumn{1}{|c}{26} \\
+\multicolumn{2}{c}{\texttt{101001100}} & \multicolumn{2}{|c}{rA} & \multicolumn{2}{|c}{rB} & \multicolumn{2}{|c}{\texttt{0000000}} & \multicolumn{1}{|c}{UF}
+\end{tabu}
+}
+\nopagebreak
+\begin{description}
+\item [Format:] \texttt{NG rA, rB}
+\item [Purpose:] Negate a 27-bit register
+\item [Description:] Negate the 27-bit rB register value and store the result in rA.
+
+\item [Operation:] \begin{verbatim}
+rA ← -rB\end{verbatim}
+\item [Flags affected:] \texttt{Z C O S}
+\end{description}
+\vfill
+\pagebreak[3]
+\section{NGF: Negate Floating Point}
+\index{NGF}
+{
+\setlength{\tabcolsep}{3pt}
+\begin{tabu} spread \linewidth {l r l r l r l r c}
+\multicolumn{1}{l}{0} & \multicolumn{1}{r}{8} & \multicolumn{1}{|l}{9} & \multicolumn{1}{r}{13} & \multicolumn{1}{|l}{14} & \multicolumn{1}{r}{18} & \multicolumn{1}{|l}{19} & \multicolumn{1}{r}{25} & \multicolumn{1}{|c}{26} \\
+\multicolumn{2}{c}{\texttt{101001101}} & \multicolumn{2}{|c}{rA} & \multicolumn{2}{|c}{rB} & \multicolumn{2}{|c}{\texttt{0000000}} & \multicolumn{1}{|c}{UF}
+\end{tabu}
+}
+\nopagebreak
+\begin{description}
+\item [Format:] \texttt{NGF rA, rB}
+\item [Purpose:] Negate a 27-bit floating-point register
+\item [Description:] Negate the 27-bit rB floating-point register value and store the result in rA.
+
+\item [Operation:] \begin{verbatim}
+rA ← -rB\end{verbatim}
+\item [Flags affected:] \texttt{Z S}
+\end{description}
+\vfill
+\pagebreak[3]
+\section{NGFM: Negate Floating Point Multi Reg}
+\index{NGFM}
+{
+\setlength{\tabcolsep}{3pt}
+\begin{tabu} spread \linewidth {l r l r l r l r c}
+\multicolumn{1}{l}{0} & \multicolumn{1}{r}{8} & \multicolumn{1}{|l}{9} & \multicolumn{1}{r}{13} & \multicolumn{1}{|l}{14} & \multicolumn{1}{r}{18} & \multicolumn{1}{|l}{19} & \multicolumn{1}{r}{25} & \multicolumn{1}{|c}{26} \\
+\multicolumn{2}{c}{\texttt{101001111}} & \multicolumn{2}{|c}{rA} & \multicolumn{2}{|c}{rB} & \multicolumn{2}{|c}{\texttt{0000000}} & \multicolumn{1}{|c}{UF}
+\end{tabu}
+}
+\nopagebreak
+\begin{description}
+\item [Format:] \texttt{NGFM rA, rB}
+\item [Purpose:] Negate a 54-bit floating-point register
+\item [Description:] Negate the 54-bit rB:rB+1 floating-point register value and store the result in rA:rA+1.
+
+\item [Operation:] \begin{verbatim}
+rA:rA+1 ← -rB:rB+1\end{verbatim}
+\item [Flags affected:] \texttt{Z S}
+\end{description}
+\vfill
+\pagebreak[3]
+\section{NGM: Negate Multi Reg}
+\index{NGM}
+{
+\setlength{\tabcolsep}{3pt}
+\begin{tabu} spread \linewidth {l r l r l r l r c}
+\multicolumn{1}{l}{0} & \multicolumn{1}{r}{8} & \multicolumn{1}{|l}{9} & \multicolumn{1}{r}{13} & \multicolumn{1}{|l}{14} & \multicolumn{1}{r}{18} & \multicolumn{1}{|l}{19} & \multicolumn{1}{r}{25} & \multicolumn{1}{|c}{26} \\
+\multicolumn{2}{c}{\texttt{101001110}} & \multicolumn{2}{|c}{rA} & \multicolumn{2}{|c}{rB} & \multicolumn{2}{|c}{\texttt{0000000}} & \multicolumn{1}{|c}{UF}
+\end{tabu}
+}
+\nopagebreak
+\begin{description}
+\item [Format:] \texttt{NGM rA, rB}
+\item [Purpose:] Negate a 54-bit register
+\item [Description:] Negate the 54-bit rB:rB+1 register value and store the result in rA:rA+1.
+
+\item [Operation:] \begin{verbatim}
+rA:rA+1 ← -rB:rB+1\end{verbatim}
+\item [Flags affected:] \texttt{Z C O S}
+\end{description}
+\vfill
+\pagebreak[3]
+\section{NT: Not}
+\index{NT}
+{
+\setlength{\tabcolsep}{3pt}
+\begin{tabu} spread \linewidth {l r l r l r l r c}
+\multicolumn{1}{l}{0} & \multicolumn{1}{r}{8} & \multicolumn{1}{|l}{9} & \multicolumn{1}{r}{13} & \multicolumn{1}{|l}{14} & \multicolumn{1}{r}{18} & \multicolumn{1}{|l}{19} & \multicolumn{1}{r}{25} & \multicolumn{1}{|c}{26} \\
+\multicolumn{2}{c}{\texttt{101001100}} & \multicolumn{2}{|c}{rA} & \multicolumn{2}{|c}{rB} & \multicolumn{2}{|c}{\texttt{0100000}} & \multicolumn{1}{|c}{UF}
+\end{tabu}
+}
+\nopagebreak
+\begin{description}
+\item [Format:] \texttt{NT rA, rB}
+\item [Purpose:] Bit test a 27-bit register
+\item [Description:] Test all bits of the 27-bit rB register value. If any bits are set then rA is set to 0. If all bits are off then rA is set to 1.
+
+\item [Operation:] \begin{verbatim}
+rA ← !rB\end{verbatim}
+\item [Flags affected:] \texttt{Z C O S}
+\end{description}
+\vfill
+\pagebreak[3]
+\section{NTM: Not Multi Reg}
+\index{NTM}
+{
+\setlength{\tabcolsep}{3pt}
+\begin{tabu} spread \linewidth {l r l r l r l r c}
+\multicolumn{1}{l}{0} & \multicolumn{1}{r}{8} & \multicolumn{1}{|l}{9} & \multicolumn{1}{r}{13} & \multicolumn{1}{|l}{14} & \multicolumn{1}{r}{18} & \multicolumn{1}{|l}{19} & \multicolumn{1}{r}{25} & \multicolumn{1}{|c}{26} \\
+\multicolumn{2}{c}{\texttt{101001110}} & \multicolumn{2}{|c}{rA} & \multicolumn{2}{|c}{rB} & \multicolumn{2}{|c}{\texttt{0100000}} & \multicolumn{1}{|c}{UF}
+\end{tabu}
+}
+\nopagebreak
+\begin{description}
+\item [Format:] \texttt{NTM rA, rB}
+\item [Purpose:] Bit test a 54-bit register
+\item [Description:] Test all bits of the 54-bit rB:rB+1 register value. If any bits are set then rA:rA+1 is set to 0. If all bits are off then rA:rA+1 is set to 1.
+
+\item [Operation:] \begin{verbatim}
+rA:rA+1 ← !rB:rB+1\end{verbatim}
+\item [Flags affected:] \texttt{Z C O S}
+\end{description}
+\vfill
+\pagebreak[3]
+\section{OR: Or}
+\index{OR}
+{
+\setlength{\tabcolsep}{3pt}
+\begin{tabu} spread \linewidth {l r l r l r l r l r c}
+\multicolumn{1}{l}{0} & \multicolumn{1}{r}{6} & \multicolumn{1}{|l}{7} & \multicolumn{1}{r}{11} & \multicolumn{1}{|l}{12} & \multicolumn{1}{r}{16} & \multicolumn{1}{|l}{17} & \multicolumn{1}{r}{21} & \multicolumn{1}{|l}{22} & \multicolumn{1}{r}{25} & \multicolumn{1}{|c}{26} \\
+\multicolumn{2}{c}{\texttt{0011000}} & \multicolumn{2}{|c}{rA} & \multicolumn{2}{|c}{rB} & \multicolumn{2}{|c}{rC} & \multicolumn{2}{|c}{\texttt{0000}} & \multicolumn{1}{|c}{UF}
+\end{tabu}
+}
+\nopagebreak
+\begin{description}
+\item [Format:] \texttt{OR rA, rB, rC}
+\item [Purpose:] Bit-wise OR two 27-bit integer registers together
+\item [Description:] The 27-bit value in rC is bit-wise OR to the 27-bit value in rB, the result is placed in rA.
+
+\item [Operation:] \begin{verbatim}
+rA ← rB | rC\end{verbatim}
+\item [Flags affected:] \texttt{Z C O S}
+\end{description}
+\vfill
+\pagebreak[3]
+\section{ORI: Or Immediate}
+\index{ORI}
+{
+\setlength{\tabcolsep}{3pt}
+\begin{tabu} spread \linewidth {l r l r l r l r l r c}
+\multicolumn{1}{l}{0} & \multicolumn{1}{r}{6} & \multicolumn{1}{|l}{7} & \multicolumn{1}{r}{11} & \multicolumn{1}{|l}{12} & \multicolumn{1}{r}{16} & \multicolumn{1}{|l}{17} & \multicolumn{1}{r}{23} & \multicolumn{1}{|l}{24} & \multicolumn{1}{r}{25} & \multicolumn{1}{|c}{26} \\
+\multicolumn{2}{c}{\texttt{0011000}} & \multicolumn{2}{|c}{rA} & \multicolumn{2}{|c}{rB} & \multicolumn{2}{|c}{Immediate} & \multicolumn{2}{|c}{\texttt{01}} & \multicolumn{1}{|c}{UF}
+\end{tabu}
+}
+\nopagebreak
+\begin{description}
+\item [Format:] \texttt{ORI rA, rB, IMM}
+\item [Purpose:] Bit-wise OR a 27-bit integer register and 7-bit immediate together
+\item [Description:] The 7-bit immediate value is bit-wise OR to the 27-bit value in rB, the result is placed in rA.
+
+\item [Operation:] \begin{verbatim}
+rA ← rB | IMM\end{verbatim}
+\item [Flags affected:] \texttt{Z C O S}
+\end{description}
+\vfill
+\pagebreak[3]
+\section{ORM: Or Multi Reg}
+\index{ORM}
+{
+\setlength{\tabcolsep}{3pt}
+\begin{tabu} spread \linewidth {l r l r l r l r l r c}
+\multicolumn{1}{l}{0} & \multicolumn{1}{r}{6} & \multicolumn{1}{|l}{7} & \multicolumn{1}{r}{11} & \multicolumn{1}{|l}{12} & \multicolumn{1}{r}{16} & \multicolumn{1}{|l}{17} & \multicolumn{1}{r}{21} & \multicolumn{1}{|l}{22} & \multicolumn{1}{r}{25} & \multicolumn{1}{|c}{26} \\
+\multicolumn{2}{c}{\texttt{0011010}} & \multicolumn{2}{|c}{rA} & \multicolumn{2}{|c}{rB} & \multicolumn{2}{|c}{rC} & \multicolumn{2}{|c}{\texttt{0000}} & \multicolumn{1}{|c}{UF}
+\end{tabu}
+}
+\nopagebreak
+\begin{description}
+\item [Format:] \texttt{ORM rA, rB, rC}
+\item [Purpose:] Bit-wise OR two 54-bit integer registers together
+\item [Description:] The 54-bit value in rC:rC+1 is bit-wise OR to the 54-bit value in rB:rB+1, the result is placed in rA:rA+1.
+
+\item [Operation:] \begin{verbatim}
+rA:rA+1 ← rB:rB+1 | rC:rC+1\end{verbatim}
+\item [Flags affected:] \texttt{Z C O S}
+\end{description}
+\vfill
+\pagebreak[3]
+\section{RE: Return}
+\index{RE}
+{
+\setlength{\tabcolsep}{3pt}
+\begin{tabu} spread \linewidth {l r}
+\multicolumn{1}{l}{0} & \multicolumn{1}{r}{17} \\
+\multicolumn{2}{c}{\texttt{101000000000000000}}
+\end{tabu}
+}
+\nopagebreak
+\begin{description}
+\item [Format:] \texttt{RE}
+\item [Purpose:] To return from a call
+\item [Description:] To return from a call.
+
+\item [Operation:] \begin{verbatim}
+PC ← RETADDR\end{verbatim}
+\item [Flags affected:] \textit{None}
+\end{description}
+\vfill
+\pagebreak[3]
+\section{RF: Read Flags}
+\index{RF}
+{
+\setlength{\tabcolsep}{3pt}
+\begin{tabu} spread \linewidth {l r l r c}
+\multicolumn{1}{l}{0} & \multicolumn{1}{r}{11} & \multicolumn{1}{|l}{12} & \multicolumn{1}{r}{16} & \multicolumn{1}{|c}{17} \\
+\multicolumn{2}{c}{\texttt{101000001100}} & \multicolumn{2}{|c}{rA} & \multicolumn{1}{|c}{\texttt{0}}
+\end{tabu}
+}
+\nopagebreak
+\begin{description}
+\item [Format:] \texttt{RF rA}
+\item [Purpose:] Read flags into the rA register
+\item [Description:] Set rA to the value in the flag register.
+
+\item [Operation:] \begin{verbatim}
+ rA = FLAGS\end{verbatim}
+\item [Flags affected:] \textit{None}
+\end{description}
+\vfill
+\pagebreak[3]
+\section{RL: Rotate Left}
+\index{RL}
+{
+\setlength{\tabcolsep}{3pt}
+\begin{tabu} spread \linewidth {l r l r l r l r l r c}
+\multicolumn{1}{l}{0} & \multicolumn{1}{r}{6} & \multicolumn{1}{|l}{7} & \multicolumn{1}{r}{11} & \multicolumn{1}{|l}{12} & \multicolumn{1}{r}{16} & \multicolumn{1}{|l}{17} & \multicolumn{1}{r}{21} & \multicolumn{1}{|l}{22} & \multicolumn{1}{r}{25} & \multicolumn{1}{|c}{26} \\
+\multicolumn{2}{c}{\texttt{0110000}} & \multicolumn{2}{|c}{rA} & \multicolumn{2}{|c}{rB} & \multicolumn{2}{|c}{rC} & \multicolumn{2}{|c}{\texttt{0000}} & \multicolumn{1}{|c}{UF}
+\end{tabu}
+}
+\nopagebreak
+\begin{description}
+\item [Format:] \texttt{RL rA, rB, rC}
+\item [Purpose:] Rotate left a 27-bit integer
+\item [Description:] The 27-bit value in rB is left rotated the number of bits specified in rC. The result is placed in rA.
+
+\item [Operation:] \begin{verbatim}
+rA ← (rB << rC) | (rB >> (27-rC))\end{verbatim}
+\item [Flags affected:] \texttt{Z C O S}
+\end{description}
+\vfill
+\pagebreak[3]
+\section{RLI: Rotate Left Immediate}
+\index{RLI}
+{
+\setlength{\tabcolsep}{3pt}
+\begin{tabu} spread \linewidth {l r l r l r l r l r c}
+\multicolumn{1}{l}{0} & \multicolumn{1}{r}{6} & \multicolumn{1}{|l}{7} & \multicolumn{1}{r}{11} & \multicolumn{1}{|l}{12} & \multicolumn{1}{r}{16} & \multicolumn{1}{|l}{17} & \multicolumn{1}{r}{23} & \multicolumn{1}{|l}{24} & \multicolumn{1}{r}{25} & \multicolumn{1}{|c}{26} \\
+\multicolumn{2}{c}{\texttt{1000000}} & \multicolumn{2}{|c}{rA} & \multicolumn{2}{|c}{rB} & \multicolumn{2}{|c}{Immediate} & \multicolumn{2}{|c}{\texttt{00}} & \multicolumn{1}{|c}{UF}
+\end{tabu}
+}
+\nopagebreak
+\begin{description}
+\item [Format:] \texttt{RLI rA, rB, IMM}
+\item [Purpose:] Rotate left a 27-bit integer by a 7-bit immediate value
+\item [Description:] The 27-bit value in rB is left rotated by the 7-bit immediate value. The result is placed in rA.
+
+\item [Operation:] \begin{verbatim}
+rA ← (rB << IMM) | (rB >> (27-IMM))\end{verbatim}
+\item [Flags affected:] \texttt{Z C O S}
+\end{description}
+\vfill
+\pagebreak[3]
+\section{RLIM: Rotate Left Immediate Multi Reg}
+\index{RLIM}
+{
+\setlength{\tabcolsep}{3pt}
+\begin{tabu} spread \linewidth {l r l r l r l r l r c}
+\multicolumn{1}{l}{0} & \multicolumn{1}{r}{6} & \multicolumn{1}{|l}{7} & \multicolumn{1}{r}{11} & \multicolumn{1}{|l}{12} & \multicolumn{1}{r}{16} & \multicolumn{1}{|l}{17} & \multicolumn{1}{r}{23} & \multicolumn{1}{|l}{24} & \multicolumn{1}{r}{25} & \multicolumn{1}{|c}{26} \\
+\multicolumn{2}{c}{\texttt{1000010}} & \multicolumn{2}{|c}{rA} & \multicolumn{2}{|c}{rB} & \multicolumn{2}{|c}{Immediate} & \multicolumn{2}{|c}{\texttt{00}} & \multicolumn{1}{|c}{UF}
+\end{tabu}
+}
+\nopagebreak
+\begin{description}
+\item [Format:] \texttt{RLIM rA, rB, IMM}
+\item [Purpose:] Rotate left a 54-bit integer by a 7-bit immediate value
+\item [Description:] The 54-bit value in rB:rB+1 is left rotated by the 7-bit immediate value. The result is placed in rA:rA+1.
+
+\item [Operation:] \begin{verbatim}
+rA:rA+1 ← (rB:rB+1 << IMM) | (rB:rB+1 >> (54-IMM))\end{verbatim}
+\item [Flags affected:] \texttt{Z C O S}
+\end{description}
+\vfill
+\pagebreak[3]
+\section{RLM: Rotate Left Multi Reg}
+\index{RLM}
+{
+\setlength{\tabcolsep}{3pt}
+\begin{tabu} spread \linewidth {l r l r l r l r l r c}
+\multicolumn{1}{l}{0} & \multicolumn{1}{r}{6} & \multicolumn{1}{|l}{7} & \multicolumn{1}{r}{11} & \multicolumn{1}{|l}{12} & \multicolumn{1}{r}{16} & \multicolumn{1}{|l}{17} & \multicolumn{1}{r}{21} & \multicolumn{1}{|l}{22} & \multicolumn{1}{r}{25} & \multicolumn{1}{|c}{26} \\
+\multicolumn{2}{c}{\texttt{0110010}} & \multicolumn{2}{|c}{rA} & \multicolumn{2}{|c}{rB} & \multicolumn{2}{|c}{rC} & \multicolumn{2}{|c}{\texttt{0000}} & \multicolumn{1}{|c}{UF}
+\end{tabu}
+}
+\nopagebreak
+\begin{description}
+\item [Format:] \texttt{RLM rA, rB, rC}
+\item [Purpose:] Rotate left a 54-bit integer
+\item [Description:] The 54-bit value in rB:rB+1 is left rotated the number of bits specified in rC. The result is placed in rA:rA+1.
+
+\item [Operation:] \begin{verbatim}
+rA:rA+1 ← (rB:rB+1 << rC) | (rB:rB+1 >> (54-rC))\end{verbatim}
+\item [Flags affected:] \texttt{Z C O S}
+\end{description}
+\vfill
+%% LONG ONE
+\pagebreak
+\section{RMP: Read Memory Protection}
+\index{RMP}
+{
+\setlength{\tabcolsep}{3pt}
+\begin{tabu} spread \linewidth {l r l r l r l r}
+\multicolumn{1}{l}{0} & \multicolumn{1}{r}{6} & \multicolumn{1}{|l}{7} & \multicolumn{1}{r}{11} & \multicolumn{1}{|l}{12} & \multicolumn{1}{r}{16} & \multicolumn{1}{|l}{17} & \multicolumn{1}{r}{26} \\
+\multicolumn{2}{c}{\texttt{1010010}} & \multicolumn{2}{|c}{rA} & \multicolumn{2}{|c}{rB} & \multicolumn{2}{|c}{\texttt{0000000000}}
+\end{tabu}
+}
+\nopagebreak
+\begin{description}
+\item [Format:] \texttt{RMP rA, rB}
+\item [Purpose:] Read the memory protections for a page of memory
+\item [Description:] rA is set to the page protection flags of the pages of the specified memory range starting at the memory location specified by rA and moving forward rB pages. A set zero flag indicates success, upon failure rA holds the error reason. Every 2 bits indicates the memory protection state of a page. Only 13 page statuses can be returned at a time.
+
+\nopagebreak
+
+Errors:
+
+\nopagebreak[4]
+\input{./tables/fd15958e877cf9efa5c06afb6234497539d5476addcb45fad69ee2aa430fd3bf.tex}
+%% table row
+
+
+\nopagebreak
+
+Flags:
+
+\nopagebreak[4]
+\input{./tables/a904c436d1bb88ce831b848fe72b7be9ee4303c06eb0a4c3a9c227a8ae7b189c.tex}
+%% table row
+%% table row
+%% table row
+
+
+\item [Operation:] \begin{verbatim}
+
+rA ←
+    Memory_Page_Flags[rA]:Memory_Page_Flags[rA+(rB*1024)]\end{verbatim}
+\item [Flags affected:] \texttt{Z}
+\end{description}
+\vfill
+\pagebreak
+\pagebreak[3]
+\section{RND: Random}
+\index{RND}
+{
+\setlength{\tabcolsep}{3pt}
+\begin{tabu} spread \linewidth {l r l r l r c}
+\multicolumn{1}{l}{0} & \multicolumn{1}{r}{8} & \multicolumn{1}{|l}{9} & \multicolumn{1}{r}{13} & \multicolumn{1}{|l}{14} & \multicolumn{1}{r}{25} & \multicolumn{1}{|c}{26} \\
+\multicolumn{2}{c}{\texttt{101001100}} & \multicolumn{2}{|c}{rA} & \multicolumn{2}{|c}{\texttt{000001100000}} & \multicolumn{1}{|c}{UF}
+\end{tabu}
+}
+\nopagebreak
+\begin{description}
+\item [Format:] \texttt{RND rA}
+\item [Purpose:] Generate a random value into rA
+\item [Description:] A random value is placed into the 27-bit rA register.
+
+\item [Operation:] \begin{verbatim}
+rA ← <random value>\end{verbatim}
+\item [Flags affected:] \texttt{Z C O S}
+\end{description}
+\vfill
+\pagebreak[3]
+\section{RNDM: Random Multi Reg}
+\index{RNDM}
+{
+\setlength{\tabcolsep}{3pt}
+\begin{tabu} spread \linewidth {l r l r l r c}
+\multicolumn{1}{l}{0} & \multicolumn{1}{r}{8} & \multicolumn{1}{|l}{9} & \multicolumn{1}{r}{13} & \multicolumn{1}{|l}{14} & \multicolumn{1}{r}{25} & \multicolumn{1}{|c}{26} \\
+\multicolumn{2}{c}{\texttt{101001110}} & \multicolumn{2}{|c}{rA} & \multicolumn{2}{|c}{\texttt{000001100000}} & \multicolumn{1}{|c}{UF}
+\end{tabu}
+}
+\nopagebreak
+\begin{description}
+\item [Format:] \texttt{RNDM rA}
+\item [Purpose:] Generate a random value into rA:rA+1
+\item [Description:] A random value is generated and placed into the 54-bit rA:rA+1 register.
+
+\item [Operation:] \begin{verbatim}
+rA:rA+1 ← <random value>\end{verbatim}
+\item [Flags affected:] \texttt{Z C O S}
+\end{description}
+\vfill
+\pagebreak[3]
+\section{RR: Rotate Right}
+\index{RR}
+{
+\setlength{\tabcolsep}{3pt}
+\begin{tabu} spread \linewidth {l r l r l r l r l r c}
+\multicolumn{1}{l}{0} & \multicolumn{1}{r}{6} & \multicolumn{1}{|l}{7} & \multicolumn{1}{r}{11} & \multicolumn{1}{|l}{12} & \multicolumn{1}{r}{16} & \multicolumn{1}{|l}{17} & \multicolumn{1}{r}{21} & \multicolumn{1}{|l}{22} & \multicolumn{1}{r}{25} & \multicolumn{1}{|c}{26} \\
+\multicolumn{2}{c}{\texttt{0110001}} & \multicolumn{2}{|c}{rA} & \multicolumn{2}{|c}{rB} & \multicolumn{2}{|c}{rC} & \multicolumn{2}{|c}{\texttt{0000}} & \multicolumn{1}{|c}{UF}
+\end{tabu}
+}
+\nopagebreak
+\begin{description}
+\item [Format:] \texttt{RR rA, rB, rC}
+\item [Purpose:] Rotate right a 27-bit integer
+\item [Description:] The 27-bit value in rB is right rotated the number of bits specified in rC. The result is placed in rA.
+
+\item [Operation:] \begin{verbatim}
+rA ← (rB >> rC) | (rB << (27-rC))\end{verbatim}
+\item [Flags affected:] \texttt{Z C O S}
+\end{description}
+\vfill
+\pagebreak[3]
+\section{RRI: Rotate Right Immediate}
+\index{RRI}
+{
+\setlength{\tabcolsep}{3pt}
+\begin{tabu} spread \linewidth {l r l r l r l r l r c}
+\multicolumn{1}{l}{0} & \multicolumn{1}{r}{6} & \multicolumn{1}{|l}{7} & \multicolumn{1}{r}{11} & \multicolumn{1}{|l}{12} & \multicolumn{1}{r}{16} & \multicolumn{1}{|l}{17} & \multicolumn{1}{r}{23} & \multicolumn{1}{|l}{24} & \multicolumn{1}{r}{25} & \multicolumn{1}{|c}{26} \\
+\multicolumn{2}{c}{\texttt{1000001}} & \multicolumn{2}{|c}{rA} & \multicolumn{2}{|c}{rB} & \multicolumn{2}{|c}{Immediate} & \multicolumn{2}{|c}{\texttt{00}} & \multicolumn{1}{|c}{UF}
+\end{tabu}
+}
+\nopagebreak
+\begin{description}
+\item [Format:] \texttt{RRI rA, rB, IMM}
+\item [Purpose:] Rotate right a 27-bit integer by a 7-bit immediate value
+\item [Description:] The 27-bit value in rB is right rotated by the 7-bit immediate value. The result is placed in rA.
+
+\item [Operation:] \begin{verbatim}
+rA ← (rB >> IMM) | (rB << (27-IMM))\end{verbatim}
+\item [Flags affected:] \texttt{Z C O S}
+\end{description}
+\vfill
+\pagebreak[3]
+\section{RRIM: Rotate Right Immediate Multi Reg}
+\index{RRIM}
+{
+\setlength{\tabcolsep}{3pt}
+\begin{tabu} spread \linewidth {l r l r l r l r l r c}
+\multicolumn{1}{l}{0} & \multicolumn{1}{r}{6} & \multicolumn{1}{|l}{7} & \multicolumn{1}{r}{11} & \multicolumn{1}{|l}{12} & \multicolumn{1}{r}{16} & \multicolumn{1}{|l}{17} & \multicolumn{1}{r}{23} & \multicolumn{1}{|l}{24} & \multicolumn{1}{r}{25} & \multicolumn{1}{|c}{26} \\
+\multicolumn{2}{c}{\texttt{1000011}} & \multicolumn{2}{|c}{rA} & \multicolumn{2}{|c}{rB} & \multicolumn{2}{|c}{Immediate} & \multicolumn{2}{|c}{\texttt{00}} & \multicolumn{1}{|c}{UF}
+\end{tabu}
+}
+\nopagebreak
+\begin{description}
+\item [Format:] \texttt{RRIM rA, rB, rC}
+\item [Purpose:] Rotate right a 54-bit integer by an immediate value
+\item [Description:] The 54-bit value in rB:rB+1 is right rotated by the 7-bit immediate value. The result is placed in rA:rA+1.
+
+\item [Operation:] \begin{verbatim}
+rA:rA+1 ← (rB:rB+1 >> IMM) | (rB:rB+1 << (54-IMM))\end{verbatim}
+\item [Flags affected:] \texttt{Z C O S}
+\end{description}
+\vfill
+\pagebreak[3]
+\section{RRM: Rotate Right Multi Reg}
+\index{RRM}
+{
+\setlength{\tabcolsep}{3pt}
+\begin{tabu} spread \linewidth {l r l r l r l r l r c}
+\multicolumn{1}{l}{0} & \multicolumn{1}{r}{6} & \multicolumn{1}{|l}{7} & \multicolumn{1}{r}{11} & \multicolumn{1}{|l}{12} & \multicolumn{1}{r}{16} & \multicolumn{1}{|l}{17} & \multicolumn{1}{r}{21} & \multicolumn{1}{|l}{22} & \multicolumn{1}{r}{25} & \multicolumn{1}{|c}{26} \\
+\multicolumn{2}{c}{\texttt{0110011}} & \multicolumn{2}{|c}{rA} & \multicolumn{2}{|c}{rB} & \multicolumn{2}{|c}{rC} & \multicolumn{2}{|c}{\texttt{0000}} & \multicolumn{1}{|c}{UF}
+\end{tabu}
+}
+\nopagebreak
+\begin{description}
+\item [Format:] \texttt{RRM rA, rB, rC}
+\item [Purpose:] Rotate right a 54-bit integer
+\item [Description:] The 54-bit value in rB:rB+1 is right rotated the number of bits specified in rC. The result is placed in rA:rA+1.
+
+\item [Operation:] \begin{verbatim}
+rA:rA+1 ← (rB:rB+1 >> rC) | (rB:rB+1 << (54-rC))\end{verbatim}
+\item [Flags affected:] \texttt{Z C O S}
+\end{description}
+\vfill
+\pagebreak[3]
+\section{SA: Shift Arithemetic Right}
+\index{SA}
+{
+\setlength{\tabcolsep}{3pt}
+\begin{tabu} spread \linewidth {l r l r l r l r l r c}
+\multicolumn{1}{l}{0} & \multicolumn{1}{r}{6} & \multicolumn{1}{|l}{7} & \multicolumn{1}{r}{11} & \multicolumn{1}{|l}{12} & \multicolumn{1}{r}{16} & \multicolumn{1}{|l}{17} & \multicolumn{1}{r}{21} & \multicolumn{1}{|l}{22} & \multicolumn{1}{r}{25} & \multicolumn{1}{|c}{26} \\
+\multicolumn{2}{c}{\texttt{0101101}} & \multicolumn{2}{|c}{rA} & \multicolumn{2}{|c}{rB} & \multicolumn{2}{|c}{rC} & \multicolumn{2}{|c}{\texttt{0000}} & \multicolumn{1}{|c}{UF}
+\end{tabu}
+}
+\nopagebreak
+\begin{description}
+\item [Format:] \texttt{SA rA, rB, rC}
+\item [Purpose:] Shift right arithmetic a 27-bit integer
+\item [Description:] The 27-bit value in rB is right arithmetic shifted the number of bits specified in rC. The result is placed in rA.
+
+\item [Operation:] \begin{verbatim}
+rA ← (signed)rB >> rC\end{verbatim}
+\item [Flags affected:] \texttt{Z C O S}
+\end{description}
+\vfill
+\pagebreak[3]
+\section{SAI: Shift Arithemetic Right Immediate}
+\index{SAI}
+{
+\setlength{\tabcolsep}{3pt}
+\begin{tabu} spread \linewidth {l r l r l r l r l r c}
+\multicolumn{1}{l}{0} & \multicolumn{1}{r}{6} & \multicolumn{1}{|l}{7} & \multicolumn{1}{r}{11} & \multicolumn{1}{|l}{12} & \multicolumn{1}{r}{16} & \multicolumn{1}{|l}{17} & \multicolumn{1}{r}{23} & \multicolumn{1}{|l}{24} & \multicolumn{1}{r}{25} & \multicolumn{1}{|c}{26} \\
+\multicolumn{2}{c}{\texttt{0111101}} & \multicolumn{2}{|c}{rA} & \multicolumn{2}{|c}{rB} & \multicolumn{2}{|c}{Immediate} & \multicolumn{2}{|c}{\texttt{00}} & \multicolumn{1}{|c}{UF}
+\end{tabu}
+}
+\nopagebreak
+\begin{description}
+\item [Format:] \texttt{SAI rA, rB, IMM}
+\item [Purpose:] Shift right arithmetic a 27-bit integer by a 7-bit immediate value
+\item [Description:] The 27-bit value in rB is right arithmetic shifted by the 7-bit immediate value. The result is placed in rA.
+
+\item [Operation:] \begin{verbatim}
+rA ← (signed)rB >> IMM\end{verbatim}
+\item [Flags affected:] \texttt{Z C O S}
+\end{description}
+\vfill
+\pagebreak[3]
+\section{SAIM: Shift Arithemetic Right Immediate Multi Reg}
+\index{SAIM}
+{
+\setlength{\tabcolsep}{3pt}
+\begin{tabu} spread \linewidth {l r l r l r l r l r c}
+\multicolumn{1}{l}{0} & \multicolumn{1}{r}{6} & \multicolumn{1}{|l}{7} & \multicolumn{1}{r}{11} & \multicolumn{1}{|l}{12} & \multicolumn{1}{r}{16} & \multicolumn{1}{|l}{17} & \multicolumn{1}{r}{23} & \multicolumn{1}{|l}{24} & \multicolumn{1}{r}{25} & \multicolumn{1}{|c}{26} \\
+\multicolumn{2}{c}{\texttt{0111111}} & \multicolumn{2}{|c}{rA} & \multicolumn{2}{|c}{rB} & \multicolumn{2}{|c}{Immediate} & \multicolumn{2}{|c}{\texttt{00}} & \multicolumn{1}{|c}{UF}
+\end{tabu}
+}
+\nopagebreak
+\begin{description}
+\item [Format:] \texttt{SAIM rA, rB, IMM}
+\item [Purpose:] Shift right arithmetic a 54-bit integer by a 7-bit immediate value
+\item [Description:] The 54-bit value in rB:rB+1 is right arithmetic shifted by the 7-bit immediate value. The result is placed in rA:rA+1.
+
+\item [Operation:] \begin{verbatim}
+rA:rA+1 ← (signed)rB:rB+1 >> IMM\end{verbatim}
+\item [Flags affected:] \texttt{Z C O S}
+\end{description}
+\vfill
+\pagebreak[3]
+\section{SAM: Shift Arithemetic Right Multi Reg}
+\index{SAM}
+{
+\setlength{\tabcolsep}{3pt}
+\begin{tabu} spread \linewidth {l r l r l r l r l r c}
+\multicolumn{1}{l}{0} & \multicolumn{1}{r}{6} & \multicolumn{1}{|l}{7} & \multicolumn{1}{r}{11} & \multicolumn{1}{|l}{12} & \multicolumn{1}{r}{16} & \multicolumn{1}{|l}{17} & \multicolumn{1}{r}{21} & \multicolumn{1}{|l}{22} & \multicolumn{1}{r}{25} & \multicolumn{1}{|c}{26} \\
+\multicolumn{2}{c}{\texttt{0101111}} & \multicolumn{2}{|c}{rA} & \multicolumn{2}{|c}{rB} & \multicolumn{2}{|c}{rC} & \multicolumn{2}{|c}{\texttt{0000}} & \multicolumn{1}{|c}{UF}
+\end{tabu}
+}
+\nopagebreak
+\begin{description}
+\item [Format:] \texttt{SAM rA, rB, rC}
+\item [Purpose:] Shift right arithmetic a 54-bit integer
+\item [Description:] The 54-bit value in rB:rB+1 is right arithmetic shifted the number of bits specified in rC. The result is placed in rA:rA+1.
+
+\item [Operation:] \begin{verbatim}
+rA:rA+1 ← (signed)rB:rB+1 >> rC\end{verbatim}
+\item [Flags affected:] \texttt{Z C O S}
+\end{description}
+\vfill
+\pagebreak[3]
+\section{SB: Subtract}
+\index{SB}
+{
+\setlength{\tabcolsep}{3pt}
+\begin{tabu} spread \linewidth {l r l r l r l r l r c}
+\multicolumn{1}{l}{0} & \multicolumn{1}{r}{6} & \multicolumn{1}{|l}{7} & \multicolumn{1}{r}{11} & \multicolumn{1}{|l}{12} & \multicolumn{1}{r}{16} & \multicolumn{1}{|l}{17} & \multicolumn{1}{r}{21} & \multicolumn{1}{|l}{22} & \multicolumn{1}{r}{25} & \multicolumn{1}{|c}{26} \\
+\multicolumn{2}{c}{\texttt{0000100}} & \multicolumn{2}{|c}{rA} & \multicolumn{2}{|c}{rB} & \multicolumn{2}{|c}{rC} & \multicolumn{2}{|c}{\texttt{0000}} & \multicolumn{1}{|c}{UF}
+\end{tabu}
+}
+\nopagebreak
+\begin{description}
+\item [Format:] \texttt{SB rA, rB, rC}
+\item [Purpose:] Subtract two 27-bit integer registers from each other
+\item [Description:] The 27-bit value in rC is subtracted from the 27-bit value in rB, the result is placed in rA.
+
+\item [Operation:] \begin{verbatim}
+rA ← rB - rC\end{verbatim}
+\item [Flags affected:] \texttt{Z C O S}
+\end{description}
+\vfill
+\pagebreak[3]
+\section{SBC: Subtract With Carry}
+\index{SBC}
+{
+\setlength{\tabcolsep}{3pt}
+\begin{tabu} spread \linewidth {l r l r l r l r l r c}
+\multicolumn{1}{l}{0} & \multicolumn{1}{r}{6} & \multicolumn{1}{|l}{7} & \multicolumn{1}{r}{11} & \multicolumn{1}{|l}{12} & \multicolumn{1}{r}{16} & \multicolumn{1}{|l}{17} & \multicolumn{1}{r}{21} & \multicolumn{1}{|l}{22} & \multicolumn{1}{r}{25} & \multicolumn{1}{|c}{26} \\
+\multicolumn{2}{c}{\texttt{0100100}} & \multicolumn{2}{|c}{rA} & \multicolumn{2}{|c}{rB} & \multicolumn{2}{|c}{rC} & \multicolumn{2}{|c}{\texttt{0000}} & \multicolumn{1}{|c}{UF}
+\end{tabu}
+}
+\nopagebreak
+\begin{description}
+\item [Format:] \texttt{SBC rA, rB, rC}
+\item [Purpose:] Subtract two 27-bit integer registers from each other including the carry bit
+\item [Description:] The 27-bit value in rC is subtracted from the 27-bit value in rB, the carry bit from any previous operation is subtracted from the result. The result is placed in rA.
+
+\item [Operation:] \begin{verbatim}
+rA ← rB - rC - Carry_Bit\end{verbatim}
+\item [Flags affected:] \texttt{Z C O S}
+\end{description}
+\vfill
+\pagebreak[3]
+\section{SBCI: Subtract Immediate With Carry}
+\index{SBCI}
+{
+\setlength{\tabcolsep}{3pt}
+\begin{tabu} spread \linewidth {l r l r l r l r l r c}
+\multicolumn{1}{l}{0} & \multicolumn{1}{r}{6} & \multicolumn{1}{|l}{7} & \multicolumn{1}{r}{11} & \multicolumn{1}{|l}{12} & \multicolumn{1}{r}{16} & \multicolumn{1}{|l}{17} & \multicolumn{1}{r}{23} & \multicolumn{1}{|l}{24} & \multicolumn{1}{r}{25} & \multicolumn{1}{|c}{26} \\
+\multicolumn{2}{c}{\texttt{0100100}} & \multicolumn{2}{|c}{rA} & \multicolumn{2}{|c}{rB} & \multicolumn{2}{|c}{Immediate} & \multicolumn{2}{|c}{\texttt{01}} & \multicolumn{1}{|c}{UF}
+\end{tabu}
+}
+\nopagebreak
+\begin{description}
+\item [Format:] \texttt{SBCI rA, rB, IMM}
+\item [Purpose:] Subtract a 7-bit immediate from a 27-bit integer register including the carry bit
+\item [Description:] The 7-bit immediate value is subtracted from the 27-bit value in rB, the carry bit from any previous operation is subtracted from the result. The result is placed in rA.
+
+\item [Operation:] \begin{verbatim}
+rA ← rB - IMM - Carry_Bit\end{verbatim}
+\item [Flags affected:] \texttt{Z C O S}
+\end{description}
+\vfill
+\pagebreak[3]
+\section{SBCIM: Subtract Immediate Multi Reg With Carry}
+\index{SBCIM}
+{
+\setlength{\tabcolsep}{3pt}
+\begin{tabu} spread \linewidth {l r l r l r l r l r c}
+\multicolumn{1}{l}{0} & \multicolumn{1}{r}{6} & \multicolumn{1}{|l}{7} & \multicolumn{1}{r}{11} & \multicolumn{1}{|l}{12} & \multicolumn{1}{r}{16} & \multicolumn{1}{|l}{17} & \multicolumn{1}{r}{23} & \multicolumn{1}{|l}{24} & \multicolumn{1}{r}{25} & \multicolumn{1}{|c}{26} \\
+\multicolumn{2}{c}{\texttt{0100110}} & \multicolumn{2}{|c}{rA} & \multicolumn{2}{|c}{rB} & \multicolumn{2}{|c}{Immediate} & \multicolumn{2}{|c}{\texttt{01}} & \multicolumn{1}{|c}{UF}
+\end{tabu}
+}
+\nopagebreak
+\begin{description}
+\item [Format:] \texttt{SBCIM rA, rB, IMM}
+\item [Purpose:] Subtract a 7-bit immediate from a 54-bit integer register including the carry bit
+\item [Description:] The 7-bit immediate value is subtracted from the 54-bit value in rB:rB+1, the carry bit from any previous operation is subtracted from the result. The result is placed in rA:rA+1.
+
+\item [Operation:] \begin{verbatim}
+rA:rA+1 ← rB:rB+1 - IMM - Carry_Bit\end{verbatim}
+\item [Flags affected:] \texttt{Z C O S}
+\end{description}
+\vfill
+\pagebreak[3]
+\section{SBCM: Subtract Multi Reg With Carry}
+\index{SBCM}
+{
+\setlength{\tabcolsep}{3pt}
+\begin{tabu} spread \linewidth {l r l r l r l r l r c}
+\multicolumn{1}{l}{0} & \multicolumn{1}{r}{6} & \multicolumn{1}{|l}{7} & \multicolumn{1}{r}{11} & \multicolumn{1}{|l}{12} & \multicolumn{1}{r}{16} & \multicolumn{1}{|l}{17} & \multicolumn{1}{r}{21} & \multicolumn{1}{|l}{22} & \multicolumn{1}{r}{25} & \multicolumn{1}{|c}{26} \\
+\multicolumn{2}{c}{\texttt{0100110}} & \multicolumn{2}{|c}{rA} & \multicolumn{2}{|c}{rB} & \multicolumn{2}{|c}{rC} & \multicolumn{2}{|c}{\texttt{0000}} & \multicolumn{1}{|c}{UF}
+\end{tabu}
+}
+\nopagebreak
+\begin{description}
+\item [Format:] \texttt{SBCM rA, rB, rC}
+\item [Purpose:] Subtracted two 54-bit integer registers from each other including the carry bit
+\item [Description:] The 54-bit value in rC:rC+1 is subtracted from the 54-bit value in rB:rB+1, the carry bit from any previous operation is subtracted from the result. The result is placed in rA:rA+1.
+
+\item [Operation:] \begin{verbatim}
+rA:rA+1 ← rB:rB+1 - rC:rC+1 - Carry_Bit\end{verbatim}
+\item [Flags affected:] \texttt{Z C O S}
+\end{description}
+\vfill
+\pagebreak[3]
+\section{SBF: Subtract Floating Point}
+\index{SBF}
+{
+\setlength{\tabcolsep}{3pt}
+\begin{tabu} spread \linewidth {l r l r l r l r l r c}
+\multicolumn{1}{l}{0} & \multicolumn{1}{r}{6} & \multicolumn{1}{|l}{7} & \multicolumn{1}{r}{11} & \multicolumn{1}{|l}{12} & \multicolumn{1}{r}{16} & \multicolumn{1}{|l}{17} & \multicolumn{1}{r}{21} & \multicolumn{1}{|l}{22} & \multicolumn{1}{r}{25} & \multicolumn{1}{|c}{26} \\
+\multicolumn{2}{c}{\texttt{0000101}} & \multicolumn{2}{|c}{rA} & \multicolumn{2}{|c}{rB} & \multicolumn{2}{|c}{rC} & \multicolumn{2}{|c}{\texttt{0000}} & \multicolumn{1}{|c}{UF}
+\end{tabu}
+}
+\nopagebreak
+\begin{description}
+\item [Format:] \texttt{SBF rA, rB, rC}
+\item [Purpose:] Subtract two 27-bit floating point registers from each other
+\item [Description:] The 27-bit floating point value in rC is subtracted from to the 27-bit floating point value in rB, the result is placed in rA.
+
+\item [Operation:] \begin{verbatim}
+rA ← rB - rC\end{verbatim}
+\item [Flags affected:] \texttt{Z C O S}
+\end{description}
+\vfill
+\pagebreak[3]
+\section{SBFM: Subtract Floating Point Multi Reg}
+\index{SBFM}
+{
+\setlength{\tabcolsep}{3pt}
+\begin{tabu} spread \linewidth {l r l r l r l r l r c}
+\multicolumn{1}{l}{0} & \multicolumn{1}{r}{6} & \multicolumn{1}{|l}{7} & \multicolumn{1}{r}{11} & \multicolumn{1}{|l}{12} & \multicolumn{1}{r}{16} & \multicolumn{1}{|l}{17} & \multicolumn{1}{r}{21} & \multicolumn{1}{|l}{22} & \multicolumn{1}{r}{25} & \multicolumn{1}{|c}{26} \\
+\multicolumn{2}{c}{\texttt{0000111}} & \multicolumn{2}{|c}{rA} & \multicolumn{2}{|c}{rB} & \multicolumn{2}{|c}{rC} & \multicolumn{2}{|c}{\texttt{0000}} & \multicolumn{1}{|c}{UF}
+\end{tabu}
+}
+\nopagebreak
+\begin{description}
+\item [Format:] \texttt{SBFM rA, rB, rC}
+\item [Purpose:] Subtract two 54-bit floating point registers from each other
+\item [Description:] The 54-bit floating point value in rC:rC+1 is subtracted from the 54-bit floating point value in rB:rB+1, the result is placed in rA:rA+1.
+
+\item [Operation:] \begin{verbatim}
+rA:rA+1 ← rB:rB+1 - rC:rC+1\end{verbatim}
+\item [Flags affected:] \texttt{Z C O S}
+\end{description}
+\vfill
+\pagebreak[3]
+\section{SBI: Subtract Immediate}
+\index{SBI}
+{
+\setlength{\tabcolsep}{3pt}
+\begin{tabu} spread \linewidth {l r l r l r l r l r c}
+\multicolumn{1}{l}{0} & \multicolumn{1}{r}{6} & \multicolumn{1}{|l}{7} & \multicolumn{1}{r}{11} & \multicolumn{1}{|l}{12} & \multicolumn{1}{r}{16} & \multicolumn{1}{|l}{17} & \multicolumn{1}{r}{23} & \multicolumn{1}{|l}{24} & \multicolumn{1}{r}{25} & \multicolumn{1}{|c}{26} \\
+\multicolumn{2}{c}{\texttt{0000100}} & \multicolumn{2}{|c}{rA} & \multicolumn{2}{|c}{rB} & \multicolumn{2}{|c}{Immediate} & \multicolumn{2}{|c}{\texttt{01}} & \multicolumn{1}{|c}{UF}
+\end{tabu}
+}
+\nopagebreak
+\begin{description}
+\item [Format:] \texttt{SBI rA, rB, IMM}
+\item [Purpose:] Subtract a 7-bit immediate value from a 27-bit integer register
+\item [Description:] The 7-bit immediate value is subtracted from the 27-bit value in rB, the result is placed in rA.
+
+\item [Operation:] \begin{verbatim}
+rA ← rB - IMM\end{verbatim}
+\item [Flags affected:] \texttt{Z C O S}
+\end{description}
+\vfill
+\pagebreak[3]
+\section{SBIM: Subtract Immediate Multi Reg}
+\index{SBIM}
+{
+\setlength{\tabcolsep}{3pt}
+\begin{tabu} spread \linewidth {l r l r l r l r l r c}
+\multicolumn{1}{l}{0} & \multicolumn{1}{r}{6} & \multicolumn{1}{|l}{7} & \multicolumn{1}{r}{11} & \multicolumn{1}{|l}{12} & \multicolumn{1}{r}{16} & \multicolumn{1}{|l}{17} & \multicolumn{1}{r}{23} & \multicolumn{1}{|l}{24} & \multicolumn{1}{r}{25} & \multicolumn{1}{|c}{26} \\
+\multicolumn{2}{c}{\texttt{0000110}} & \multicolumn{2}{|c}{rA} & \multicolumn{2}{|c}{rB} & \multicolumn{2}{|c}{Immediate} & \multicolumn{2}{|c}{\texttt{01}} & \multicolumn{1}{|c}{UF}
+\end{tabu}
+}
+\nopagebreak
+\begin{description}
+\item [Format:] \texttt{SBIM rA, rB, IMM}
+\item [Purpose:] Subtract a 7-bit immediate value from a 54-bit integer register
+\item [Description:] The 7-bit immediate value is subtracted from the 54-bit value in rB:rB+1, the result is placed in rA:rA+1.
+
+\item [Operation:] \begin{verbatim}
+rA:rA+1 ← rB:rB+1 - IMM\end{verbatim}
+\item [Flags affected:] \texttt{Z C O S}
+\end{description}
+\vfill
+\pagebreak[3]
+\section{SBM: Subtract Multi Reg}
+\index{SBM}
+{
+\setlength{\tabcolsep}{3pt}
+\begin{tabu} spread \linewidth {l r l r l r l r l r c}
+\multicolumn{1}{l}{0} & \multicolumn{1}{r}{6} & \multicolumn{1}{|l}{7} & \multicolumn{1}{r}{11} & \multicolumn{1}{|l}{12} & \multicolumn{1}{r}{16} & \multicolumn{1}{|l}{17} & \multicolumn{1}{r}{21} & \multicolumn{1}{|l}{22} & \multicolumn{1}{r}{25} & \multicolumn{1}{|c}{26} \\
+\multicolumn{2}{c}{\texttt{0000110}} & \multicolumn{2}{|c}{rA} & \multicolumn{2}{|c}{rB} & \multicolumn{2}{|c}{rC} & \multicolumn{2}{|c}{\texttt{0000}} & \multicolumn{1}{|c}{UF}
+\end{tabu}
+}
+\nopagebreak
+\begin{description}
+\item [Format:] \texttt{SBM rA, rB, rC}
+\item [Purpose:] Subtracted two 54-bit integer registers from each other
+\item [Description:] The 54-bit value in rC:rC+1 is subtracted from the 54-bit value in rB:rB+1, the result is placed in rA:rA+1.
+
+\item [Operation:] \begin{verbatim}
+rA:rA+1 ← rB:rB+1 - rC:rC+1\end{verbatim}
+\item [Flags affected:] \texttt{Z C O S}
+\end{description}
+\vfill
+\pagebreak[3]
+\section{SES: Sign Extend Single}
+\index{SES}
+{
+\setlength{\tabcolsep}{3pt}
+\begin{tabu} spread \linewidth {l r l r l r l r}
+\multicolumn{1}{l}{0} & \multicolumn{1}{r}{11} & \multicolumn{1}{|l}{12} & \multicolumn{1}{r}{16} & \multicolumn{1}{|l}{17} & \multicolumn{1}{r}{21} & \multicolumn{1}{|l}{22} & \multicolumn{1}{r}{26} \\
+\multicolumn{2}{c}{\texttt{101000000111}} & \multicolumn{2}{|c}{rA} & \multicolumn{2}{|c}{rB} & \multicolumn{2}{|c}{\texttt{00000}}
+\end{tabu}
+}
+\nopagebreak
+\begin{description}
+\item [Format:] \texttt{SES rA, rB}
+\item [Purpose:] Sign extend from a byte
+\item [Description:] Sign extend a single byte from register rB into the 27-bit rA.
+
+\item [Operation:] \begin{verbatim}
+rA ← (signed)(rB << 18) >> 18\end{verbatim}
+\item [Flags affected:] \texttt{Z C O S}
+\end{description}
+\vfill
+\pagebreak[3]
+\section{SEW: Sign Extend Word}
+\index{SEW}
+{
+\setlength{\tabcolsep}{3pt}
+\begin{tabu} spread \linewidth {l r l r l r l r}
+\multicolumn{1}{l}{0} & \multicolumn{1}{r}{11} & \multicolumn{1}{|l}{12} & \multicolumn{1}{r}{16} & \multicolumn{1}{|l}{17} & \multicolumn{1}{r}{21} & \multicolumn{1}{|l}{22} & \multicolumn{1}{r}{26} \\
+\multicolumn{2}{c}{\texttt{101000001000}} & \multicolumn{2}{|c}{rA} & \multicolumn{2}{|c}{rB} & \multicolumn{2}{|c}{\texttt{00000}}
+\end{tabu}
+}
+\nopagebreak
+\begin{description}
+\item [Format:] \texttt{SEW rA, rB}
+\item [Purpose:] Sign extend from two bytes
+\item [Description:] Sign extend a 18-bit value from register rB into the 27-bit rA.
+
+\item [Operation:] \begin{verbatim}
+rA ← (signed)(rB << 9) >> 9\end{verbatim}
+\item [Flags affected:] \texttt{Z C O S}
+\end{description}
+\vfill
+\pagebreak[3]
+\section{SF: Set Flags}
+\index{SF}
+{
+\setlength{\tabcolsep}{3pt}
+\begin{tabu} spread \linewidth {l r l r c}
+\multicolumn{1}{l}{0} & \multicolumn{1}{r}{11} & \multicolumn{1}{|l}{12} & \multicolumn{1}{r}{16} & \multicolumn{1}{|c}{17} \\
+\multicolumn{2}{c}{\texttt{101000001011}} & \multicolumn{2}{|c}{rA} & \multicolumn{1}{|c}{\texttt{0}}
+\end{tabu}
+}
+\nopagebreak
+\begin{description}
+\item [Format:] \texttt{SF rA}
+\item [Purpose:] Set flag register to rA
+\item [Description:] Set the flag register to the value in rA.
+
+\item [Operation:] \begin{verbatim}
+ FLAGS = rA & 0x7FFFFFF\end{verbatim}
+\item [Flags affected:] \texttt{Z C O S}
+\end{description}
+\vfill
+\pagebreak[3]
+\section{SL: Shift Left}
+\index{SL}
+{
+\setlength{\tabcolsep}{3pt}
+\begin{tabu} spread \linewidth {l r l r l r l r l r c}
+\multicolumn{1}{l}{0} & \multicolumn{1}{r}{6} & \multicolumn{1}{|l}{7} & \multicolumn{1}{r}{11} & \multicolumn{1}{|l}{12} & \multicolumn{1}{r}{16} & \multicolumn{1}{|l}{17} & \multicolumn{1}{r}{21} & \multicolumn{1}{|l}{22} & \multicolumn{1}{r}{25} & \multicolumn{1}{|c}{26} \\
+\multicolumn{2}{c}{\texttt{0101000}} & \multicolumn{2}{|c}{rA} & \multicolumn{2}{|c}{rB} & \multicolumn{2}{|c}{rC} & \multicolumn{2}{|c}{\texttt{0000}} & \multicolumn{1}{|c}{UF}
+\end{tabu}
+}
+\nopagebreak
+\begin{description}
+\item [Format:] \texttt{SL rA, rB, rC}
+\item [Purpose:] Shift left a 27-bit integer
+\item [Description:] The 27-bit value in rB is left shifted the number of bits specified in rC. The result is placed in rA.
+
+\item [Operation:] \begin{verbatim}
+rA ← rB << rC\end{verbatim}
+\item [Flags affected:] \texttt{Z C O S}
+\end{description}
+\vfill
+\pagebreak[3]
+\section{SLI: Shift Left Immediate}
+\index{SLI}
+{
+\setlength{\tabcolsep}{3pt}
+\begin{tabu} spread \linewidth {l r l r l r l r l r c}
+\multicolumn{1}{l}{0} & \multicolumn{1}{r}{6} & \multicolumn{1}{|l}{7} & \multicolumn{1}{r}{11} & \multicolumn{1}{|l}{12} & \multicolumn{1}{r}{16} & \multicolumn{1}{|l}{17} & \multicolumn{1}{r}{23} & \multicolumn{1}{|l}{24} & \multicolumn{1}{r}{25} & \multicolumn{1}{|c}{26} \\
+\multicolumn{2}{c}{\texttt{0111000}} & \multicolumn{2}{|c}{rA} & \multicolumn{2}{|c}{rB} & \multicolumn{2}{|c}{Immediate} & \multicolumn{2}{|c}{\texttt{00}} & \multicolumn{1}{|c}{UF}
+\end{tabu}
+}
+\nopagebreak
+\begin{description}
+\item [Format:] \texttt{SLI rA, rB, IMM}
+\item [Purpose:] Shift left a 27-bit integer by a 7-bit immediate value
+\item [Description:] The 27-bit value in rB is left shifted by the 7-bit immediate value. The result is placed in rA.
+
+\item [Operation:] \begin{verbatim}
+rA ← rB << IMM\end{verbatim}
+\item [Flags affected:] \texttt{Z C O S}
+\end{description}
+\vfill
+\pagebreak[3]
+\section{SLIM: Shift Left Immediate Multi Reg}
+\index{SLIM}
+{
+\setlength{\tabcolsep}{3pt}
+\begin{tabu} spread \linewidth {l r l r l r l r l r c}
+\multicolumn{1}{l}{0} & \multicolumn{1}{r}{6} & \multicolumn{1}{|l}{7} & \multicolumn{1}{r}{11} & \multicolumn{1}{|l}{12} & \multicolumn{1}{r}{16} & \multicolumn{1}{|l}{17} & \multicolumn{1}{r}{23} & \multicolumn{1}{|l}{24} & \multicolumn{1}{r}{25} & \multicolumn{1}{|c}{26} \\
+\multicolumn{2}{c}{\texttt{0111010}} & \multicolumn{2}{|c}{rA} & \multicolumn{2}{|c}{rB} & \multicolumn{2}{|c}{Immediate} & \multicolumn{2}{|c}{\texttt{00}} & \multicolumn{1}{|c}{UF}
+\end{tabu}
+}
+\nopagebreak
+\begin{description}
+\item [Format:] \texttt{SLIM rA, rB, IMM}
+\item [Purpose:] Shift left a 54-bit integer by a 7-bit immediate value
+\item [Description:] The 54-bit value in rB is left shifted by the 7-bit immediate value. The result is placed in rA:rA+1.
+
+\item [Operation:] \begin{verbatim}
+rA:rA+1 ← rB:rB+1 << IMM\end{verbatim}
+\item [Flags affected:] \texttt{Z C O S}
+\end{description}
+\vfill
+\pagebreak[3]
+\section{SLM: Shift Left Multi Reg}
+\index{SLM}
+{
+\setlength{\tabcolsep}{3pt}
+\begin{tabu} spread \linewidth {l r l r l r l r l r c}
+\multicolumn{1}{l}{0} & \multicolumn{1}{r}{6} & \multicolumn{1}{|l}{7} & \multicolumn{1}{r}{11} & \multicolumn{1}{|l}{12} & \multicolumn{1}{r}{16} & \multicolumn{1}{|l}{17} & \multicolumn{1}{r}{21} & \multicolumn{1}{|l}{22} & \multicolumn{1}{r}{25} & \multicolumn{1}{|c}{26} \\
+\multicolumn{2}{c}{\texttt{0101010}} & \multicolumn{2}{|c}{rA} & \multicolumn{2}{|c}{rB} & \multicolumn{2}{|c}{rC} & \multicolumn{2}{|c}{\texttt{0000}} & \multicolumn{1}{|c}{UF}
+\end{tabu}
+}
+\nopagebreak
+\begin{description}
+\item [Format:] \texttt{SLM rA, rB, rC}
+\item [Purpose:] Shift left a 54-bit integer
+\item [Description:] The 54-bit value in rB:rB+1 is left shifted the number of bits specified in rC. The result is placed in rA:rA+1.
+
+\item [Operation:] \begin{verbatim}
+rA:rA+1 ← rB:rB+1 << rC\end{verbatim}
+\item [Flags affected:] \texttt{Z C O S}
+\end{description}
+\vfill
+%% LONG ONE
+\pagebreak
+\section{SMP: Set Memory Protection}
+\index{SMP}
+{
+\setlength{\tabcolsep}{3pt}
+\begin{tabu} spread \linewidth {l r l r l r c l r l r}
+\multicolumn{1}{l}{0} & \multicolumn{1}{r}{6} & \multicolumn{1}{|l}{7} & \multicolumn{1}{r}{11} & \multicolumn{1}{|l}{12} & \multicolumn{1}{r}{16} & \multicolumn{1}{|c}{17} & \multicolumn{1}{|l}{18} & \multicolumn{1}{r}{19} & \multicolumn{1}{|l}{20} & \multicolumn{1}{r}{26} \\
+\multicolumn{2}{c}{\texttt{1010010}} & \multicolumn{2}{|c}{rA} & \multicolumn{2}{|c}{rB} & \multicolumn{1}{|c}{\texttt{1}} & \multicolumn{2}{|c}{Memory Flags} & \multicolumn{2}{|c}{\texttt{0000000}}
+\end{tabu}
+}
+\nopagebreak
+\begin{description}
+\item [Format:] \texttt{SMP rA, rB, FLAGS}
+\item [Purpose:] Set the memory protections for a range of pages of memory
+\item [Description:] Memory starting at a page boundary specified by rA has its page protection flags set to FLAGS for rB pages. A set zero flag indicates success. Upon failure rA holds the error reason.
+
+\nopagebreak
+
+Errors:
+
+\nopagebreak[4]
+\input{./tables/fd15958e877cf9efa5c06afb6234497539d5476addcb45fad69ee2aa430fd3bf.tex}
+%% table row
+
+
+\nopagebreak
+
+Flags:
+
+\nopagebreak[4]
+\input{./tables/a904c436d1bb88ce831b848fe72b7be9ee4303c06eb0a4c3a9c227a8ae7b189c.tex}
+%% table row
+%% table row
+%% table row
+
+
+\item [Operation:] \begin{verbatim}
+\end{verbatim}
+\item [Flags affected:] \texttt{Z}
+\end{description}
+\vfill
+\pagebreak
+\pagebreak[3]
+\section{SR: Shift Right}
+\index{SR}
+{
+\setlength{\tabcolsep}{3pt}
+\begin{tabu} spread \linewidth {l r l r l r l r l r c}
+\multicolumn{1}{l}{0} & \multicolumn{1}{r}{6} & \multicolumn{1}{|l}{7} & \multicolumn{1}{r}{11} & \multicolumn{1}{|l}{12} & \multicolumn{1}{r}{16} & \multicolumn{1}{|l}{17} & \multicolumn{1}{r}{21} & \multicolumn{1}{|l}{22} & \multicolumn{1}{r}{25} & \multicolumn{1}{|c}{26} \\
+\multicolumn{2}{c}{\texttt{0101001}} & \multicolumn{2}{|c}{rA} & \multicolumn{2}{|c}{rB} & \multicolumn{2}{|c}{rC} & \multicolumn{2}{|c}{\texttt{0000}} & \multicolumn{1}{|c}{UF}
+\end{tabu}
+}
+\nopagebreak
+\begin{description}
+\item [Format:] \texttt{SR rA, rB, rC}
+\item [Purpose:] Shift right a 27-bit integer
+\item [Description:] The 27-bit value in rB is right shifted the number of bits specified in rC. The result is placed in rA.
+
+\item [Operation:] \begin{verbatim}
+rA ← rB >> rC\end{verbatim}
+\item [Flags affected:] \texttt{Z C O S}
+\end{description}
+\vfill
+\pagebreak[3]
+\section{SRI: Shift Right Immediate}
+\index{SRI}
+{
+\setlength{\tabcolsep}{3pt}
+\begin{tabu} spread \linewidth {l r l r l r l r l r c}
+\multicolumn{1}{l}{0} & \multicolumn{1}{r}{6} & \multicolumn{1}{|l}{7} & \multicolumn{1}{r}{11} & \multicolumn{1}{|l}{12} & \multicolumn{1}{r}{16} & \multicolumn{1}{|l}{17} & \multicolumn{1}{r}{23} & \multicolumn{1}{|l}{24} & \multicolumn{1}{r}{25} & \multicolumn{1}{|c}{26} \\
+\multicolumn{2}{c}{\texttt{0111001}} & \multicolumn{2}{|c}{rA} & \multicolumn{2}{|c}{rB} & \multicolumn{2}{|c}{Immediate} & \multicolumn{2}{|c}{\texttt{00}} & \multicolumn{1}{|c}{UF}
+\end{tabu}
+}
+\nopagebreak
+\begin{description}
+\item [Format:] \texttt{SRI rA, rB, IMM}
+\item [Purpose:] Shift right a 27-bit integer by a 7-bit immediate value
+\item [Description:] The 27-bit value in rB is right shifted by the 7-bit immediate value. The result is placed in rA.
+
+\item [Operation:] \begin{verbatim}
+rA ← rB >> IMM\end{verbatim}
+\item [Flags affected:] \texttt{Z C O S}
+\end{description}
+\vfill
+\pagebreak[3]
+\pagebreak
+\section{SRIM: Shift Right Immediate Multi Reg}
+\index{SRIM}
+{
+\setlength{\tabcolsep}{3pt}
+\begin{tabu} spread \linewidth {l r l r l r l r l r c}
+\multicolumn{1}{l}{0} & \multicolumn{1}{r}{6} & \multicolumn{1}{|l}{7} & \multicolumn{1}{r}{11} & \multicolumn{1}{|l}{12} & \multicolumn{1}{r}{16} & \multicolumn{1}{|l}{17} & \multicolumn{1}{r}{23} & \multicolumn{1}{|l}{24} & \multicolumn{1}{r}{25} & \multicolumn{1}{|c}{26} \\
+\multicolumn{2}{c}{\texttt{0111011}} & \multicolumn{2}{|c}{rA} & \multicolumn{2}{|c}{rB} & \multicolumn{2}{|c}{Immediate} & \multicolumn{2}{|c}{\texttt{00}} & \multicolumn{1}{|c}{UF}
+\end{tabu}
+}
+\nopagebreak
+\begin{description}
+\item [Format:] \texttt{SRIM rA, rB, IMM}
+\item [Purpose:] Shift right a 54-bit integer by a 7-bit immediate value
+\item [Description:] The 54-bit value in rB:rB+1 is right shifted by the 7-bit immediate value. The result is placed in rA:rA+1.
+
+\item [Operation:] \begin{verbatim}
+rA:rA+1 ← rB:rB+1 >> IMM\end{verbatim}
+\item [Flags affected:] \texttt{Z C O S}
+\end{description}
+\vfill
+\pagebreak[3]
+\section{SRM: Shift Right Multi Reg}
+\index{SRM}
+{
+\setlength{\tabcolsep}{3pt}
+\begin{tabu} spread \linewidth {l r l r l r l r l r c}
+\multicolumn{1}{l}{0} & \multicolumn{1}{r}{6} & \multicolumn{1}{|l}{7} & \multicolumn{1}{r}{11} & \multicolumn{1}{|l}{12} & \multicolumn{1}{r}{16} & \multicolumn{1}{|l}{17} & \multicolumn{1}{r}{21} & \multicolumn{1}{|l}{22} & \multicolumn{1}{r}{25} & \multicolumn{1}{|c}{26} \\
+\multicolumn{2}{c}{\texttt{0101011}} & \multicolumn{2}{|c}{rA} & \multicolumn{2}{|c}{rB} & \multicolumn{2}{|c}{rC} & \multicolumn{2}{|c}{\texttt{0000}} & \multicolumn{1}{|c}{UF}
+\end{tabu}
+}
+\nopagebreak
+\begin{description}
+\item [Format:] \texttt{SRM rA, rB, rC}
+\item [Purpose:] Shift right a 54-bit integer
+\item [Description:] The 54-bit value in rB:rB+1 is right shifted the number of bits specified in rC. The result is placed in rA:rA+1.
+
+\item [Operation:] \begin{verbatim}
+rA:rA+1 ← rB:rB+1 >> rC\end{verbatim}
+\item [Flags affected:] \texttt{Z C O S}
+\end{description}
+\vfill
+%% LONG ONE
+\pagebreak
+\section{STS: Store Single}
+\index{STS}
+{
+\setlength{\tabcolsep}{3pt}
+\begin{tabu} spread \linewidth {l r l r l r l r l r l r l r}
+\multicolumn{1}{l}{0} & \multicolumn{1}{r}{6} & \multicolumn{1}{|l}{7} & \multicolumn{1}{r}{11} & \multicolumn{1}{|l}{12} & \multicolumn{1}{r}{16} & \multicolumn{1}{|l}{17} & \multicolumn{1}{r}{21} & \multicolumn{1}{|l}{22} & \multicolumn{1}{r}{23} & \multicolumn{1}{|l}{24} & \multicolumn{1}{r}{50} & \multicolumn{1}{|l}{51} & \multicolumn{1}{r}{53} \\
+\multicolumn{2}{c}{\texttt{1011000}} & \multicolumn{2}{|c}{rA} & \multicolumn{2}{|c}{rB} & \multicolumn{2}{|c}{Register Count} & \multicolumn{2}{|c}{Adjust rB} & \multicolumn{2}{|c}{Memory Offset} & \multicolumn{2}{|c}{\texttt{000}}
+\end{tabu}
+}
+\nopagebreak
+\begin{description}
+\item [Format:] \texttt{STSm rA, [rB + Offset, RegCount]}
+\item [Purpose:] Store a single byte into memory
+\item [Description:] The value in rB is added to Offset and a single byte per register is stored from the low 9 bits of each register from rA to rA+RegCount. m refers to the Adjust RB value which can have the following designations to indicate the mode:
+
+\nopagebreak[4]
+\input{./tables/d811413f9c9948072ade6bcd5e1a98e61a55b42132aba6087c29323bdcdac9ad.tex}
+%% table row
+%% table row
+
+
+\item [Operation:] \begin{verbatim}
+
+StartReg = rA
+RegCount = RegCount + 1
+CurCount = RegCount
+Temp = rB
+if Mode is 2 then
+  Temp = Temp - CurCount
+MemLocation = (Temp + Offset)
+While CurCount is not 0
+  Memory[MemLocation] = Registers[StartReg] & 0x1ff
+  MemLocation += 1
+  StartReg = (StartReg + 1) % 32
+  CurCount = CurCount - 1
+if Mode is 1 then
+  rB = rB + RegCount
+if Mode is 2 then
+  rB = Temp\end{verbatim}
+\item [Flags affected:] \textit{None}
+\end{description}
+\vfill
+\pagebreak
+%% LONG ONE
+\pagebreak
+\section{STT: Store Tri}
+\index{STT}
+{
+\setlength{\tabcolsep}{3pt}
+\begin{tabu} spread \linewidth {l r l r l r l r l r l r l r}
+\multicolumn{1}{l}{0} & \multicolumn{1}{r}{6} & \multicolumn{1}{|l}{7} & \multicolumn{1}{r}{11} & \multicolumn{1}{|l}{12} & \multicolumn{1}{r}{16} & \multicolumn{1}{|l}{17} & \multicolumn{1}{r}{21} & \multicolumn{1}{|l}{22} & \multicolumn{1}{r}{23} & \multicolumn{1}{|l}{24} & \multicolumn{1}{r}{50} & \multicolumn{1}{|l}{51} & \multicolumn{1}{r}{53} \\
+\multicolumn{2}{c}{\texttt{1011010}} & \multicolumn{2}{|c}{rA} & \multicolumn{2}{|c}{rB} & \multicolumn{2}{|c}{Register Count} & \multicolumn{2}{|c}{Adjust rB} & \multicolumn{2}{|c}{Memory Offset} & \multicolumn{2}{|c}{\texttt{000}}
+\end{tabu}
+}
+\nopagebreak
+\begin{description}
+\item [Format:] \texttt{STTm rA, [rB + Offset, RegCount]}
+\item [Purpose:] Store three bytes into memory
+\item [Description:] The value in rB is added to Offset and a three bytes per register are stored for each register from rA to rA+RegCount. m refers to the Adjust RB value which can have the following designations to indicate the mode:
+
+\nopagebreak[4]
+\input{./tables/d811413f9c9948072ade6bcd5e1a98e61a55b42132aba6087c29323bdcdac9ad.tex}
+%% table row
+%% table row
+
+
+\item [Operation:] \begin{verbatim}
+
+StartReg = rA
+RegCount = RegCount + 1
+CurCount = RegCount
+Temp = rB
+if Mode is 2 then
+  Temp = Temp - (CurCount * 3)
+MemLocation = (Temp + Offset)
+While CurCount is not 0
+  Memory[MemLocation] =
+    (Registers[StartReg] >> 9) & 0x1ff
+  MemLocation += 1
+  Memory[MemLocation] =
+    (Registers[StartReg] >> 18) & 0x1ff
+  MemLocation += 1
+  Memory[MemLocation] =
+    Registers[StartReg] &  0x1ff
+  MemLocation += 1
+  StartReg = (StartReg + 1) % 32
+  CurCount = CurCount - 1
+if Mode is 1 then
+  rB = rB + (RegCount * 3)
+if Mode is 2 then
+  rB = Temp\end{verbatim}
+\item [Flags affected:] \textit{None}
+\end{description}
+\vfill
+\pagebreak
+%% LONG ONE
+\pagebreak
+\section{STW: Store Word}
+\index{STW}
+{
+\setlength{\tabcolsep}{3pt}
+\begin{tabu} spread \linewidth {l r l r l r l r l r l r l r}
+\multicolumn{1}{l}{0} & \multicolumn{1}{r}{6} & \multicolumn{1}{|l}{7} & \multicolumn{1}{r}{11} & \multicolumn{1}{|l}{12} & \multicolumn{1}{r}{16} & \multicolumn{1}{|l}{17} & \multicolumn{1}{r}{21} & \multicolumn{1}{|l}{22} & \multicolumn{1}{r}{23} & \multicolumn{1}{|l}{24} & \multicolumn{1}{r}{50} & \multicolumn{1}{|l}{51} & \multicolumn{1}{r}{53} \\
+\multicolumn{2}{c}{\texttt{1011001}} & \multicolumn{2}{|c}{rA} & \multicolumn{2}{|c}{rB} & \multicolumn{2}{|c}{Register Count} & \multicolumn{2}{|c}{Adjust rB} & \multicolumn{2}{|c}{Memory Offset} & \multicolumn{2}{|c}{\texttt{000}}
+\end{tabu}
+}
+\nopagebreak
+\begin{description}
+\item [Format:] \texttt{STWm rA, [rB + Offset, RegCount]}
+\item [Purpose:] Store two bytes into memory
+\item [Description:] The value in rB is added to Offset and a two bytes per register are stored from the low 18 bits of each register from rA to rA+RegCount. m refers to the Adjust RB value which can have the following designations to indicate the mode:
+
+\nopagebreak[4]
+\input{./tables/d811413f9c9948072ade6bcd5e1a98e61a55b42132aba6087c29323bdcdac9ad.tex}
+%% table row
+%% table row
+
+
+\item [Operation:] \begin{verbatim}
+
+StartReg = rA
+RegCount = RegCount + 1
+CurCount = RegCount
+Temp = rB
+if Mode is 2 then
+  Temp = Temp - (CurCount * 2)
+MemLocation = (Temp + Offset)
+While CurCount is not 0
+  Memory[MemLocation] = (Registers[StartReg] >> 9) & 0x1ff
+  MemLocation = (MemLocation + 1)
+  Memory[MemLocation] = Registers[StartReg] & 0x1ff
+  MemLocation = (MemLocation + 1)
+  StartReg = (StartReg + 1) % 32
+  CurCount = CurCount - 1
+if Mode is 1 then
+  rB = rB + (RegCount * 2)
+if Mode is 2 then
+  rB = Temp\end{verbatim}
+\item [Flags affected:] \textit{None}
+\end{description}
+\vfill
+\pagebreak
+\pagebreak[3]
+\section{WT: Wait}
+\index{WT}
+{
+\setlength{\tabcolsep}{3pt}
+\begin{tabu} spread \linewidth {l r}
+\multicolumn{1}{l}{0} & \multicolumn{1}{r}{17} \\
+\multicolumn{2}{c}{\texttt{101000000010000000}}
+\end{tabu}
+}
+\nopagebreak
+\begin{description}
+\item [Format:] \texttt{WT}
+\item [Purpose:] Wait for interrupt
+\item [Description:] Pauses the processor until an interrupt fires.
+
+\item [Operation:] \begin{verbatim}
+\end{verbatim}
+\item [Flags affected:] \textit{None}
+\end{description}
+\vfill
+\pagebreak[3]
+\section{XR: Xor}
+\index{XR}
+{
+\setlength{\tabcolsep}{3pt}
+\begin{tabu} spread \linewidth {l r l r l r l r l r c}
+\multicolumn{1}{l}{0} & \multicolumn{1}{r}{6} & \multicolumn{1}{|l}{7} & \multicolumn{1}{r}{11} & \multicolumn{1}{|l}{12} & \multicolumn{1}{r}{16} & \multicolumn{1}{|l}{17} & \multicolumn{1}{r}{21} & \multicolumn{1}{|l}{22} & \multicolumn{1}{r}{25} & \multicolumn{1}{|c}{26} \\
+\multicolumn{2}{c}{\texttt{0011100}} & \multicolumn{2}{|c}{rA} & \multicolumn{2}{|c}{rB} & \multicolumn{2}{|c}{rC} & \multicolumn{2}{|c}{\texttt{0000}} & \multicolumn{1}{|c}{UF}
+\end{tabu}
+}
+\nopagebreak
+\begin{description}
+\item [Format:] \texttt{XR rA, rB, rC}
+\item [Purpose:] Bit-wise eXclusive OR two 27-bit integer registers together
+\item [Description:] The 27-bit value in rC is bit-wise eXclusive OR to the 27-bit value in rB, the result is placed in rA.
+
+\item [Operation:] \begin{verbatim}
+rA ← rB ^ rC\end{verbatim}
+\item [Flags affected:] \texttt{Z C O S}
+\end{description}
+\vfill
+\pagebreak[3]
+\section{XRI: Xor Immediate}
+\index{XRI}
+{
+\setlength{\tabcolsep}{3pt}
+\begin{tabu} spread \linewidth {l r l r l r l r l r c}
+\multicolumn{1}{l}{0} & \multicolumn{1}{r}{6} & \multicolumn{1}{|l}{7} & \multicolumn{1}{r}{11} & \multicolumn{1}{|l}{12} & \multicolumn{1}{r}{16} & \multicolumn{1}{|l}{17} & \multicolumn{1}{r}{23} & \multicolumn{1}{|l}{24} & \multicolumn{1}{r}{25} & \multicolumn{1}{|c}{26} \\
+\multicolumn{2}{c}{\texttt{0011100}} & \multicolumn{2}{|c}{rA} & \multicolumn{2}{|c}{rB} & \multicolumn{2}{|c}{Immediate} & \multicolumn{2}{|c}{\texttt{01}} & \multicolumn{1}{|c}{UF}
+\end{tabu}
+}
+\nopagebreak
+\begin{description}
+\item [Format:] \texttt{XRI rA, rB, IMM}
+\item [Purpose:] Bit-wise Exclusive OR a 27-bit integer register and 7-bit immediate together
+\item [Description:] The 7-bit immediate value is bit-wise Exclusive OR to the 27-bit value in rB, the result is placed in rA.
+
+\item [Operation:] \begin{verbatim}
+rA ← rB ^ IMM\end{verbatim}
+\item [Flags affected:] \texttt{Z C O S}
+\end{description}
+\vfill
+\pagebreak[3]
+\section{XRM: Xor Multi Reg}
+\index{XRM}
+{
+\setlength{\tabcolsep}{3pt}
+\begin{tabu} spread \linewidth {l r l r l r l r l r c}
+\multicolumn{1}{l}{0} & \multicolumn{1}{r}{6} & \multicolumn{1}{|l}{7} & \multicolumn{1}{r}{11} & \multicolumn{1}{|l}{12} & \multicolumn{1}{r}{16} & \multicolumn{1}{|l}{17} & \multicolumn{1}{r}{21} & \multicolumn{1}{|l}{22} & \multicolumn{1}{r}{25} & \multicolumn{1}{|c}{26} \\
+\multicolumn{2}{c}{\texttt{0011110}} & \multicolumn{2}{|c}{rA} & \multicolumn{2}{|c}{rB} & \multicolumn{2}{|c}{rC} & \multicolumn{2}{|c}{\texttt{0000}} & \multicolumn{1}{|c}{UF}
+\end{tabu}
+}
+\nopagebreak
+\begin{description}
+\item [Format:] \texttt{XRM rA, rB, rC}
+\item [Purpose:] Bit-wise eXclusive OR two 54-bit integer registers together
+\item [Description:] The 54-bit value in rC:rC+1 is bit-wise eXclusive OR to the 54-bit value in rB:rB+1, the result is placed in rA:rA+1.
+
+\item [Operation:] \begin{verbatim}
+rA:rA+1 ← rB:rB+1 ^ rC:rC+1\end{verbatim}
+\item [Flags affected:] \texttt{Z C O S}
+\end{description}
+\vfill
+\pagebreak[3]
+\section{ZES: Zero Extend Single}
+\index{ZES}
+{
+\setlength{\tabcolsep}{3pt}
+\begin{tabu} spread \linewidth {l r l r l r l r}
+\multicolumn{1}{l}{0} & \multicolumn{1}{r}{11} & \multicolumn{1}{|l}{12} & \multicolumn{1}{r}{16} & \multicolumn{1}{|l}{17} & \multicolumn{1}{r}{21} & \multicolumn{1}{|l}{22} & \multicolumn{1}{r}{26} \\
+\multicolumn{2}{c}{\texttt{101000001001}} & \multicolumn{2}{|c}{rA} & \multicolumn{2}{|c}{rB} & \multicolumn{2}{|c}{\texttt{00000}}
+\end{tabu}
+}
+\nopagebreak
+\begin{description}
+\item [Format:] \texttt{ZES rA, rB}
+\item [Purpose:] Zero extend from a byte
+\item [Description:] Zero extend a single byte from register rB into the 27-bit rA.
+
+\item [Operation:] \begin{verbatim}
+rA ← rB & 0x00001FF\end{verbatim}
+\item [Flags affected:] \texttt{Z C O S}
+\end{description}
+\vfill
+\pagebreak[3]
+\section{ZEW: Zero Extend Word}
+\index{ZEW}
+{
+\setlength{\tabcolsep}{3pt}
+\begin{tabu} spread \linewidth {l r l r l r l r}
+\multicolumn{1}{l}{0} & \multicolumn{1}{r}{11} & \multicolumn{1}{|l}{12} & \multicolumn{1}{r}{16} & \multicolumn{1}{|l}{17} & \multicolumn{1}{r}{21} & \multicolumn{1}{|l}{22} & \multicolumn{1}{r}{26} \\
+\multicolumn{2}{c}{\texttt{101000001010}} & \multicolumn{2}{|c}{rA} & \multicolumn{2}{|c}{rB} & \multicolumn{2}{|c}{\texttt{00000}}
+\end{tabu}
+}
+\nopagebreak
+\begin{description}
+\item [Format:] \texttt{ZEW rA, rB}
+\item [Purpose:] Zero extend from two bytes
+\item [Description:] Zero extend a 18-bit value from register rB into the 27-bit rA.
+
+\item [Operation:] \begin{verbatim}
+rA ← rB & 0x003FFFF\end{verbatim}
+\item [Flags affected:] \texttt{Z C O S}
+\end{description}
+\vfill

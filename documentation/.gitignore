@@ -1,0 +1,12 @@
+*.aux
+*.log
+*.pdf
+*.toc
+*.out
+*.html5
+*.idx
+*.ilg
+*.ind
+rev.tex
+*.lot
+date.tex

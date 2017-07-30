@@ -1,0 +1,38 @@
+
+
+            --=--=--=--=--=--Release Notes--=--=--=--=--=--
+
+Name: cLEMENCy Emulator
+Release date: 2017-07-27
+
+---Notes---
+Emulator for DEF CON CTF 2017, lifted from Lightning's laptop and patched to include
+this NFO at 0x5100000, don't worry, we hijacked the game one too. Has a built in
+debugger and disassembler. Debugger appears to accept basic math operations and
+function name usage if no spaces are included, [] for dereferences.
+
+Supports custom map files, not documented but lines look like below
+1: _start @ 0000000 0
+2: main @ 001a408 2592
+
+            --=--=-Legitimate Business Syndicate Crew-=--=--
+
+Deadwood    Fuzyll      Gynophage    HJ
+Hoju        Jymbolia    Lightning    Selir
+Sirgoon     Thing2      Vito
+
+            --=--=--=--=--=--=--Contact--=--=--=--=--=--=--
+
+Via Email:   ...@legitbs.net
+Via Web:     www.legitbs.net
+Via Twitter: #legitbs_ctf
+
+            --=--=--=--=--=--=--=Greetz=--=--=--=--=--=--=--
+
+Dark Tangent    Grifter    Stryde    Hax
+Soen            Aask       Phoenix Kiana
+Neil            Nikita     Pyr0
+Cseagle and the rest of the ddtek crew
+Visi and the kenshoto group
+
+            --=--=--=--=--=--=--=--=--=--=--=--=--=--=--=--

@@ -1,0 +1,720 @@
+Only in ld: bytes_8_to_9.c
+Only in ld: bytes_8_to_9.h
+Only in ld: bytes_8_to_9.o
+Only in ld.orig: .git
+diff -u ld.orig/Makefile ld/Makefile
+--- ld.orig/Makefile	2017-07-30 11:16:08.661493683 -0400
++++ ld/Makefile	2017-01-20 19:29:23.528444996 -0500
+@@ -1,11 +1,11 @@
+ CC = cc
+-CFLAGS = -Wall -O2
+-LDFLAGS =
++CFLAGS = -g -Wall -O2 -m32 -Wno-unused-result
++LDFLAGS = -m32
+ 
+ all: nld
+ .c.o:
+ 	$(CC) -c $(CFLAGS) $<
+-nld: nld.o
++nld: nld.o bytes_8_to_9.o
+ 	$(CC) $(LDFLAGS) -o $@ $^
+ clean:
+ 	rm -f nld *.o
+Only in ld: nld
+diff -u ld.orig/nld.c ld/nld.c
+--- ld.orig/nld.c	2017-07-30 11:17:35.235439776 -0400
++++ ld/nld.c	2017-06-13 23:02:24.039886450 -0400
+@@ -13,11 +13,15 @@
+ #include <sys/stat.h>
+ #include <string.h>
+ #include <unistd.h>
++#include <mcheck.h>
++#include "bytes_8_to_9.h"
+ 
+ #define I_CS		0
+ #define I_DS		1
+ #define I_BSS		2
+ 
++#define CLEM_ID		0x4c43
++
+ static unsigned long sec_vaddr[3] = {0x800000};	/* virtual address of sections */
+ static unsigned long sec_laddr[3] = {0x800000};	/* load address of sections */
+ static int sec_set[3] = {1};			/* set address for section */
+@@ -25,9 +29,11 @@
+ static char *entry = "_start";			/* entry symbol */
+ static int e_machine;				/* target machine */
+ static int e_flags;				/* elf ehdr flags */
++static int _StartSize;
+ 
+ #define MAXSECS		(1 << 10)
+-#define MAXOBJS		(1 << 7)
++//#define MAXOBJS		(1 << 7)
++int MAXOBJS;
+ #define MAXSYMS		(1 << 12)
+ #define PAGE_SIZE	(1 << 12)
+ #define PAGE_MASK	(PAGE_SIZE - 1)
+@@ -66,6 +72,9 @@
+ #  define ELF_ST_TYPE	ELF32_ST_TYPE
+ #endif
+ 
++#define LIBDIRS		(1 << 5)
++#define PATHLEN		(1 << 8)
++
+ struct obj {
+ 	char *mem;
+ 	Elf_Ehdr *ehdr;
+@@ -94,7 +103,7 @@
+ 	int nph;
+ 	struct secmap secs[MAXSECS];
+ 	int nsecs;
+-	struct obj objs[MAXOBJS];
++	struct obj *objs;	//[MAXOBJS];
+ 	int nobjs;
+ 
+ 	/* code section */
+@@ -119,6 +128,8 @@
+ };
+ 
+ static int nosyms = 0;
++static int rawbin = 0;
++static int buildmap = 0;
+ 
+ static Elf_Sym *obj_find(struct obj *obj, char *name)
+ {
+@@ -166,6 +177,8 @@
+ 	oe->ehdr.e_ehsize = sizeof(oe->ehdr);
+ 	oe->ehdr.e_phentsize = sizeof(oe->phdr[0]);
+ 	oe->ehdr.e_shentsize = sizeof(Elf_Shdr);
++	MAXOBJS = (1<< 7);
++	oe->objs = malloc(MAXOBJS * sizeof(struct obj));
+ }
+ 
+ static struct secmap *outelf_mapping(struct outelf *oe, Elf_Shdr *shdr)
+@@ -230,7 +243,7 @@
+ 		if (name && *name && sym->st_shndx == SHN_UNDEF)
+ 			if (outelf_find(oe, name, &obj, &sym))
+ 				die_undef(name);
+-		if (sym->st_shndx == SHN_COMMON)
++		if (sym->st_shndx == 7)
+ 			return bss_addr(oe, sym);
+ 		s_idx = sym->st_shndx;
+ 		s_off = sym->st_value;
+@@ -238,6 +251,7 @@
+ 		if ((sec = outelf_mapping(oe, &obj->shdr[s_idx])))
+ 			return sec->vaddr + s_off;
+ 	}
++
+ 	return 0;
+ }
+ 
+@@ -253,6 +267,7 @@
+ #define REL_ARM		0x10000
+ #define REL_X64		0x20000
+ #define REL_X86		0x40000
++#define REL_CLEM	0x80000
+ 
+ static int arch_rel(int r)
+ {
+@@ -262,9 +277,84 @@
+ 		return REL_X64 | r;
+ 	if (e_machine == EM_386)
+ 		return REL_X86 | r;
++
++	if (e_machine == CLEM_ID)	//CL(em)
++		return REL_CLEM | r;
+ 	return 0;
+ }
+ 
++static void clem_rewrite_2_bytes(short *dst, unsigned int ORVal)
++{
++	//get the 3 values in
++	unsigned int CurVal;
++	CurVal = ((unsigned int)*(dst) << 9) | ((unsigned int)*(dst + 1) << 0);
++
++	CurVal |= ORVal;
++
++	//write it back out
++	*dst = (CurVal >> 9) & 0x1ff;
++	*(dst + 1) = (CurVal >> 0) & 0x1ff;
++}
++
++static void clem_rewrite_3_bytes(short *dst, unsigned int ORVal)
++{
++	//get the 3 values in
++	unsigned int CurVal;
++	CurVal = ((unsigned int)*(dst) << 9) | ((unsigned int)*(dst + 1) << 18) | ((unsigned int)*(dst + 2));
++	CurVal |= ORVal;
++
++	//write it back out
++	*dst = (CurVal >> 9) & 0x1ff;
++	*(dst + 1) = (CurVal >> 18) & 0x1ff;
++	*(dst + 2) = CurVal & 0x1ff;
++}
++
++static void clem_rewrite_3_bytes_mov(short *dst, unsigned int ORVal)
++{
++	//get the 3 values in
++	unsigned int CurVal;
++	CurVal = ((unsigned int)*(dst) << 9) | ((unsigned int)*(dst + 1) << 18) | ((unsigned int)*(dst + 2));
++	ORVal += (CurVal & 0x1ffff);
++	CurVal &= 0x7fe0000;
++	CurVal |= ORVal;
++
++	//write it back out
++	*dst = (CurVal >> 9) & 0x1ff;
++	*(dst + 1) = (CurVal >> 18) & 0x1ff;
++	*(dst + 2) = CurVal & 0x1ff;
++}
++
++static void clem_rewrite_4_bytes(short *dst, unsigned long long FinalVal)
++{
++	//rewrite the first 3 bytes
++	clem_rewrite_3_bytes(dst, (FinalVal >> 9) & 0x7ffffff);
++
++	//now write out the last byte
++	*(dst + 3) = FinalVal & 0x1ff;
++}
++
++static void clem_rewrite_6_bytes(short *dst, unsigned long long ORVal)
++{
++	//get the 3 values in
++	unsigned int CurVal;
++	CurVal = ((unsigned int)*(dst) << 9) | ((unsigned int)*(dst + 1) << 18) | ((unsigned int)*(dst + 2));
++	CurVal |= (ORVal >> 27);
++
++	//write it back out
++	*dst = (CurVal >> 9) & 0x1ff;
++	*(dst + 1) = (CurVal >> 18) & 0x1ff;
++	*(dst + 2) = CurVal & 0x1ff;
++
++	//2nd block of 3
++	CurVal = ((unsigned int)*(dst + 3) << 9) | ((unsigned int)*(dst + 4) << 18) | ((unsigned int)*(dst + 5));
++	CurVal |= (ORVal & 0x7ffffff);
++
++	//write it back out
++	*(dst + 3) = (CurVal >> 9) & 0x1ff;
++	*(dst + 4) = (CurVal >> 18) & 0x1ff;
++	*(dst + 5) = CurVal & 0x1ff;
++}
++
+ static void outelf_reloc_sec(struct outelf *oe, int o_idx, int s_idx)
+ {
+ 	struct obj *obj = &oe->objs[o_idx];
+@@ -280,7 +370,7 @@
+ 		int sym_idx = ELF_R_SYM(rel->r_info);
+ 		Elf_Sym *sym = &obj->syms[sym_idx];
+ 		unsigned long val = symval(oe, obj, sym) + REL_ADDEND(rel);
+-		unsigned long *dst = other + rel->r_offset;
++		unsigned long *dst = other + (rel->r_offset * sizeof(short));
+ 		switch (arch_rel(ELF_R_TYPE(rel->r_info))) {
+ 		case REL_ARM | R_ARM_NONE:
+ 		case REL_X86 | R_386_NONE:
+@@ -314,6 +404,64 @@
+ 			*dst = (*dst & 0xff000000) |
+ 					((*dst + ((val - addr) >> 2)) & 0x00ffffff);
+ 			break;
++
++		case REL_CLEM | 3:
++			//4 byte relative call or branch
++			addr = outelf_mapping(oe, other_shdr)->vaddr +
++				rel->r_offset;
++			clem_rewrite_4_bytes((short *)dst, (val - addr) & 0x7ffffff);
++			break;
++
++		case REL_CLEM | 2:
++			//27bit absolute value for a data area
++			clem_rewrite_3_bytes((short *)dst, val & 0x7ffffff);
++			break;
++
++		case REL_CLEM | 20:
++			//27bit relative value for a data area
++			addr = outelf_mapping(oe, other_shdr)->vaddr +
++				rel->r_offset;
++			clem_rewrite_3_bytes((short *)dst, (val - addr) & 0x7ffffff);
++			break;
++
++		case REL_CLEM | 4:
++			//17bit value for move low
++			if(val & 0xfffe0000)
++				die("Relative offset larger than 17bit");
++			clem_rewrite_3_bytes_mov((short *)dst, val);
++			break;
++
++		case REL_CLEM | 1:
++			//27bit value for move
++			clem_rewrite_3_bytes_mov((short *)dst, val & 0x0003ff);
++			clem_rewrite_3_bytes_mov(((short *)dst) + 3, (val & 0x7fffc00) >> 10);
++			break;
++
++		case REL_CLEM | 7:
++			//4 byte absolute call or branch
++			clem_rewrite_4_bytes((short *)dst, val & 0x7ffffff);
++			break;
++
++
++		case REL_CLEM | 26:
++			//3 byte relative branch
++			addr = outelf_mapping(oe, other_shdr)->vaddr +
++				rel->r_offset;
++			clem_rewrite_3_bytes((short *)dst, (val - addr) & 0x1ffff);
++			break;
++
++		case REL_CLEM | 5:
++			//6 byte load/store, just update the 6 bytes with the absolute address
++			clem_rewrite_6_bytes((short *)dst, ((unsigned long long)val & 0x7ffffff) << 3);
++			break;
++
++		case REL_CLEM | 6:
++			//6 byte load/store, just update the 6 bytes with the relative address
++			addr = outelf_mapping(oe, other_shdr)->vaddr +
++				rel->r_offset;
++			clem_rewrite_6_bytes((short *)dst, ((unsigned long long)addr & 0x7ffffff) << 3);
++			break;
++
+ 		default:
+ 			die("unknown relocation type");
+ 		}
+@@ -346,7 +494,7 @@
+ 	for (i = 0; i < oe->nobjs; i++) {
+ 		struct obj *obj = &oe->objs[i];
+ 		for (j = 0; j < obj->nsyms; j++)
+-			if (obj->syms[j].st_shndx == SHN_COMMON)
++			if (obj->syms[j].st_shndx == 7)
+ 				alloc_bss(oe, &obj->syms[j]);
+ 	}
+ }
+@@ -421,13 +569,133 @@
+ 	sym_shdr->sh_info = 0;
+ }
+ 
+-static void outelf_write(struct outelf *oe, int fd)
++static void build_map(struct outelf *oe, char *outfile)
++{
++	char mapfile[PATHLEN];
++	char *finddot, *lastdot;
++	FILE *fd;
++	int i, j;
++	int n = 1;
++	oe->nsh = 3;
++
++	memcpy(mapfile, outfile, sizeof(mapfile));
++	mapfile[sizeof(mapfile) - 1] = 0;
++
++	//append .map to the end of the filename
++	i = strlen(mapfile);
++	memcpy(&mapfile[i], ".map\0", 5);
++
++	fd = fopen(mapfile, "w");
++	if(fd < 0)
++		die("Failed to create map file");
++
++	for (i = 0; i < oe->nobjs; i++) {
++		struct obj *obj = &oe->objs[i];
++		for (j = 0; j < obj->nsyms; j++) {
++			Elf_Sym *sym = &obj->syms[j];
++			char *name = obj->symstr + sym->st_name;
++			if (!*name || sym->st_shndx == SHN_UNDEF)
++				continue;
++			fprintf(fd, "%d: %s @ %07x %d\n", n, name, symval(oe, obj,sym), sym->st_size);
++			n++;
++		}
++	}
++	fclose(fd);
++}
++
++static void write_3_9_bytes(unsigned int val)
++{
++	short CurVal;
++
++	CurVal = (val >> 9) & 0x1ff;
++	write9bytes(&CurVal, 1);
++	CurVal = (val >> 18) & 0x1ff;
++	write9bytes(&CurVal, 1);
++	CurVal = (val >> 0) & 0x1ff;
++	write9bytes(&CurVal, 1);
++}
++
++static void outbin_write(struct outelf *oe, int fd, char *outfile)
++{
++	int i;
++	int Pages[3] = {0, 0, 0};
++	int Sizes[3] = {0, 0, 0};
++
++	if(buildmap)
++		build_map(oe, outfile);
++
++	lseek(fd, 0, SEEK_SET);
++	Sizes[2] = oe->bss_len;
++	for (i = 0; i < oe->nsecs; i++) {
++		struct secmap *sec = &oe->secs[i];
++		unsigned int len = sec->o_shdr->sh_size / 2;
++		if(sec->o_shdr->sh_size & 1)
++			len++;
++
++		if(SEC_CODE(sec->o_shdr))
++			Sizes[0] += len;
++		else if(SEC_DATA(sec->o_shdr))
++			Sizes[1] += len;
++		else if(SEC_BSS(sec->o_shdr))
++			Sizes[2] += len;
++	}
++
++	//calculate page count per area
++	for(i = 0; i < 3; i++)
++	{
++		Pages[i] = (Sizes[i] >> 10);
++		if(Sizes[i] & 0x3ff)
++			Pages[i]++;
++	}
++
++	//write everything out
++	for (i = 0; i < oe->nsecs; i++) {
++		struct secmap *sec = &oe->secs[i];
++		char *buf = sec->obj->mem + sec->o_shdr->sh_offset;
++		int len = sec->o_shdr->sh_size / 2;
++		if (SEC_BSS(sec->o_shdr))
++			continue;
++		lseek9bytes(sec->vaddr, SEEK_SET);
++
++		//if the first entry and code and we have a non-default vaddr for code
++		//then write differently
++		if(sec_vaddr[0] && (i == 0) && SEC_CODE(sec->o_shdr))
++			write9bytes(buf, _StartSize);
++		else
++			write9bytes(buf, len);
++	}
++
++	//if we have the page symbols then update them in the file directly
++	struct obj *obj;
++	Elf_Sym *sym;
++	char **SymbolStrs[3] = {"PAGE_COUNT_CODE", "PAGE_COUNT_DATA", "PAGE_COUNT_BSS"};
++	for(i = 0; i < 3; i++)
++	{
++		if (!outelf_find(oe, SymbolStrs[i], &obj, &sym))
++		{
++			Sizes[i] = symval(oe, obj, sym);
++			lseek9bytes(Sizes[i], SEEK_SET);
++			write_3_9_bytes(Pages[i]);
++		}
++		else
++			printf("Unable to locate %s\n", SymbolStrs[i]);
++	}
++
++	write9buffer(fd);
++}
++
++static void outelf_write(struct outelf *oe, int fd, char *outfile)
+ {
+ 	int i;
+ 	oe->ehdr.e_entry = outelf_addr(oe, entry) -
+ 				sec_vaddr[I_CS] + sec_laddr[I_CS];
++
+ 	if (!nosyms)
+ 		build_symtab(oe);
++
++	if(buildmap)
++		build_map(oe, outfile);
++
+ 	oe->ehdr.e_phnum = oe->nph;
+ 	oe->ehdr.e_phoff = sizeof(oe->ehdr);
+ 	oe->ehdr.e_machine = e_machine;
+@@ -465,7 +733,11 @@
+ 	e_machine = ehdr->e_machine;
+ 	e_flags = ehdr->e_flags;
+ 	if (oe->nobjs >= MAXOBJS)
+-		die("ld: MAXOBJS reached!");
++	{
++		MAXOBJS = MAXOBJS * 2;
++		oe->objs = realloc(oe->objs, MAXOBJS*sizeof(struct obj));
++	}
++		//die("ld: MAXOBJS reached!");
+ 	obj = &oe->objs[oe->nobjs++];
+ 	obj_init(obj, mem);
+ 	for (i = 0; i < ehdr->e_shnum; i++) {
+@@ -489,10 +761,10 @@
+ 		int alignment = MAX(sec->o_shdr->sh_addralign, 4);
+ 		if (!SEC_CODE(sec->o_shdr))
+ 			continue;
+-		len = ALIGN(vaddr + len, alignment) - vaddr;
++		//len = ALIGN(vaddr + len, alignment) - vaddr;
+ 		sec->vaddr = vaddr + len;
+ 		sec->faddr = faddr + len;
+-		len += sec->o_shdr->sh_size;
++		len += sec->o_shdr->sh_size / 2;
+ 	}
+ 	phdr->p_type = PT_LOAD;
+ 	phdr->p_flags = PF_R | PF_W | PF_X;
+@@ -516,7 +788,7 @@
+ 			continue;
+ 		sec->vaddr = vaddr + len;
+ 		sec->faddr = faddr + len;
+-		len += sec->o_shdr->sh_size;
++		len += sec->o_shdr->sh_size / 2;
+ 	}
+ 	len = ALIGN(len, 4);
+ 	phdr->p_type = PT_LOAD;
+@@ -539,10 +811,10 @@
+ 		int alignment = MAX(sec->o_shdr->sh_addralign, 4);
+ 		if (!SEC_BSS(sec->o_shdr))
+ 			continue;
+-		len = ALIGN(vaddr + len, alignment) - vaddr;
++		//len = ALIGN(vaddr + len, alignment) - vaddr;
+ 		sec->vaddr = vaddr + len;
+ 		sec->faddr = faddr;
+-		len += sec->o_shdr->sh_size;
++		len += sec->o_shdr->sh_size / 2;
+ 	}
+ 	phdr->p_type = PT_LOAD;
+ 	phdr->p_flags = PF_R | PF_W;
+@@ -559,25 +831,63 @@
+ {
+ 	unsigned long faddr, vaddr, laddr;
+ 	int len;
+-	len = ALIGN(sizeof(oe->ehdr) + MAXPHDRS * sizeof(oe->phdr[0]), secalign);
+-	faddr = len & ~PAGE_MASK;
+-	vaddr = sec_vaddr[I_CS];
+-	laddr = sec_laddr[I_CS];
++	if((e_machine == CLEM_ID) && rawbin)
++	{
++		len = 0;
++		faddr = len & ~PAGE_MASK;
++		vaddr = 0;
++		laddr = 0;
++	}
++	else
++	{
++		len = ALIGN(sizeof(oe->ehdr) + MAXPHDRS * sizeof(oe->phdr[0]), secalign);
++		faddr = len & ~PAGE_MASK;
++		vaddr = sec_vaddr[I_CS];
++		laddr = sec_laddr[I_CS];
++	}
+ 	len = link_cs(oe, &oe->phdr[0], faddr, vaddr, laddr, len & PAGE_MASK);
+ 
+-	len = ALIGN(faddr + len, secalign) - faddr;
+-	faddr += len;
+-	vaddr = sec_set[I_DS] ? sec_vaddr[I_DS] | (faddr & PAGE_MASK) : vaddr + len;
+-	laddr = sec_set[I_DS] ? sec_laddr[I_DS] | (faddr & PAGE_MASK) : laddr + len;
++	//if CLemency and raw then change the alignment options
++	if((e_machine == CLEM_ID) && rawbin)
++	{
++		//page align to 1k
++		if(len & 0x3ff)
++			len = ((len >> 10) + 1) << 10;
++		faddr = len;
++		vaddr = len;
++		laddr = len;
++		len = 0;
++	}
++	else
++	{
++		len = ALIGN(faddr + len, secalign) - faddr;
++		faddr += len;
++		vaddr = sec_set[I_DS] ? sec_vaddr[I_DS] | (faddr & PAGE_MASK) : vaddr + len;
++		laddr = sec_set[I_DS] ? sec_laddr[I_DS] | (faddr & PAGE_MASK) : laddr + len;
++	}
+ 	len = link_ds(oe, &oe->phdr[1], faddr, vaddr, laddr);
+ 
+-	len = ALIGN(faddr + len, secalign) - faddr;
+-	faddr += len;
+-	vaddr = sec_set[I_BSS] ? sec_vaddr[I_BSS] | (faddr & PAGE_MASK) : vaddr + len;
++	//bss is purely a data holding area, we will just provide an updated symbol for it's info
++	if((e_machine == CLEM_ID) && rawbin)
++	{
++		//page align to 1k
++		if(len & 0x3ff)
++			len = ((len >> 10) + 1) << 10;
++		faddr += len;
++		vaddr += len;
++		len = 0;
++	}
++	else
++	{
++		len = ALIGN(faddr + len, secalign) - faddr;
++		faddr += len;
++		vaddr = sec_set[I_BSS] ? sec_vaddr[I_BSS] | (faddr & PAGE_MASK) : vaddr + len;
++	}
++
+ 	outelf_bss(oe);
+ 	oe->bss_vaddr = vaddr;
+-	len = link_bss(oe, &oe->phdr[2], faddr, vaddr, oe->bss_len);
+ 
++	len = link_bss(oe, &oe->phdr[2], faddr, vaddr, oe->bss_len);
+ 	oe->nph = 3;
+ 	outelf_reloc(oe);
+ 	oe->shdr_faddr = faddr;
+@@ -601,7 +911,7 @@
+ static int sym_undef(struct outelf *oe, char *name)
+ {
+ 	int i, j;
+-	int undef = 0;
++	int undef = 1;
+ 	for (i = 0; i < oe->nobjs; i++) {
+ 		struct obj *obj = &oe->objs[i];
+ 		for (j = 0; j < obj->nsyms; j++) {
+@@ -625,11 +935,47 @@
+ 	int nsyms = get_be32((void *) ar);
+ 	int added = 0;
+ 	int i;
++	unsigned char *NewStartBuf;
++
++	//we need to make sure _start is first if we are doing a raw binary
++	if(rawbin)
++	{
++		ar_index = ar + 4;
++		ar_name = ar_index + nsyms * 4;
++
++		for (i = 0; i < nsyms; i++) {
++			int off = get_be32((void *) ar_index + i * 4) +
++					sizeof(struct arhdr);
++			if(strcmp(ar_name, "_start") == 0)
++			{
++				if (sym_undef(oe, ar_name)) {
++					outelf_add(oe, ar - base + off);
++					//if someone set a non 0 alignment size, adjust _start's size so it starts at 0
++					_StartSize = oe->secs[0].o_shdr->sh_size;
++					if(sec_vaddr[0])
++						oe->secs[0].o_shdr->sh_size = (sec_vaddr[0] * 2);
++					added++;
++				}
++				break;
++			}
++			ar_name = strchr(ar_name, '\0') + 1;
++		}
++	}
++
++	//reset, try again for all of it
+ 	ar_index = ar + 4;
+ 	ar_name = ar_index + nsyms * 4;
++
+ 	for (i = 0; i < nsyms; i++) {
+ 		int off = get_be32((void *) ar_index + i * 4) +
+ 				sizeof(struct arhdr);
++		//if doing a raw binary then ignore _start
++		if(rawbin && (strcmp(ar_name, "_start") == 0))
++		{
++			ar_name = strchr(ar_name, '\0') + 1;
++			continue;
++		}
++
+ 		if (sym_undef(oe, ar_name)) {
+ 			outelf_add(oe, ar - base + off);
+ 			added++;
+@@ -645,6 +991,7 @@
+ 
+ 	/* skip magic */
+ 	ar += 8;
++
+ 	for(;;) {
+ 		struct arhdr *hdr = (void *) ar;
+ 		char *name = hdr->ar_name;
+@@ -687,9 +1034,6 @@
+ 	return len > 2 && path[len - 2] == '.' && path[len - 1] == 'a';
+ }
+ 
+-#define LIBDIRS		(1 << 5)
+-#define PATHLEN		(1 << 8)
+-
+ static char *libdirs[LIBDIRS] = {"/lib"};
+ static int nlibdirs = 1;
+ 
+@@ -739,9 +1083,28 @@
+ 		outelf_archive(oe, buf);
+ 	else
+ 		outelf_add(oe, buf);
++
+ 	return buf;
+ }
+ 
++int print_help(char  *AppName)
++{
++	printf("Usage: %s [options] Input.o Input2.o ...\n", AppName);
++	printf("\t-l lib\t\tLibrary to link in\n");
++	printf("\t-L libpath\tLibrary search path to add\n");
++	printf("\t-o output\tFile to write output to\n");
++	printf("\t-s\t\tNo symbols added to binary\n");
++	printf("\t-M\t\tCreate a map file\n");
++	printf("\t-mc Y\t\tSet beginning address of code section to Y\n");
++	printf("\t-md Y\t\tSet beginning address of data section to Y\n");
++	printf("\t-mb Y\t\tSet beginning address of BSS section to Y\n");
++	printf("\tp\t\tSet section alignment in binary to 0x%x instead of 0x%x\n", PAGE_SIZE, secalign);
++	printf("\te xxxx\t\tSet entry of binary to xxxx instead of _start\n");
++	printf("\tb\t\tOutput binary format instead of ELF\n");
++	printf("\tf\t\tCreate cLEMENCy firmware\n");
++	return 0;
++}
++
+ int main(int argc, char **argv)
+ {
+ 	char out[PATHLEN] = "a.out";
+@@ -750,8 +1113,13 @@
+ 	int nmem = 0;
+ 	int fd;
+ 	int i = 0;
++
+ 	if (argc < 2)
+-		die("no object given");
++	{
++		//die("no object given");
++		print_help(argv[0]);
++		return 0;
++	}
+ 	outelf_init(&oe);
+ 
+ 	while (++i < argc) {
+@@ -759,6 +1127,10 @@
+ 			mem[nmem++] = obj_add(&oe, argv[i]);
+ 			continue;
+ 		}
++		if (argv[i][1] == 'h') {
++			print_help(argv[0]);
++			return 0;
++		}
+ 		if (argv[i][1] == 'l') {
+ 			char path[PATHLEN];
+ 			if (lib_find(path, argv[i] + 2))
+@@ -778,6 +1150,10 @@
+ 			nosyms = 1;
+ 			continue;
+ 		}
++		if (argv[i][1] == 'M') {
++			buildmap = 1;
++			continue;
++		}
+ 		if (argv[i][1] == 'g')
+ 			continue;
+ 		if (argv[i][1] == 'm') {
+@@ -794,12 +1170,32 @@
+ 			entry = argv[i][2] ? argv[i] + 2 : argv[++i];
+ 			continue;
+ 		}
++		if (argv[i][1] == 'b') {
++			rawbin = 1;
++			continue;
++		}
++		if (argv[i][1] == 'f') {
++			rawbin = 1;
++			set_addr('c', "0");
++			nosyms = 1;
++			buildmap = 1;
++			continue;
++		}
+ 	}
++
+ 	outelf_link(&oe);
+ 	fd = open(out, O_WRONLY | O_TRUNC | O_CREAT, 0700);
+-	outelf_write(&oe, fd);
++
++	if(rawbin)
++		outbin_write(&oe, fd, out);
++	else
++		outelf_write(&oe, fd, out);
+ 	close(fd);
++
++	/*
+ 	for (i = 0; i < nmem; i++)
+ 		free(mem[i]);
++	*/
++
+ 	return 0;
+ }
+Only in ld: nld.o

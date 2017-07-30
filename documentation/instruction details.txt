@@ -1,0 +1,1269 @@
+##################
+# Each instruction has its own formatting block.
+# Each instruction starts with a !
+# Each sub area of an instruction starts with a -
+# Multiple lines go to the previous line that starts with a -
+# Any line starting with a # is a comment
+#
+# !INSTRUCTION
+# -Format for instruction
+# -Basic purpose of instruction
+# -Description of instruction
+# Another line for the description
+# -Human readable operation of the instruction
+# -Flags affected by the instruction, Z C O S or A for all, B for all affected with floating point
+##################
+
+# ADD
+!AD
+-AD rA, rB, rC
+-Add two 27-bit integer registers together
+-The 27-bit value in rC is added to the 27-bit value in rB, the result is placed in rA.
+-rA &#8592; rB + rC
+-A
+
+!ADF
+-ADF rA, rB, rC
+-Add two 27-bit floating point registers together
+-The 27-bit floating point value in rC is added to the 27-bit floating point value in rB, the result is placed in rA.
+-rA &#8592; rB + rC
+-A
+
+!ADM
+-ADM rA, rB, rC
+-Add two 54-bit integer registers together
+-The 54-bit value in rC:rC+1 is added to the 54-bit value in rB:rB+1, the result is placed in rA:rA+1.
+-rA:rA+1 &#8592; rB:rB+1 + rC:rC+1
+-A
+
+!ADFM
+-ADFM rA, rB, rC
+-Add two 54-bit floating point registers together
+-The 54-bit floating point value in rC:rC+1 is added to the 54-bit floating point value in rB:rB+1, the result is placed in rA:rA+1.
+-rA:rA+1 &#8592; rB:rB+1 + rC:rC+1
+-A
+
+# SUB
+!SB
+-SB rA, rB, rC
+-Subtract two 27-bit integer registers from each other
+-The 27-bit value in rC is subtracted from the 27-bit value in rB, the result is placed in rA.
+-rA &#8592; rB - rC
+-A
+
+!SBF
+-SBF rA, rB, rC
+-Subtract two 27-bit floating point registers from each other
+-The 27-bit floating point value in rC is subtracted from to the 27-bit floating point value in rB, the result is placed in rA.
+-rA &#8592; rB - rC
+-A
+
+!SBM
+-SBM rA, rB, rC
+-Subtracted two 54-bit integer registers from each other
+-The 54-bit value in rC:rC+1 is subtracted from the 54-bit value in rB:rB+1, the result is placed in rA:rA+1.
+-rA:rA+1 &#8592; rB:rB+1 - rC:rC+1
+-A
+
+!SBFM
+-SBFM rA, rB, rC
+-Subtract two 54-bit floating point registers from each other
+-The 54-bit floating point value in rC:rC+1 is subtracted from the 54-bit floating point value in rB:rB+1, the result is placed in rA:rA+1.
+-rA:rA+1 &#8592; rB:rB+1 - rC:rC+1
+-A
+
+# Multiply
+!MU
+-MU rA, rB, rC
+-Multiply two 27-bit integer registers together
+-The 27-bit value in rC is multiplied with the 27-bit value in rB, the result is placed in rA.
+-rA &#8592; rB * rC
+-A
+
+!MUF
+-MUF rA, rB, rC
+-Multiply two 27-bit floating point registers together
+-The 27-bit floating point value in rC is multiplied with the 27-bit floating point value in rB, the result is placed in rA.
+-rA &#8592; rB * rC
+-A
+
+!MUM
+-MUM rA, rB, rC
+-Multiply two 54-bit integer registers together
+-The 54-bit value in rC:rC+1 is multiplied with the 54-bit value in rB:rB+1, the result is placed in rA:rA+1.
+-rA:rA+1 &#8592; rB:rB+1 * rC:rC+1
+-A
+
+!MUFM
+-MUFM rA, rB, rC
+-Multiply two 54-bit floating point registers together
+-The 54-bit floating point value in rC:rC+1 is multiplied with the 54-bit floating point value in rB:rB+1, the result is placed in rA:rA+1.
+-rA:rA+1 &#8592; rB:rB+1 * rC:rC+1
+-A
+
+# Divide
+!DV
+-DV rA, rB, rC
+-Divide two 27-bit integer registers
+-The 27-bit value in rB is divided with the 27-bit value in rC, the result is placed in rA.
+-rA &#8592; rB / rC
+-A
+
+!DVF
+-DVF rA, rB, rC
+-Divide two 27-bit floating point registers
+-The 27-bit floating point value in rB is divided with the 27-bit floating point value in rC, the result is placed in rA.
+-rA &#8592; rB / rC
+-A
+
+!DVM
+-DVM rA, rB, rC
+-Divide two 54-bit integer registers
+-The 54-bit value in rB:rB+1 is divided with the 54-bit value in rC:rC+1, the result is placed in rA:rA+1.
+-rA:rA+1 &#8592; rB:rB+1 / rC:rC+1
+-A
+
+!DVFM
+-DVFM rA, rB, rC
+-Divide two 54-bit floating point registers
+-The 54-bit floating point value in rB:rB+1 is divided with the 54-bit floating point value in rC:rC+1, the result is placed in rA:rA+1.
+-rA:rA+1 &#8592; rB:rB+1 / rC:rC+1
+-A
+
+# Modulus
+!MD
+-MD rA, rB, rC
+-Access the remainder of dividing two 27-bit integer registers
+-The 27-bit value in rB is divided with the 27-bit value in rC, the remainder of the division is placed in rA.
+-rA &#8592; rB % rC
+-A
+
+!MDF
+-MDF rA, rB, rC
+-Access the remainder of dividing two 27-bit floating point registers
+-The 27-bit floating point value in rB is divided with the 27-bit floating point value in rC, the remainder of the division is placed in rA.
+-rA &#8592; rB % rC
+-A
+
+!MDM
+-MDM rA, rB, rC
+-Access the remainder of dividing two 54-bit integer registers
+-The 54-bit value in rB:rB+1 is divided with the 54-bit value in rC:rC+1, the remainder of the division is placed in rA:rA+1.
+-rA:rA+1 &#8592; rB:rB+1 % rC:rC+1
+-A
+
+!MDFM
+-MDFM rA, rB, rC
+-Access the remainder of dividing two 54-bit floating point registers
+-The 54-bit floating point value in rB:rB+1 is divided with the 54-bit floating point value in rC:rC+1, the remainder of the division is placed in rA:rA+1.
+-rA:rA+1 &#8592; rB:rB+1 % rC:rC+1
+-A
+
+!MDS
+-MDS rA, rB, rC
+-Access the remainder of dividing two signed 27-bit integer registers
+-The signed 27-bit value in rB is divided with the signed 27-bit value in rC, the remainder of the division is placed in rA.
+-rA &#8592; (signed)rB % (signed)rC
+-A
+
+!MDSM
+-MDSM rA, rB, rC
+-Access the remainder of dividing two signed 54-bit integer registers
+-The signed 54-bit value in rB:rB+1 is divided with the signed 54-bit value in rC:rC+1, the remainder of the division is placed in rA:rA+1.
+-rA:rA+1 &#8592; (signed)rB:rB+1 % (signed)rC:rC+1
+-A
+
+# Multiply
+!MUS
+-MUS rA, rB, rC
+-Multiply two signed 27-bit integer registers together
+-The signed 27-bit value in rC is multiplied with the signed 27-bit value in rB, the result is placed in rA.
+-rA &#8592; (signed)rB * (signed)rC
+-A
+
+!MUSM
+-MUSM rA, rB, rC
+-Multiply two 54-bit integer registers together
+-The signed 54-bit value in rC:rC+1 is multiplied with the signed 54-bit value in rB:rB+1, the result is placed in rA:rA+1.
+-rA:rA+1 &#8592; (signed)rB:rB+1 * (signed)rC:rC+1
+-A
+
+# Divide
+!DVS
+-DVS rA, rB, rC
+-Divide two signed 27-bit integer registers
+-The signed 27-bit value in rB is divided with the signed 27-bit value in rC, the result is placed in rA.
+-rA &#8592; (signed)rB / (signed)rC
+-A
+
+!DVSM
+-DVSM rA, rB, rC
+-Divide two 54-bit integer registers
+-The 54-bit value in rB:rB+1 is divided with the 54-bit value in rC:rC+1, the result is placed in rA:rA+1.
+-rA:rA+1 &#8592; (signed)rB:rB+1 / (signed)rC:rC+1
+-A
+
+# AND
+!AN
+-AN rA, rB, rC
+-Bit-wise AND two 27-bit integer registers together
+-The 27-bit value in rC is bit-wise AND to the 27-bit value in rB, the result is placed in rA.
+-rA &#8592; rB & rC
+-A
+
+!ANM
+-ANM rA, rB, rC
+-Bit-wise AND two 54-bit integer registers together
+-The 54-bit value in rC:rC+1 is bit-wise AND to the 54-bit value in rB:rB+1, the result is placed in rA:rA+1.
+-rA:rA+1 &#8592; rB:rB+1 & rC:rC+1
+-A
+
+# OR
+!OR
+-OR rA, rB, rC
+-Bit-wise OR two 27-bit integer registers together
+-The 27-bit value in rC is bit-wise OR to the 27-bit value in rB, the result is placed in rA.
+-rA &#8592; rB | rC
+-A
+
+!ORM
+-ORM rA, rB, rC
+-Bit-wise OR two 54-bit integer registers together
+-The 54-bit value in rC:rC+1 is bit-wise OR to the 54-bit value in rB:rB+1, the result is placed in rA:rA+1.
+-rA:rA+1 &#8592; rB:rB+1 | rC:rC+1
+-A
+
+# XOR
+!XR
+-XR rA, rB, rC
+-Bit-wise eXclusive OR two 27-bit integer registers together
+-The 27-bit value in rC is bit-wise eXclusive OR to the 27-bit value in rB, the result is placed in rA.
+-rA &#8592; rB ^ rC
+-A
+
+!XRM
+-XRM rA, rB, rC
+-Bit-wise eXclusive OR two 54-bit integer registers together
+-The 54-bit value in rC:rC+1 is bit-wise eXclusive OR to the 54-bit value in rB:rB+1, the result is placed in rA:rA+1.
+-rA:rA+1 &#8592; rB:rB+1 ^ rC:rC+1
+-A
+
+# ADC
+!ADC
+-ADC rA, rB, rC
+-Add two 27-bit integer registers together including the carry bit
+-The 27-bit value in rC is added to the 27-bit value in rB, the carry bit from any previous operation is added to the result. The result is placed in rA.
+-rA &#8592; rB + rC + Carry_Bit
+-A
+
+!ADCM
+-ADCM rA, rB, rC
+-Add two 54-bit integer registers together including the carry bit
+-The 54-bit value in rC:rC+1 is added to the 54-bit value in rB:rB+1, the carry bit from any previous operation is added to the result. The result is placed in rA:rA+1.
+-rA:rA+1 &#8592; rB:rB+1 + rC:rC+1 + Carry_Bit
+-A
+
+# SBC
+!SBC
+-SBC rA, rB, rC
+-Subtract two 27-bit integer registers from each other including the carry bit
+-The 27-bit value in rC is subtracted from the 27-bit value in rB, the carry bit from any previous operation is subtracted from the result. The result is placed in rA.
+-rA &#8592; rB - rC - Carry_Bit
+-A
+
+!SBCM
+-SBCM rA, rB, rC
+-Subtracted two 54-bit integer registers from each other including the carry bit
+-The 54-bit value in rC:rC+1 is subtracted from the 54-bit value in rB:rB+1, the carry bit from any previous operation is subtracted from the result. The result is placed in rA:rA+1.
+-rA:rA+1 &#8592; rB:rB+1 - rC:rC+1 - Carry_Bit
+-A
+
+# Immediate versions
+# ADD
+!ADI
+-ADI rA, rB, IMM
+-Add a 7-bit immediate value to a 27-bit integer register
+-The 7-bit immediate value is added to the 27-bit value in rB, the result is placed in rA.
+-rA &#8592; rB + IMM
+-A
+
+!ADIM
+-ADIM rA, rB, IMM
+-Add a 7-bit immediate value to a 54-bit integer register
+-The 7-bit immediate value is added to the 54-bit value in rB:rB+1, the result is placed in rA:rA+1.
+-rA:rA+1 &#8592; rB:rB+1 + IMM
+-A
+
+# SUB
+!SBI
+-SBI rA, rB, IMM
+-Subtract a 7-bit immediate value from a 27-bit integer register
+-The 7-bit immediate value is subtracted from the 27-bit value in rB, the result is placed in rA.
+-rA &#8592; rB - IMM
+-A
+
+!SBIM
+-SBIM rA, rB, IMM
+-Subtract a 7-bit immediate value from a 54-bit integer register
+-The 7-bit immediate value is subtracted from the 54-bit value in rB:rB+1, the result is placed in rA:rA+1.
+-rA:rA+1 &#8592; rB:rB+1 - IMM
+-A
+
+# Multiply
+!MUI
+-MUI rA, rB, IMM
+-Multiply a 27-bit integer register by a 7-bit immediate
+-The 7-bit immediate value is multiplied with the 27-bit value in rB, the result is placed in rA.
+-rA &#8592; rB * IMM
+-A
+
+!MUIM
+-MUIM rA, rB, IMM
+-Multiply a 54-bit integer register by a 7-bit immediate
+-The 7-bit immediate value is multiplied with the 54-bit value in rB:rB+1, the result is placed in rA:rA+1.
+-rA:rA+1 &#8592; rB:rB+1 * IMM
+-A
+
+# Divide
+!DVI
+-DVI rA, rB, IMM
+-Divide a 27-bit integer register by a 7-bit immediate
+-The 27-bit value in rB is divided with the 7-bit immediate value, the result is placed in rA.
+-rA &#8592; rB / IMM
+-A
+
+!DVIM
+-DVIM rA, rB, IMM
+-Divide a 54-bit integer register by a 7-bit immediate
+-The 54-bit value in rB:rB+1 is divided with the 7-bit immediate value, the result is placed in rA:rA+1.
+-rA:rA+1 &#8592; rB:rB+1 / IMM
+-A
+
+# Modulus
+!MDI
+-MDI rA, rB, IMM
+-Access the remainder of dividing a 27-bit integer register by a 7-bit immediate
+-The 27-bit value in rB is divided with a 7-bit immediate value, the remainder of the division is placed in rA.
+-rA &#8592; rB % IMM
+-A
+
+!MDIM
+-MDIM rA, rB, IMM
+-Access the remainder of dividing a 54-bit integer register by a 7-bit immediate
+-The 54-bit value in rB:rB+1 is divided with the 7-bit immediate value, the remainder of the division is placed in rA:rA+1.
+-rA:rA+1 &#8592; rB:rB+1 % IMM
+-A
+
+!MDIS
+-MDIS rA, rB, IMM
+-Access the remainder of dividing a signed 27-bit integer register by a signed 7-bit immediate
+-The signed 27-bit value in rB is divided with a signed 7-bit immediate value, the remainder of the division is placed in rA.
+-rA &#8592; (signed)rB % (signed)IMM
+-A
+
+!MDISM
+-MDISM rA, rB, IMM
+-Access the remainder of dividing a signed 54-bit integer register by a signed 7-bit immediate
+-The signed 54-bit value in rB:rB+1 is divided with the signed 7-bit immediate value, the remainder of the division is placed in rA:rA+1.
+-rA:rA+1 &#8592; (signed)rB:rB+1 % (signed)IMM
+-A
+
+
+# Multiply
+!MUIS
+-MUIS rA, rB, IMM
+-Multiply a signed 27-bit integer register by a signed 7-bit immediate
+-The signed 7-bit immediate value is multiplied with the signed 27-bit value in rB, the result is placed in rA.
+-rA &#8592; (signed)rB * (signed)IMM
+-A
+
+!MUISM
+-MUISM rA, rB, IMM
+-Multiply a signed 54-bit integer register by a signed 7-bit immediate
+-The signed 7-bit immediate value is multiplied with the signed 54-bit value in rB:rB+1, the result is placed in rA:rA+1.
+-rA:rA+1 &#8592; (signed)rB:rB+1 * (signed)IMM
+-A
+
+# Divide
+!DVIS
+-DVIS rA, rB, IMM
+-Divide a signed 27-bit integer register by a signed 7-bit immediate
+-The signed 27-bit value in rB is divided with the signed 7-bit immediate value, the result is placed in rA.
+-rA &#8592; (signed)rB / (signed)IMM
+-A
+
+!DVISM
+-DVISM rA, rB, IMM
+-Divide a signed 54-bit integer register by a signed 7-bit immediate
+-The signed 54-bit value in rB:rB+1 is divided with the signed 7-bit immediate value, the result is placed in rA:rA+1.
+-rA:rA+1 &#8592; (signed)rB:rB+1 / (signed)IMM
+-A
+
+# AND
+!ANI
+-ANI rA, rB, IMM
+-Bit-wise AND a 27-bit integer register and 7-bit immediate together
+-The 7-bit immediate value is bit-wise AND to the 27-bit value in rB, the result is placed in rA.
+-rA &#8592; rB & IMM
+-A
+
+# ORI
+!ORI
+-ORI rA, rB, IMM
+-Bit-wise OR a 27-bit integer register and 7-bit immediate together
+-The 7-bit immediate value is bit-wise OR to the 27-bit value in rB, the result is placed in rA.
+-rA &#8592; rB | IMM
+-A
+
+# XRI
+!XRI
+-XRI rA, rB, IMM
+-Bit-wise Exclusive OR a 27-bit integer register and 7-bit immediate together
+-The 7-bit immediate value is bit-wise Exclusive OR to the 27-bit value in rB, the result is placed in rA.
+-rA &#8592; rB ^ IMM
+-A
+
+# ADCI
+!ADCI
+-ADCI rA, rB, IMM
+-Add a 7-bit immediate value to a 27-bit integer register including the carry bit
+-The 7-bit immediate value is added to the 27-bit value in rB, the carry bit from any previous operation is added to the result. The result is placed in rA.
+-rA &#8592; rB + IMM + Carry_Bit
+-A
+
+!ADCIM
+-ADCIM rA, rB, IMM
+-Add a 7-bit immediate value to a 54-bit integer register including the carry bit
+-The 7-bit immediate value is added to the 54-bit value in rB:rB+1, the carry bit from any previous operation is added to the result. The result is placed in rA:rA+1.
+-rA:rA+1 &#8592; rB:rB+1 + IMM + Carry_Bit
+-A
+
+# SBCI
+!SBCI
+-SBCI rA, rB, IMM
+-Subtract a 7-bit immediate from a 27-bit integer register including the carry bit
+-The 7-bit immediate value is subtracted from the 27-bit value in rB, the carry bit from any previous operation is subtracted from the result. The result is placed in rA.
+-rA &#8592; rB - IMM - Carry_Bit
+-A
+
+!SBCIM
+-SBCIM rA, rB, IMM
+-Subtract a 7-bit immediate from a 54-bit integer register including the carry bit
+-The 7-bit immediate value is subtracted from the 54-bit value in rB:rB+1, the carry bit from any previous operation is subtracted from the result. The result is placed in rA:rA+1.
+-rA:rA+1 &#8592; rB:rB+1 - IMM - Carry_Bit
+-A
+
+################
+
+
+# SHIFT INSTRUCTIONS
+!SL
+-SL rA, rB, rC
+-Shift left a 27-bit integer
+-The 27-bit value in rB is left shifted the number of bits specified in rC. The result is placed in rA.
+-rA &#8592; rB << rC
+-A
+
+!SLM
+-SLM rA, rB, rC
+-Shift left a 54-bit integer
+-The 54-bit value in rB:rB+1 is left shifted the number of bits specified in rC. The result is placed in rA:rA+1.
+-rA:rA+1 &#8592; rB:rB+1 << rC
+-A
+
+!SR
+-SR rA, rB, rC
+-Shift right a 27-bit integer
+-The 27-bit value in rB is right shifted the number of bits specified in rC. The result is placed in rA.
+-rA &#8592; rB >> rC
+-A
+
+!SRM
+-SRM rA, rB, rC
+-Shift right a 54-bit integer
+-The 54-bit value in rB:rB+1 is right shifted the number of bits specified in rC. The result is placed in rA:rA+1.
+-rA:rA+1 &#8592; rB:rB+1 >> rC
+-A
+
+!SA
+-SA rA, rB, rC
+-Shift right arithmetic a 27-bit integer
+-The 27-bit value in rB is right arithmetic shifted the number of bits specified in rC. The result is placed in rA.
+-rA &#8592; (signed)rB >> rC
+-A
+
+!SAM
+-SAM rA, rB, rC
+-Shift right arithmetic a 54-bit integer
+-The 54-bit value in rB:rB+1 is right arithmetic shifted the number of bits specified in rC. The result is placed in rA:rA+1.
+-rA:rA+1 &#8592; (signed)rB:rB+1 >> rC
+-A
+
+!RL
+-RL rA, rB, rC
+-Rotate left a 27-bit integer
+-The 27-bit value in rB is left rotated the number of bits specified in rC. The result is placed in rA.
+-rA &#8592; (rB << rC) | (rB >> (27-rC))
+-A
+
+!RLM
+-RLM rA, rB, rC
+-Rotate left a 54-bit integer
+-The 54-bit value in rB:rB+1 is left rotated the number of bits specified in rC. The result is placed in rA:rA+1.
+-rA:rA+1 &#8592; (rB:rB+1 << rC) | (rB:rB+1 >> (54-rC))
+-A
+
+!RR
+-RR rA, rB, rC
+-Rotate right a 27-bit integer
+-The 27-bit value in rB is right rotated the number of bits specified in rC. The result is placed in rA.
+-rA &#8592; (rB >> rC) | (rB << (27-rC))
+-A
+
+!RRM
+-RRM rA, rB, rC
+-Rotate right a 54-bit integer
+-The 54-bit value in rB:rB+1 is right rotated the number of bits specified in rC. The result is placed in rA:rA+1.
+-rA:rA+1 &#8592; (rB:rB+1 >> rC) | (rB:rB+1 << (54-rC))
+-A
+
+# SHIFT IMMEDIATE INSTRUCTIONS
+!SLI
+-SLI rA, rB, IMM
+-Shift left a 27-bit integer by a 7-bit immediate value
+-The 27-bit value in rB is left shifted by the 7-bit immediate value. The result is placed in rA.
+-rA &#8592; rB << IMM
+-A
+
+!SLIM
+-SLIM rA, rB, IMM
+-Shift left a 54-bit integer by a 7-bit immediate value
+-The 54-bit value in rB is left shifted by the 7-bit immediate value. The result is placed in rA:rA+1.
+-rA:rA+1 &#8592; rB:rB+1 << IMM
+-A
+
+!SRI
+-SRI rA, rB, IMM
+-Shift right a 27-bit integer by a 7-bit immediate value
+-The 27-bit value in rB is right shifted by the 7-bit immediate value. The result is placed in rA.
+-rA &#8592; rB >> IMM
+-A
+
+!SRIM
+-SRIM rA, rB, IMM
+-Shift right a 54-bit integer by a 7-bit immediate value
+-The 54-bit value in rB:rB+1 is right shifted by the 7-bit immediate value. The result is placed in rA:rA+1.
+-rA:rA+1 &#8592; rB:rB+1 >> IMM
+-A
+
+!SAI
+-SAI rA, rB, IMM
+-Shift right arithmetic a 27-bit integer by a 7-bit immediate value
+-The 27-bit value in rB is right arithmetic shifted by the 7-bit immediate value. The result is placed in rA.
+-rA &#8592; (signed)rB >> IMM
+-A
+
+!SAIM
+-SAIM rA, rB, IMM
+-Shift right arithmetic a 54-bit integer by a 7-bit immediate value
+-The 54-bit value in rB:rB+1 is right arithmetic shifted by the 7-bit immediate value. The result is placed in rA:rA+1.
+-rA:rA+1 &#8592; (signed)rB:rB+1 >> IMM
+-A
+
+!RLI
+-RLI rA, rB, IMM
+-Rotate left a 27-bit integer by a 7-bit immediate value
+-The 27-bit value in rB is left rotated by the 7-bit immediate value. The result is placed in rA.
+-rA &#8592; (rB << IMM) | (rB >> (27-IMM))
+-A
+
+!RLIM
+-RLIM rA, rB, IMM
+-Rotate left a 54-bit integer by a 7-bit immediate value
+-The 54-bit value in rB:rB+1 is left rotated by the 7-bit immediate value. The result is placed in rA:rA+1.
+-rA:rA+1 &#8592; (rB:rB+1 << IMM) | (rB:rB+1 >> (54-IMM))
+-A
+
+!RRI
+-RRI rA, rB, IMM
+-Rotate right a 27-bit integer by a 7-bit immediate value
+-The 27-bit value in rB is right rotated by the 7-bit immediate value. The result is placed in rA.
+-rA &#8592; (rB >> IMM) | (rB << (27-IMM))
+-A
+
+!RRIM
+-RRIM rA, rB, rC
+-Rotate right a 54-bit integer by an immediate value
+-The 54-bit value in rB:rB+1 is right rotated by the 7-bit immediate value. The result is placed in rA:rA+1.
+-rA:rA+1 &#8592; (rB:rB+1 >> IMM) | (rB:rB+1 << (54-IMM))
+-A
+
+#Memory move instructions
+!MH
+-MH rA, IMM
+-Move an immediate value to the high bits of a register
+-The high 17 bits of a 27-bit value in rA is set to the specified immediate value.
+-rA &#8592; (IMM << 10) | (rA & 0x3FF)
+-A
+
+!ML
+-ML rA, IMM
+-Move a 17-bit immediate value to the register
+-A 27-bit rA is set to the specified 17-bit immediate value. The high bits are zero'd out.
+-rA &#8592; IMM
+-A
+
+!MS
+-MS rA, IMM
+-Move a signed 17-bit immediate value to the register
+-A 27-bit rA is set to the specified signed 17-bit immediate value. The high bits are set based on the signed bit of the immediate value specified.
+-rA &#8592; (signed)IMM
+-A
+
+#Single opcodes
+!RE
+-RE
+-To return from a call
+-To return from a call.
+-PC &#8592; RETADDR
+-
+
+!IR
+-IR
+-Return from an interrupt
+-Return from an interrupt routine.
+-if Stack_Direction_Flag then
+  SP -= 0x63
+R0:R31 &#8592; [SP:SP+0x60]
+FLAGS &#8592; [SP+0x60:SP+0x63]
+if not Stack_Direction_Flag then
+  SP += 0x63
+-A
+
+!WT
+-WT
+-Wait for interrupt
+-Pauses the processor until an interrupt fires.
+-
+-
+
+!HT
+-HT
+-Halt the processor
+-Disables all interrupts and stops the processor from responding to any more instructions.
+-
+-
+
+!EI
+-EI rA
+-Enable interrupts base on rA
+-Enable interrupts based on the mask in rA.
+- FLAGS = (FLAGS & 0x7FFE00F) | ((rA << 4) & 0x1FF0)
+-
+
+!DI
+-DI rA
+-Disable interrupts based on rA
+-Disable interrupts based on the mask in rA.
+- FLAGS = (FLAGS & 0x7FFE00F) | ((~rA << 4) & 0x1FF0)
+-
+
+!SF
+-SF rA
+-Set flag register to rA
+-Set the flag register to the value in rA.
+- FLAGS = rA & 0x7FFFFFF
+-A
+
+!RF
+-RF rA
+-Read flags into the rA register
+-Set rA to the value in the flag register.
+- rA = FLAGS
+-
+
+!HS
+-HS rA, rB
+-Hash
+-Return a processor specific hash into r0:r5 based on values in rA and rB.
+-r0:r5 &#8592; <Unknown processor specific value>
+-
+
+!SES
+-SES rA, rB
+-Sign extend from a byte
+-Sign extend a single byte from register rB into the 27-bit rA.
+-rA &#8592; (signed)(rB << 18) >> 18
+-A
+
+!SEW
+-SEW rA, rB
+-Sign extend from two bytes
+-Sign extend a 18-bit value from register rB into the 27-bit rA.
+-rA &#8592; (signed)(rB << 9) >> 9
+-A
+
+!ZES
+-ZES rA, rB
+-Zero extend from a byte
+-Zero extend a single byte from register rB into the 27-bit rA.
+-rA &#8592; rB & 0x00001FF
+-A
+
+!ZEW
+-ZEW rA, rB
+-Zero extend from two bytes
+-Zero extend a 18-bit value from register rB into the 27-bit rA.
+-rA &#8592; rB & 0x003FFFF
+-A
+
+#float conversions
+!FTI
+-FTI rA, rB
+-Convert a 27-bit float to integer
+-The 27-bit float in rB in converted to a 27-bit integer value and stored in rA.
+-rA &#8592; int(rB)
+-A
+
+!FTIM
+-FTIM rA, rB
+-Convert a 54-bit float to integer
+-The 54-bit float in rB:rB+1 in converted to a 54-bit integer value and stored in rA:rA+1.
+-rA:rA+1 &#8592; int(rB:rB+1)
+-A
+
+!ITF
+-ITF rA, rB
+-Convert a 27-bit integer to float
+-The 27-bit integer in rB in converted to a 27-bit float value and stored in rA.
+-rA &#8592; float(rB)
+-A
+
+!ITFM
+-ITFM rA, rB
+-Convert a 54-bit integer to float
+-The 54-bit integer in rB:rB+1 in converted to a 54-bit float value and stored in rA:rA+1.
+-rA:rA+1 &#8592; float(rB:rB+1)
+-A
+
+!SMP
+-SMP rA, rB, FLAGS
+-Set the memory protections for a range of pages of memory
+-Memory starting at a page boundary specified by rA has its page protection flags set to FLAGS for rB pages. A set zero flag indicates success. Upon failure rA holds the error reason.
+Errors:
+0 - Memory start is not page aligned
+1 - Too many pages specified
+
+Flags:
+0 - No access
+1 - Read
+2 - Read/Write
+3 - Read/Execute
+-
+- Z
+
+!RMP
+-RMP rA, rB
+-Read the memory protections for a page of memory
+-rA is set to the page protection flags of the pages of the specified memory range starting at the memory location specified by rA and moving forward rB pages. A set zero flag indicates success, upon failure rA holds the error reason. Every 2 bits indicates the memory protection state of a page. Only 13 page statuses can be returned at a time.
+Errors:
+0 - Memory start is not page aligned
+1 - Too many pages specified
+
+Flags:
+0 - No access
+1 - Read
+2 - Read/Write
+3 - Read/Execute
+-rA &#8592;
+    Memory_Page_Flags[rA]:Memory_Page_Flags[rA+(rB*1024)]
+- Z
+
+
+#simple register opcodes
+!NG
+-NG rA, rB
+-Negate a 27-bit register
+-Negate the 27-bit rB register value and store the result in rA.
+-rA &#8592; -rB
+-A
+
+!NGF
+-NGF rA, rB
+-Negate a 27-bit floating-point register
+-Negate the 27-bit rB floating-point register value and store the result in rA.
+-rA &#8592; -rB
+-B
+
+!NGM
+-NGM rA, rB
+-Negate a 54-bit register
+-Negate the 54-bit rB:rB+1 register value and store the result in rA:rA+1.
+-rA:rA+1 &#8592; -rB:rB+1
+-A
+
+!NGFM
+-NGFM rA, rB
+-Negate a 54-bit floating-point register
+-Negate the 54-bit rB:rB+1 floating-point register value and store the result in rA:rA+1.
+-rA:rA+1 &#8592; -rB:rB+1
+-B
+
+!BF
+-BF rA, rB
+-Bit flip a 27-bit register
+-Invert all bits of the 27-bit rB register value and store the result in rA.
+-rA &#8592; ~rB
+-A
+
+!BFM
+-BFM rA, rB
+-Bit flip a 54-bit register
+-Invert all bits of the 54-bit rB:rB+1 register value and store the result in rA:rA+1.
+-rA:rA+1 &#8592; ~rB:rB+1
+-A
+
+!NT
+-NT rA, rB
+-Bit test a 27-bit register
+-Test all bits of the 27-bit rB register value. If any bits are set then rA is set to 0. If all bits are off then rA is set to 1.
+-rA &#8592; !rB
+-A
+
+!NTM
+-NTM rA, rB
+-Bit test a 54-bit register
+-Test all bits of the 54-bit rB:rB+1 register value. If any bits are set then rA:rA+1 is set to 0. If all bits are off then rA:rA+1 is set to 1.
+-rA:rA+1 &#8592; !rB:rB+1
+-A
+
+!RND
+-RND rA
+-Generate a random value into rA
+-A random value is placed into the 27-bit rA register.
+-rA &#8592; <random value>
+-A
+
+!RNDM
+-RNDM rA
+-Generate a random value into rA:rA+1
+-A random value is generated and placed into the 54-bit rA:rA+1 register.
+-rA:rA+1 &#8592; <random value>
+-A
+
+#Load and store instructions
+!LDS
+-LDSm rA, [rB + Offset, RegCount]
+-Load a single byte from memory
+-The value in rB is added to Offset and a single byte per register is loaded into the low 9 bits of rA to rA+RegCount. The top 18 bits are set to zero for each affected register.
+m refers to the Adjust RB value which can have the following designations to indicate the mode:
+ - 0 - rB is not adjusted after load
+I - 1 - rB has the number of bytes read added to the start value after all data is read
+D - 2 - rB has the number of bytes to read subtracted from the start value after all data is read
+-StartReg = rA
+RegCount = RegCount + 1
+CurCount = RegCount
+Temp = rB
+TempPC = PC
+if Mode is 2 then
+  Temp = Temp - CurCount
+MemLocation = (Temp + Offset)
+While CurCount is not 0
+  Registers[StartReg] = Memory[MemLocation]
+  MemLocation += 1
+  StartReg = (StartReg + 1) % 32
+  CurCount = CurCount - 1
+if Mode is 1 then
+  rB = rB + RegCount
+if Mode is 2 then
+  rB = Temp
+PC = TempPC
+-
+
+!LDW
+-LDWm rA, [rB + Offset, RegCount]
+-Load two bytes from memory
+-The value in rB is added to Offset and two bytes per register are loaded into the low 18 bits of rA to rA+RegCount. The top 9 bits are set to zero for each affected register.
+m refers to the Adjust RB value which can have the following designations to indicate the mode:
+ - 0 - rB is not adjusted after load
+I - 1 - rB has the number of bytes read added to the start value after all data is read
+D - 2 - rB has the number of bytes to read subtracted from the start value after all data is read
+-StartReg = rA
+RegCount = RegCount + 1
+CurCount = RegCount
+Temp = rB
+TempPC = PC
+if Mode is 2 then
+  Temp = Temp - (CurCount * 2)
+MemLocation = (Temp + Offset)
+While CurCount is not 0
+  Registers[StartReg] =
+    (Memory[MemLocation] << 9) | Memory[(MemLocation + 1)]
+  MemLocation += 2
+  StartReg = (StartReg + 1) % 32
+  CurCount = CurCount - 1
+if Mode is 1 then
+  rB = rB + (RegCount * 2)
+if Mode is 2 then
+  rB = Temp
+PC = TempPC
+-
+
+!LDT
+-LDTm rA, [rB + Offset, RegCount]
+-Load three bytes from memory
+-The value in rB is added to Offset and three bytes per register are loaded into rA to rA+RegCount.
+m refers to the Adjust RB value which can have the following designations to indicate the mode:
+ - 0 - rB is not adjusted after load
+I - 1 - rB has the number of bytes read added to the start value after all data is read
+D - 2 - rB has the number of bytes to read subtracted from the start value after all data is read
+-StartReg = rA
+RegCount = RegCount + 1
+CurCount = RegCount
+Temp = rB
+TempPC = PC
+if Mode is 2 then
+  Temp = Temp - (CurCount * 3)
+MemLocation = (Temp + Offset)
+While CurCount is not 0
+  Registers[StartReg] =
+    (Memory[MemLocation] << 9) |
+    (Memory[(MemLocation + 1)] << 18) |
+    Memory[(MemLocation + 2)]
+  MemLocation += 3
+  StartReg = (StartReg + 1) % 32
+  CurCount = CurCount - 1
+if Mode is 1 then
+  rB = rB + (RegCount * 3)
+if Mode is 2 then
+  rB = Temp
+PC = TempPC
+-
+
+!STS
+-STSm rA, [rB + Offset, RegCount]
+-Store a single byte into memory
+-The value in rB is added to Offset and a single byte per register is stored from the low 9 bits of each register from rA to rA+RegCount. m refers to the Adjust RB value which can have the following designations to indicate the mode:
+ - 0 - rB is not adjusted after store
+I - 1 - rB has the number of bytes written added to the start value after all data is written
+D - 2 - rB has the number of bytes to write subtracted from the start value after all data is written
+-StartReg = rA
+RegCount = RegCount + 1
+CurCount = RegCount
+Temp = rB
+if Mode is 2 then
+  Temp = Temp - CurCount
+MemLocation = (Temp + Offset)
+While CurCount is not 0
+  Memory[MemLocation] = Registers[StartReg] & 0x1ff
+  MemLocation += 1
+  StartReg = (StartReg + 1) % 32
+  CurCount = CurCount - 1
+if Mode is 1 then
+  rB = rB + RegCount
+if Mode is 2 then
+  rB = Temp
+-
+
+!STW
+-STWm rA, [rB + Offset, RegCount]
+-Store two bytes into memory
+-The value in rB is added to Offset and a two bytes per register are stored from the low 18 bits of each register from rA to rA+RegCount. m refers to the Adjust RB value which can have the following designations to indicate the mode:
+ - 0 - rB is not adjusted after store
+I - 1 - rB has the number of bytes written added to the start value after all data is written
+D - 2 - rB has the number of bytes to write subtracted from the start value after all data is written
+-StartReg = rA
+RegCount = RegCount + 1
+CurCount = RegCount
+Temp = rB
+if Mode is 2 then
+  Temp = Temp - (CurCount * 2)
+MemLocation = (Temp + Offset)
+While CurCount is not 0
+  Memory[MemLocation] = (Registers[StartReg] >> 9) & 0x1ff
+  MemLocation = (MemLocation + 1)
+  Memory[MemLocation] = Registers[StartReg] & 0x1ff
+  MemLocation = (MemLocation + 1)
+  StartReg = (StartReg + 1) % 32
+  CurCount = CurCount - 1
+if Mode is 1 then
+  rB = rB + (RegCount * 2)
+if Mode is 2 then
+  rB = Temp
+-
+
+!STT
+-STTm rA, [rB + Offset, RegCount]
+-Store three bytes into memory
+-The value in rB is added to Offset and a three bytes per register are stored for each register from rA to rA+RegCount. m refers to the Adjust RB value which can have the following designations to indicate the mode:
+ - 0 - rB is not adjusted after store
+I - 1 - rB has the number of bytes written added to the start value after all data is written
+D - 2 - rB has the number of bytes to write subtracted from the start value after all data is written
+-StartReg = rA
+RegCount = RegCount + 1
+CurCount = RegCount
+Temp = rB
+if Mode is 2 then
+  Temp = Temp - (CurCount * 3)
+MemLocation = (Temp + Offset)
+While CurCount is not 0
+  Memory[MemLocation] =
+    (Registers[StartReg] >> 9) & 0x1ff
+  MemLocation += 1
+  Memory[MemLocation] =
+    (Registers[StartReg] >> 18) & 0x1ff
+  MemLocation += 1
+  Memory[MemLocation] =
+    Registers[StartReg] &  0x1ff
+  MemLocation += 1
+  StartReg = (StartReg + 1) % 32
+  CurCount = CurCount - 1
+if Mode is 1 then
+  rB = rB + (RegCount * 3)
+if Mode is 2 then
+  rB = Temp
+-
+
+#Compare instructions
+!CM
+-CM rA, rB
+-Compare two registers
+-The 27-bit values in rB is subtracted from rA. The flags are set appropriately.
+-FLAGS = FLAGS & ~0xF
+28-bit temp = rA - rB
+if temp == 0 then
+  ZERO FLAG = 1
+if temp & 0x4000000 then
+  SIGNED FLAG = 1
+if (temp & 0x4000000) != (rA & 0x4000000) then
+  OVERFLOW FLAG = 1
+if (temp & 0x8000000) then
+  CARRY FLAG = 1
+-Z S O C
+
+!CMF
+-CMF rA, rB
+-Compare two floating point registers
+-The 27-bit floating point value in rB is subtracted from the floating point rA. The flags are set appropriately.
+-FLAGS = FLAGS & ~0xF
+temp = rA - rB
+if temp == 0.0 then
+  ZERO FLAG = 1
+if temp < 0.0 then
+  SIGNED FLAG = 1
+if (temp < 0.0) != (rA < 0.0) then
+  OVERFLOW FLAG = 1
+-Z S O
+
+!CMM
+-CMM rA, rB
+-Compare two registers
+-The 54-bit values in rB:rB+1 is subtracted from rA:rA+1. The flags are set appropriately.
+-FLAGS = FLAGS & ~0xF
+55-bit temp = rA:rA+1 - rB:rB+1
+if temp == 0 then
+  ZERO FLAG = 1
+if temp & 0x20000000000000 then
+  SIGNED FLAG = 1
+if ((temp & 0x20000000000000) !=
+    (rA:rA+1 & 0x20000000000000)) then
+  OVERFLOW FLAG = 1
+if (temp & 0x40000000000000) then
+  CARRY FLAG = 1
+-Z S O C
+
+!CMFM
+-CMFM rA, rB
+-Compare two floating point registers
+-The 54-bit floating point value in rB is subtracted from the floating point rA. The flags are set appropriately.
+-FLAGS = FLAGS & ~0xF
+temp = rA:rA+1 - rB:rB+1
+if temp == 0 then
+  ZERO FLAG = 1
+if temp < 0.0 then
+  SIGNED FLAG = 1
+if (temp < 0.0) != (rA:rA+1 < 0.0) then
+  OVERFLOW FLAG = 1
+-Z S O
+
+!CMI
+-CMI rA, IMM
+-Compare a register and immediate value
+-The sign extended immediate value is subtracted from the 27-bit rA. The flags are set appropriately.
+-FLAGS = FLAGS & ~0xF
+28-bit temp = rA - (signed)IMM
+if temp == 0 then
+  ZERO FLAG = 1
+if temp & 0x4000000 then
+  SIGNED FLAG = 1
+if (temp & 0x4000000) != (rA & 0x4000000) then
+  OVERFLOW FLAG = 1
+if (temp & 0x8000000) then
+  CARRY FLAG = 1
+-Z S O C
+
+!CMIM
+-CMIM rA, IMM
+-Compare a register and immediate value
+-The sign extended immediate value is subtracted from the 54-bit rA:rA+1. The flags are set appropriately.
+-FLAGS = FLAGS & ~0xF
+55-bit temp = rA:rA+1 - (signed)IMM
+if temp == 0 then
+  ZERO FLAG = 1
+if temp & 0x20000000000000 then
+  SIGNED FLAG = 1
+if ((temp & 0x20000000000000) !=
+    (rA:rA+1 & 0x20000000000000)) then
+  OVERFLOW FLAG = 1
+if (temp & 0x40000000000000) then
+  CARRY FLAG = 1
+-Z S O C
+
+!B
+-Bcc Offset
+-Conditional branch to an offset
+-If the specified condition is true then the sign extended offset is added to the current program counter.
+The condition table is as follows:
+cc - Value - Description - Flag State Checked
+n - 0000 - Not Equal / Not Zero - Z == 0
+e - 0001 - Equal / Zero - Z == 1
+l - 0010 - Less Than - C == 1 AND Z == 0
+le - 0011 - Less Than or Equal - C == 1 OR Z == 1
+g - 0100 - Greater Than - C == 0 AND Z == 0
+ge - 0101 - Greater Than or Equal - C == 0 OR Z == 1
+no - 0110 - Not Overflow - O == 0
+o - 0111 - Overflow - O == 1
+ns - 1000 - Not Signed - S == 0
+s - 1001 - Signed - S == 1
+sl - 1010 - Signed Less Than - S != O
+sle - 1011 - Signed Less Than or Equal - S != O OR Z == 1
+sg - 1100 - Signed Greater Than - S == O AND Z == 0
+sge - 1101 - Signed Greater Than or Equal - S == O
+ - 1111 - Always -
+-if Flags == Condition then
+  PC += (signed)Offset
+-
+
+!BR
+-BRcc rA
+-Conditional branch to a register
+-If the specified condition is true then the value in rA is placed into the program counter.
+The condition table is as follows:
+cc - Value - Description - Flag State Checked
+n - 0000 - Not Equal / Not Zero - Z == 0
+e - 0001 - Equal / Zero - Z == 1
+l - 0010 - Less Than - C == 1 AND Z == 0
+le - 0011 - Less Than or Equal - C == 1 OR Z == 1
+g - 0100 - Greater Than - C == 0 AND Z == 0
+ge - 0101 - Greater Than or Equal - C == 0 OR Z == 1
+no - 0110 - Not Overflow - O == 0
+o - 0111 - Overflow - O == 1
+ns - 1000 - Not Signed - S == 0
+s - 1001 - Signed - S == 1
+sl - 1010 - Signed Less Than - S != O
+sle - 1011 - Signed Less Than or Equal - S != O OR Z == 1
+sg - 1100 - Signed Greater Than - S == O AND Z == 0
+sge - 1101 - Signed Greater Than or Equal - S == O
+ - 1111 - Always -
+-if Flags == Condition then
+  PC = rA
+-
+
+!C
+-Ccc Offset
+-Conditional call to an offset
+-If the specified condition is true then the current program counter + 3 is saved into the RA register and the sign extended offset is added to the current program counter.
+The condition table is as follows:
+cc - Value - Description - Flag State Checked
+n - 0000 - Not Equal / Not Zero - Z == 0
+e - 0001 - Equal / Zero - Z == 1
+l - 0010 - Less Than - C == 1 AND Z == 0
+le - 0011 - Less Than or Equal - C == 1 OR Z == 1
+g - 0100 - Greater Than - C == 0 AND Z == 0
+ge - 0101 - Greater Than or Equal - C == 0 OR Z == 1
+no - 0110 - Not Overflow - O == 0
+o - 0111 - Overflow - O == 1
+ns - 1000 - Not Signed - S == 0
+s - 1001 - Signed - S == 1
+sl - 1010 - Signed Less Than - S != O
+sle - 1011 - Signed Less Than or Equal - S != O OR Z == 1
+sg - 1100 - Signed Greater Than - S == O AND Z == 0
+sge - 1101 - Signed Greater Than or Equal - S == O
+ - 1111 - Always -
+-if Flags == Condition then
+  RA = PC + 3
+  PC += (signed)Offset
+-
+
+!CR
+-CRcc rA
+-Conditional call to a register
+-If the specified condition is true then the current program counter + 2 is saved into the RA register and the program counter is set to the value in rA.
+The condition table is as follows:
+cc - Value - Description - Flag State Checked
+n - 0000 - Not Equal / Not Zero - Z == 0
+e - 0001 - Equal / Zero - Z == 1
+l - 0010 - Less Than - C == 1 AND Z == 0
+le - 0011 - Less Than or Equal - C == 1 OR Z == 1
+g - 0100 - Greater Than - C == 0 AND Z == 0
+ge - 0101 - Greater Than or Equal - C == 0 OR Z == 1
+no - 0110 - Not Overflow - O == 0
+o - 0111 - Overflow - O == 1
+ns - 1000 - Not Signed - S == 0
+s - 1001 - Signed - S == 1
+sl - 1010 - Signed Less Than - S != O
+sle - 1011 - Signed Less Than or Equal - S != O OR Z == 1
+sg - 1100 - Signed Greater Than - S == O AND Z == 0
+sge - 1101 - Signed Greater Than or Equal - S == O
+ - 1111 - Always -
+-if Flags == Condition then
+  RA = PC + 2
+  PC = rA
+-
+
+!BRR
+-BRR Offset
+-Branch to a relative offset
+-The 27-bit offset is added to the current program counter.
+-PC = PC + Offset
+-
+
+!BRA
+-BRA Location
+-Branch to a set absolute location
+-The program counter is set to the specified 27-bit location.
+-PC = Location
+-
+
+!CAR
+-CAR Offset
+-Call to a relative offset
+-The current program counter + 4 is stored into RA and the 27-bit offset is added to the current program counter.
+-RA = PC + 4
+PC = PC + Offset
+-
+
+!CAA
+-CAA Location
+-Call to a set absolute location
+-The current program counter + 4 is stored into RA and the program counter is set to the specified 27-bit location.
+-RA = PC + 4
+PC = Location
+-
+
+!DMT
+-DMT rA, rB, rC
+-Directly transfer memory between locations
+-Directly transfer rC bytes of memory from location pointed to by rB to memory location rA.
+-P = 0
+while(P < rC)
+  (byte)[rA + P] = (byte)[rB + P]
+  P = P + 1
+-
+
+!DBRK
+-DBRK
+-Debug break
+-A special instruction for emulators to allow forcing a break in the emulation. Normal execution will cause an illegal instruction fault.
+-
+-
